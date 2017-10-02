@@ -1,0 +1,104 @@
+class AetheriusHUD : BaseStatusBar {
+	override void Init() {
+		Super.Init();
+		SetSize(0, 1440, 1080);
+	}
+	
+	override void Draw(int state, double ticFrac) {
+		Super.Draw(state, ticFrac);
+		
+		if (dvds_newhud == 2 && (state == HUD_StatusBar || state == HUD_Fullscreen)) {
+			BeginHUD();
+			
+			DrawCharacterPortrait(ticFrac);
+		}
+	}
+	
+	// Status
+	
+	enum ACSStatusCondition {
+		STATUS_LIGHT,
+		STATUS_INVIS,
+		STATUS_FLIGHT,
+		STATUS_STEALTH,
+		STATUS_INVUL,
+		STATUS_TIMEFREEZE,
+		STATUS_FEARAURA,
+		STATUS_DIVINEAVATAR,
+		STATUS_SPREADERAURA1,
+		STATUS_SPREADERAURA2,
+		STATUS_OOMPH,
+		STATUS_BUFF,
+		STATUS_ACCELERATE,
+		STATUS_BLUNT,
+		STATUS_SAP,
+		STATUS_DECELERATE,
+		STATUS_POISON,
+		STATUS_CORROSION,
+		STATUS_FATIGUE,
+		STATUS_BLIND,
+		STATUS_SLEEP,
+		STATUS_SILENCE,
+		STATUS_RADSUIT,
+		STATUS_BERSERK,
+		STATUS_MAX
+	}
+	
+	int StatusDuration(ACSStatusCondition condition) {
+		return GetGlobalACSArrayValue(16, condition);
+	}
+	
+	// Character Portrait
+	
+	/*
+	 * Dimensions for the portrait oval (from the bottom left):
+	 *        │  X  │  Y
+	 * ───────┼─────┼────
+	 * Size   │ 171 │ 175
+	 * Offset │  44 │   7
+	 * Center │ 130 │  95
+	 */
+	
+	void DrawCharacterPortrait(double ticFrac) {
+		String portraitImage = "";
+		
+		if (CPlayer.playerstate == PST_DEAD)
+			portraitImage = "PCOF1NRM";
+		else if (CPlayer.cls is "DeggarisMontegger") {
+			if (StatusDuration(STATUS_INVUL))
+				portraitImage = "PDEG1INV";
+			else
+				portraitImage = "PDEG1NRM";
+		}
+		else if (CPlayer.cls is "IlluciaHendershot") {
+			if (StatusDuration(STATUS_INVUL))
+				portraitImage = "PILL1INV";
+			else
+				portraitImage = "PILL1NRM";
+		}
+		else if (CPlayer.cls is "FloraBriscoletti") {
+			if (StatusDuration(STATUS_DIVINEAVATAR)) {
+				if (StatusDuration(STATUS_INVUL))
+					portraitImage = "PFLO2INV";
+				else
+					portraitImage = "PFLO2NRM";
+			}
+			else {
+				if (StatusDuration(STATUS_INVUL))
+					portraitImage = "PFLO1INV";
+				else
+					portraitImage = "PFLO1NRM";
+			}
+		}
+		
+		if (portraitImage != "") {
+			int flags = DI_ITEM_LEFT_BOTTOM | DI_SCREEN_LEFT_BOTTOM;
+			DrawImage("PORTEMPT", (0, 0), flags);
+			DrawImage(portraitImage, (0, 0), flags);
+		}
+		else
+			DrawTexture(GetMugShot(5), (130, 95), DI_ITEM_CENTER | DI_SCREEN_LEFT_BOTTOM);
+		
+		// TODO: Status conditions
+	}
+}

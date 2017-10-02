@@ -11,6 +11,7 @@ gameinfo
  titletime = 10
  cursorpic = "SCPTCURS"
  AddEventHandlers = "TiltPlusPlusHandler"
+ StatusBarClass = "AetheriusHUD"
 }
 
 clearskills

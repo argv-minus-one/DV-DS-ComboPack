@@ -681,6 +681,7 @@ OptionValue "GameHUDMode"
 {
 	0, "Old Style"
 	1, "DQH-ish Style"
+	2, "ZScript"
 }
 
 OptionValue "OldHUDMeterNotchDetail"
