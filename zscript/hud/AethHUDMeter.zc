@@ -1,0 +1,68 @@
+class AethHUDMeter ui {
+	protected DynamicValueInterpolator ValueInterp;
+	Vector2 FramePos;
+	Vector2 FillArea[2];
+	int DrawFlags;
+	int MaxValue;
+	HUDFont NumberFont, LabelFont;
+	TextureID Frame, Fill, Overlay, OverFrame, OverFill, OverOverlay;
+	
+	/** Coordinates for the fill portion of the meter. The first vector is the top-left corner; the second is the bottom-right corner */
+	Vector2 FillPos[2];
+	
+	virtual void Init() {
+		ValueInterp = DynamicValueInterpolator.Create(0, 0.25, 1, 8);
+		NumberFont = HUDFont.Create("DQHUDFONTSML");
+		LabelFont = NumberFont;
+	}
+	
+	virtual void Reset(int currentValue, int currentMaxValue) {
+		ValueInterp.Reset(currentValue);
+		MaxValue = currentMaxValue;
+	}
+	
+	virtual void Tick(int currentValue, int currentMaxValue) {
+		ValueInterp.Update(currentValue);
+		MaxValue = currentMaxValue;
+	}
+	
+	virtual ui void Draw(AetheriusHUD hud, double ticFrac) {
+		let value = ValueInterp.GetValue();
+		
+		if (value > MaxValue && OverFrame.IsValid())
+			hud.DrawTexture(OverFrame, FramePos, DrawFlags);
+		else if (Frame.IsValid())
+			hud.DrawTexture(Frame, FramePos, DrawFlags);
+		
+		if (!Fill.IsValid())
+			ThrowAbortException("%s has no fill image!", GetClassName());
+		else if (MaxValue != 0) {
+			double scaleFrac = double(value) / double(MaxValue);
+			double underScale = min(scaleFrac, 1.) * (FillArea[1].X - FillArea[0].X);
+			
+			hud.DrawTexture(
+				Fill,
+				FramePos,
+				DrawFlags,
+				scale: (underScale, 1)
+			);
+			
+			if (scaleFrac > 1. && OverFill.IsValid()) {
+				double overScale = min(1. - scaleFrac, 1.) * (FillArea[1].X - FillArea[0].X);
+				
+				hud.DrawTexture(
+					OverFill,
+					FramePos,
+					DrawFlags,
+					scale: (overScale, 1)
+				);
+			}
+		}
+		// Don't draw the meter if the max value hasn't been set yet.
+		
+		if (value > MaxValue && OverOverlay.IsValid())
+			hud.DrawTexture(OverOverlay, FramePos, DrawFlags);
+		else if (Overlay.IsValid())
+			hud.DrawTexture(Overlay, FramePos, DrawFlags);
+	}
+}

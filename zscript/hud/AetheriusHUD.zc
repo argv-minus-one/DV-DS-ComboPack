@@ -2,6 +2,12 @@ class AetheriusHUD : BaseStatusBar {
 	override void Init() {
 		Super.Init();
 		SetSize(0, 1440, 1080);
+		InitMeters();
+	}
+	
+	override void Tick() {
+		Super.Tick();
+		TickMeters();
 	}
 	
 	override void Draw(int state, double ticFrac) {
@@ -11,6 +17,7 @@ class AetheriusHUD : BaseStatusBar {
 			BeginHUD();
 			
 			DrawCharacterPortrait(ticFrac);
+			DrawMeters(ticFrac);
 		}
 	}
 	
@@ -100,5 +107,27 @@ class AetheriusHUD : BaseStatusBar {
 			DrawTexture(GetMugShot(5), (130, 95), DI_ITEM_CENTER | DI_SCREEN_LEFT_BOTTOM);
 		
 		// TODO: Status conditions
+	}
+	
+	// Meters
+	
+	AethHUDMeter HPMeter;
+	
+	protected void InitMeters() {
+		HPMeter = new("AethHUDMeter");
+		HPMeter.Init();
+		HPMeter.FramePos = (200, -190);
+		HPMeter.FillArea[0] = (250, -175);
+		HPMeter.FillArea[1] = (470, -155);
+		HPMeter.DrawFlags = DI_ITEM_LEFT_TOP | DI_SCREEN_LEFT_BOTTOM;
+		HPMeter.Fill = TexMan.CheckForTexture("HPBFILNV", TexMan.Type_Any);
+	}
+	
+	protected void TickMeters() {
+		HPMeter.Tick(CPlayer.Health, CPlayer.mo.GetMaxHealth(true));
+	}
+	
+	protected void DrawMeters(double ticFrac) {
+		HPMeter.Draw(self, ticFrac);
 	}
 }
