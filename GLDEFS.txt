@@ -10663,7 +10663,3 @@ BrightMap Sprite AL12H0
 Map BMAL12H0
 DisableFullBright
 }
-
-HardwareShader HPBFILNV {
-	Shader "shaders/hud/meter-skew.fp"
-}
