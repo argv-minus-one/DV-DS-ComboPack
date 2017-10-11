@@ -40,12 +40,12 @@ class AetheriusHUD : BaseStatusBar {
 		HPMeterFrameNormal = new("AethHUDMeterFrame");
 		HPMeterFrameNormal.Owner = HPMeter;
 		HPMeterFrameNormal.UseTextureSet("HPBFRAM", TexMan.Type_Any);
-		HPMeterFrameNormal.SetInsets(2, 2, 2, 2);
+		HPMeterFrameNormal.SetInsets(2, 6, 2, 6);
 		
 		HPMeterFrameCritical = new("AethHUDMeterFrame");
 		HPMeterFrameCritical.Owner = HPMeter;
 		HPMeterFrameCritical.UseTextureSet("HPBCRIT", TexMan.Type_Any);
-		HPMeterFrameCritical.SetInsets(2, 2, 2, 2);
+		HPMeterFrameCritical.SetInsets(2, 6, 2, 6);
 		
 		HPMeter.Frame = HPMeterFrameNormal;
 	}
