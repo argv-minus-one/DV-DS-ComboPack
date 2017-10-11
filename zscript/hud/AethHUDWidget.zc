@@ -1,0 +1,18 @@
+class AethHUDWidget ui {
+	Vector2 Pos;
+	int DrawFlags;
+	double Alpha;
+	Vector2 Scale;
+	
+	AetheriusHUD hud;
+	
+	virtual void Init(AetheriusHUD hud) {
+		self.hud = hud;
+		Alpha = 1;
+		Scale = (1, 1);
+	}
+	
+	virtual void Draw(double ticFrac) {}
+	
+	virtual void Tick() {}
+}

@@ -1,68 +1,214 @@
-class AethHUDMeter ui {
+class AethHUDMeter : AethHUDWidget {
 	protected DynamicValueInterpolator ValueInterp;
-	Vector2 FramePos;
-	Vector2 FillArea[2];
-	int DrawFlags;
-	int MaxValue;
+	int Value, MaxValue;
 	HUDFont NumberFont, LabelFont;
-	TextureID Frame, Fill, Overlay, OverFrame, OverFill, OverOverlay;
+	String FillColors, OverfillColors;
+	double Length;
 	
-	/** Coordinates for the fill portion of the meter. The first vector is the top-left corner; the second is the bottom-right corner */
-	Vector2 FillPos[2];
+	/** If this is set to a positive value, then the length of the meter is MaxValue * WidthScale, and the Length field is the maximum length instead. */
+	double LengthScale;
 	
-	virtual void Init() {
+	AethHUDMeterFrame Frame;
+	
+	/** Offset of the fill area. This is used to make room for the frame. */
+	Vector2 FillOffset;
+	
+	override void Init(AetheriusHUD hud) {
+		Super.Init(hud);
 		ValueInterp = DynamicValueInterpolator.Create(0, 0.25, 1, 8);
 		NumberFont = HUDFont.Create("DQHUDFONTSML");
 		LabelFont = NumberFont;
+		Length = 200;
 	}
 	
-	virtual void Reset(int currentValue, int currentMaxValue) {
-		ValueInterp.Reset(currentValue);
-		MaxValue = currentMaxValue;
+	override void Tick() {
+		ValueInterp.Update(Value);
 	}
 	
-	virtual void Tick(int currentValue, int currentMaxValue) {
-		ValueInterp.Update(currentValue);
-		MaxValue = currentMaxValue;
+	private bool ComplainedAboutNoFillColors;
+	
+	struct MeterDrawInfo {
+		Vector2 FrameStartSize, FrameMiddleSize, FrameEndSize, FrameMiddleScale;
+		double MinLength, MaxLength;
 	}
 	
-	virtual ui void Draw(AetheriusHUD hud, double ticFrac) {
-		let value = ValueInterp.GetValue();
-		
-		if (value > MaxValue && OverFrame.IsValid())
-			hud.DrawTexture(OverFrame, FramePos, DrawFlags);
-		else if (Frame.IsValid())
-			hud.DrawTexture(Frame, FramePos, DrawFlags);
-		
-		if (!Fill.IsValid())
-			ThrowAbortException("%s has no fill image!", GetClassName());
-		else if (MaxValue != 0) {
-			double scaleFrac = double(value) / double(MaxValue);
-			double underScale = min(scaleFrac, 1.) * (FillArea[1].X - FillArea[0].X);
-			
-			hud.DrawTexture(
-				Fill,
-				FramePos,
-				DrawFlags,
-				scale: (underScale, 1)
-			);
-			
-			if (scaleFrac > 1. && OverFill.IsValid()) {
-				double overScale = min(1. - scaleFrac, 1.) * (FillArea[1].X - FillArea[0].X);
-				
-				hud.DrawTexture(
-					OverFill,
-					FramePos,
-					DrawFlags,
-					scale: (overScale, 1)
-				);
+	override void Draw(double ticFrac) {
+		if (FillColors.Length() < 4) {
+			if (!ComplainedAboutNoFillColors) {
+				Console.Printf("\cr%s has no fill colors!", GetClassName());
+				ComplainedAboutNoFillColors = true;
 			}
+			return;
 		}
-		// Don't draw the meter if the max value hasn't been set yet.
+		else
+			ComplainedAboutNoFillColors = false;
 		
-		if (value > MaxValue && OverOverlay.IsValid())
-			hud.DrawTexture(OverOverlay, FramePos, DrawFlags);
-		else if (Overlay.IsValid())
-			hud.DrawTexture(Overlay, FramePos, DrawFlags);
+		let drawValue = ValueInterp.GetValue();
+		
+		//let fillOrigin = Pos + (FillOffset.X * Scale.X, FillOffset.Y * Scale.Y);
+		
+		Rectangle fillArea;
+		fillArea.Origin = Pos;
+		fillArea.Size = (Length * Scale.X, (FillColors.Length() / 4) * Scale.Y);
+		if (LengthScale > 0.)
+			fillArea.Size.X = min(MaxValue * LengthScale * Scale.X, Length * Scale.X);
+		
+		if (Frame != NULL) {
+			Frame.FillArea.Copy(fillArea);
+			Frame.PrepareDraw();
+			fillArea.Copy(Frame.FillArea);
+		}
+		
+		DrawMeterFill(fillArea, FillColors, clamp(double(drawValue) / double(MaxValue), 0., 1.));
+		DrawMeterFill(fillArea, OverfillColors, clamp(double(drawValue - MaxValue) / double(MaxValue), 0., 1.));
+		
+		if (Frame != NULL)
+			Frame.Draw();
+		
+		DrawNumber(fillArea, drawValue);
+	}
+	
+	protected void DrawMeterFill(Rectangle area, String colors, double lengthFrac) {
+		if (length <= 0.)
+			return;
+		
+		let rowWidth = (area.Size.X - ((colors.Length() / 4) * Scale.X)) * lengthFrac;
+		
+		for (let i = 0, size = colors.Length() / 4; i < size; i++) {
+			hud.Fill(
+				DecodeColorString(colors, i * 4, Alpha),
+				area.Origin.X + ((size - i) * Scale.X),
+				area.Origin.Y + (i * Scale.Y),
+				rowWidth,
+				Scale.Y,
+				DrawFlags
+			);
+		}
+	}
+	
+	static Color DecodeColorString(String s, uint index, double alpha = 1.) {
+		Color c;
+		
+		// RGB
+		c |= (s.CharCodeAt(index + 1) & 0xFF) << 16;
+		c |= (s.CharCodeAt(index + 2) & 0xFF) << 8;
+		c |= s.CharCodeAt(index + 3) & 0xFF;
+		
+		// Alpha
+		double a = double(s.CharCodeAt(index) & 0xFF) / 255.;
+		a *= alpha;
+		c |= int(a * 255.) << 24;
+		
+		return c;
+	}
+	
+	protected void DrawNumber(Rectangle frameArea, int drawValue) {
+		Vector2 origin;
+		
+		{
+			double x, y, w, h;
+			[x, y, w, h] = hud.TransformRect(frameArea.Origin.X, frameArea.Origin.Y, frameArea.Size.X, frameArea.Size.Y, DrawFlags);
+			origin = (x + w, y + (h / 2));
+		}
+		
+		let numberDrawFlags =
+			(DrawFlags & ~(BaseStatusBar.DI_SCREEN_VMASK | BaseStatusBar.DI_SCREEN_HMASK | BaseStatusBar.DI_ITEM_HMASK | BaseStatusBar.DI_ITEM_VMASK | BaseStatusBar.DI_TEXT_ALIGN))
+			| BaseStatusBar.DI_ITEM_CENTER | BaseStatusBar.DI_TEXT_ALIGN_CENTER;
+		
+		hud.DrawString(NumberFont, BaseStatusBar.FormatNumber(drawValue) .. "/" .. BaseStatusBar.FormatNumber(MaxValue), origin, numberDrawFlags, Font.CR_WHITE, Alpha);
+	}
+}
+
+class AethHUDMeterFrame ui {
+	AethHUDMeter Owner;
+	TextureID StartTex, MiddleTex, EndTex;
+	Vector2 Insets[2];
+	
+	void UseTextureSet(String textureNamePrefix, int texUseType) {
+		StartTex = TexMan.CheckForTexture(textureNamePrefix .. "A", texUseType);
+		MiddleTex = TexMan.CheckForTexture(textureNamePrefix .. "B", texUseType);
+		EndTex = TexMan.CheckForTexture(textureNamePrefix .. "C", texUseType);
+	}
+	
+	void SetInsets(double top, double right, double bottom, double left) {
+		Insets[0].X = left;
+		Insets[0].Y = top;
+		Insets[1].X = right;
+		Insets[1].Y = bottom;
+	}
+	
+	/** Before calling PrepareDraw, this should be set to the desired fill area, accounting for Owner.Size. After PrepareDraw returns, the coordinates for the fill area will be adjusted to accommodate the frame. */
+	Rectangle FillArea;
+	
+	/** Total area of the frame. Owner.Scale is applied. Computed by PrepareDraw. */
+	Rectangle FrameArea;
+	
+	/** Areas of the start, middle, and end textures. Owner.Scale is applied. Computed by PrepareDraw. */
+	protected Rectangle StartArea, MiddleArea, EndArea;
+	
+	/** Length of the middle part. Owner.Scale is applied. Computed by PrepareDraw. */
+	protected double MiddleLength;
+	
+	virtual void PrepareDraw() {
+		StartArea.Size = StartTex.IsValid()? TexMan.GetScaledSize(StartTex) : (0, 0);
+		MiddleArea.Size = MiddleTex.IsValid()? TexMan.GetScaledSize(MiddleTex) : (0, 0);
+		EndArea.Size = EndTex.IsValid()? TexMan.GetScaledSize(EndTex) : (0, 0);
+		
+		StartArea.Size.X *= Owner.Scale.X;
+		StartArea.Size.Y *= Owner.Scale.Y;
+		MiddleArea.Size.X *= Owner.Scale.X;
+		MiddleArea.Size.Y *= Owner.Scale.Y;
+		EndArea.Size.X *= Owner.Scale.X;
+		EndArea.Size.Y *= Owner.Scale.Y;
+		
+		Vector2 minimumSize = (
+			StartArea.Size.X + MiddleArea.Size.X + EndArea.Size.X,
+			max(StartArea.Size.Y, MiddleArea.Size.Y, EndArea.Size.Y)
+		);
+		
+		if (StartArea.Size.Y > 0.) StartArea.Size.Y = minimumSize.Y;
+		if (MiddleArea.Size.Y > 0.) MiddleArea.Size.Y = minimumSize.Y;
+		if (EndArea.Size.Y > 0.) EndArea.Size.Y = minimumSize.Y;
+		
+		{
+			let diffX = FillArea.Size.X - (minimumSize.X - Insets[0].X - Insets[1].X);
+			
+			if (diffX > 0)
+				MiddleArea.Size.X += diffX;
+			else if (diffX < 0)
+				FillArea.Size.X -= diffX;
+		}
+		
+		{
+			let diffY = FillArea.Size.Y - (minimumSize.Y - Insets[0].Y - Insets[1].Y);
+			
+			if (diffY > 0) {
+				let sizeY = FillArea.Size.Y + Insets[0].Y + Insets[1].Y;
+				if (StartArea.Size.Y > 0.) StartArea.Size.Y = sizeY;
+				if (MiddleArea.Size.Y > 0.) MiddleArea.Size.Y = sizeY;
+				if (EndArea.Size.Y > 0.) EndArea.Size.Y = sizeY;
+			}
+			else if (diffY < 0)
+				FillArea.Size.Y -= diffY;
+		}
+		
+		StartArea.Origin = owner.Pos;
+		MiddleArea.Origin = (owner.Pos.X + StartArea.Size.X, owner.Pos.Y);
+		EndArea.Origin = (owner.Pos.X + StartArea.Size.X + MiddleArea.Size.X, owner.Pos.Y);
+		
+		FillArea.Origin = Owner.Pos + (Insets[0].X * Owner.Scale.X, Insets[0].Y * Owner.Scale.Y);
+		
+		FrameArea.Origin = Owner.Pos;
+		FrameArea.Size.X = StartArea.Size.X + MiddleArea.Size.X + EndArea.Size.X;
+		FrameArea.Size.Y = max(StartArea.Size.Y, MiddleArea.Size.Y, EndArea.Size.Y);
+	}
+	
+	virtual void Draw() {
+		if (StartTex.IsValid())
+			Owner.hud.DrawTexture(StartTex, StartArea.Origin, Owner.DrawFlags, Owner.Alpha, StartArea.Size, StartArea.ScaleForTexture(StartTex));
+		if (MiddleTex.IsValid())
+			Owner.hud.DrawTexture(MiddleTex, MiddleArea.Origin, Owner.DrawFlags, Owner.Alpha, MiddleArea.Size, MiddleArea.ScaleForTexture(MiddleTex));
+		if (EndTex.IsValid())
+			Owner.hud.DrawTexture(EndTex, EndArea.Origin, Owner.DrawFlags, Owner.Alpha, EndArea.Size, EndArea.ScaleForTexture(EndTex));
 	}
 }
