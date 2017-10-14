@@ -1905,3 +1905,45 @@ Sprite "FLFGJ0", 354, 200
 }
 
 // End of texture definitions
+
+//// Meter graphics ////
+
+// HP meter frame
+Graphic "HPBFRMND", 31, 32 {
+	Graphic "SLAMFRND", 0, 0 {
+		Blend "Black"
+	}
+}
+
+Graphic "HPBFRMNE", 1, 32 {
+	Graphic "SLAMFRNE", 0, 0 {
+		Blend "Black"
+	}
+}
+
+Graphic "HPBFRMNF", 31, 32 {
+	Graphic "SLAMFRND", 0, 0 {
+		Blend "Black"
+		Rotate 180
+	}
+}
+
+// HP meter critical frame
+Graphic "HPBFRMCD", 31, 32 {
+	Graphic "SLAMFRCD", 0, 0 {
+		Blend 255, 8, 1
+	}
+}
+
+Graphic "HPBFRMCE", 1, 32 {
+	Graphic "SLAMFRCE", 0, 0 {
+		Blend 255, 8, 1
+	}
+}
+
+Graphic "HPBFRMCF", 31, 32 {
+	Graphic "SLAMFRCD", 0, 0 {
+		Blend 255, 8, 1
+		Rotate 180
+	}
+}

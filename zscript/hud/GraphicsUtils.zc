@@ -1,0 +1,253 @@
+// An assortment of data structures related to HUD graphics.
+
+struct GraphicsUtils {
+	static Color ApplyAlpha(Color c, double alpha) {
+		let colorAlpha = double(c.A) / 255.;
+		colorAlpha *= alpha;
+		colorAlpha *= 255.;
+		c &= 0xffffff;
+		c |= int(colorAlpha) << 24;
+		return c;
+	}
+	
+	static Vector2 Vec2Min(Vector2 a, Vector2 b) {
+		return (
+			min(a.X, b.X),
+			min(a.Y, b.Y)
+		);
+	}
+	
+	static Vector2 Vec2Max(Vector2 a, Vector2 b) {
+		return (
+			max(a.X, b.X),
+			max(a.Y, b.Y)
+		);
+	}
+	
+	static Vector2 Vec2Mul(Vector2 a, Vector2 b) {
+		return (a.X * b.X, a.Y * b.Y);
+	}
+}
+
+struct Rectangle {
+	Vector2 Origin;
+	Vector2 Size;
+	
+	void Copy(Rectangle other) {
+		Origin = other.Origin;
+		Size = other.Size;
+	}
+	
+	void Zero() {
+		Origin = (0, 0);
+		Size = (0, 0);
+	}
+	
+	Vector2 ScaleForTexture(TextureID tex) {
+		let texSize = TexMan.GetScaledSize(tex);
+		return (Size.X / texSize.X, Size.Y / texSize.Y);
+	}
+	
+	String ToString() {
+		return String.Format("origin=(%f,%f) size=(%f,%f)", Origin.X, Origin.Y, Size.X, Size.Y);
+	}
+}
+
+struct Insets {
+	double Top, Right, Bottom, Left;
+	
+	void Set(double top, double right, double bottom, double left) {
+		self.Top = top;
+		self.Right = right;
+		self.Bottom = bottom;
+		self.Left = left;
+	}
+	
+	void Apply(in out Rectangle rect, Vector2 scale = (1, 1)) {
+		rect.Origin.X += Left * Scale.X;
+		rect.Origin.Y += Top * Scale.Y;
+		rect.Size.X -= (Left + Right) * Scale.X;
+		rect.Size.Y -= (Top + Bottom) * Scale.Y;
+	}
+}
+
+class SlicedTextureSet {
+	static const String TextureNameSuffixes[] = {
+		"A", "B", "C", "D", "E", "F", "G", "H", "I"
+	};
+	
+	/** Table of textures. The outer array represents rows, and the inner array represents columns. For example, [0][2] is the top-right texture. */
+	TextureID Textures[3][3];
+	
+	void Copy(SlicedTextureSet other) {
+		for (let row = 0; row < 3; row++)
+		for (let col = 0; col < 3; col++)
+			Textures[row][col] = other.Textures[row][col];
+	}
+	
+	void SetByName(String textureNamePrefix, int texUseType) {
+		for (let row = 0; row < 3; row++)
+		for (let col = 0; col < 3; col++)
+			Textures[row][col] = TexMan.CheckForTexture(textureNamePrefix..TextureNameSuffixes[row * 3 + col], texUseType);
+	}
+	
+	void GetTextureSizes(out SlicedTextureSizes s) {
+		for (let row = 0; row < 3; row++)
+		for (let col = 0; col < 3; col++) {
+			let tex = Textures[row][col];
+			s.Sizes[row][col] = tex.IsValid()? TexMan.GetScaledSize(tex) : (0, 0);
+		}
+	}
+	
+	Vector2 TotalTextureSize() {
+		SlicedTextureSizes sizes;
+		GetTextureSizes(sizes);
+		return sizes.TotalSize();
+	}
+	
+	ui void DrawHUD(BaseStatusBar hud, Rectangle area, int flags = 0, double alpha = 1., Vector2 scale = (1,1), bool shrink = false) {
+		SlicedTextureSizes texSizes;
+		GetTextureSizes(texSizes);
+		
+		SlicedTextureSizes scaledSizes;
+		scaledSizes.Copy(texSizes);
+		scaledSizes.Scale(scale);
+		//scaledSizes.Equalize();
+		scaledSizes.ScaleToFit(area.Size, shrink);
+		
+		let y = area.Origin.Y;
+		for (let row = 0; row < 3; row++) {
+			let x = area.Origin.X;
+			
+			for (let col = 0; col < 3; col++)
+			if (scaledSizes.Sizes[row][col].X > 0. && scaledSizes.Sizes[row][col].Y > 0. && Textures[row][col].IsValid()) {
+				hud.DrawTexture(
+					Textures[row][col],
+					(x, y),
+					flags,
+					alpha,
+					scaledSizes.Sizes[row][col],
+					(scaledSizes.Sizes[row][col].X / texSizes.Sizes[row][col].X, scaledSizes.Sizes[row][col].Y / texSizes.Sizes[row][col].Y)
+				);
+				
+				x += max(scaledSizes.Sizes[0][col].X, scaledSizes.Sizes[1][col].X, scaledSizes.Sizes[2][col].X);
+			}
+			
+			y += max(scaledSizes.Sizes[row][0].Y, scaledSizes.Sizes[row][1].Y, scaledSizes.Sizes[row][2].Y);
+		}
+	}
+}
+
+struct SlicedTextureSizes {
+	Vector2 Sizes[3][3];
+	
+	void Copy(SlicedTextureSizes other) {
+		for (let row = 0; row < 3; row++)
+		for (let col = 0; col < 3; col++)
+			Sizes[row][col] = other.Sizes[row][col];
+	}
+	
+	void Equalize() {
+		for (let col = 0; col < 3; col++)
+			Sizes[0][col].X = Sizes[1][col].X = Sizes[2][col].X = max(Sizes[0][col].X, Sizes[1][col].X, Sizes[2][col].X);
+		
+		for (let row = 0; row < 3; row++)
+			Sizes[row][0].Y = Sizes[row][1].Y = Sizes[row][2].Y = max(Sizes[row][0].Y, Sizes[row][1].Y, Sizes[row][2].Y);
+	}
+	
+	Vector2 TotalSize() {
+		Vector2 t;
+		for (let row = 0; row < 3; row++) {
+			Vector2 rowSize = (0,0);
+			for (let col = 0; col < 3; col++) {
+				rowSize.X += Sizes[row][col].X;
+				rowSize.Y = max(rowSize.Y, Sizes[row][col].Y);
+			}
+			t.X = max(t.X, rowSize.X);
+			t.Y += rowSize.Y;
+		}
+		return t;
+	}
+	
+	void SizesMax(SlicedTextureSizes other) {
+		for (let row = 0; row < 3; row++)
+		for (let col = 0; col < 3; col++) {
+			Sizes[row][col].X = max(Sizes[row][col].X, other.Sizes[row][col].X);
+			Sizes[row][col].Y = max(Sizes[row][col].Y, other.Sizes[row][col].Y);
+		}
+	}
+	
+	void SizesMin(SlicedTextureSizes other) {
+		for (let row = 0; row < 3; row++)
+		for (let col = 0; col < 3; col++) {
+			Sizes[row][col].X = min(Sizes[row][col].X, other.Sizes[row][col].X);
+			Sizes[row][col].Y = min(Sizes[row][col].Y, other.Sizes[row][col].Y);
+		}
+	}
+	
+	void Scale(Vector2 scale) {
+		for (let row = 0; row < 3; row++)
+		for (let col = 0; col < 3; col++) {
+			Sizes[row][col].X *= scale.X;
+			Sizes[row][col].Y *= scale.Y;
+		}
+	}
+	
+	void ScaleToFit(in out Vector2 size, bool shrink = false) {
+		Vector2 ts = TotalSize();
+		Vector2 diff = size - ts;
+		
+		if (ts.X > 0.) {
+			if (diff.X > 0.) {
+				for (let row = 0; row < 3; row++)
+					Sizes[row][1].X += diff.X;
+			}
+			else if (diff.X < 0. && shrink) {
+				double mult = diff.X / ts.X;
+				for (let row = 0; row < 3; row++)
+				for (let col = 0; col < 3; col++)
+					Sizes[row][col].X *= mult;
+			}
+		}
+		
+		if (ts.Y > 0.) {
+			if (diff.Y > 0.) {
+				for (let col = 0; col < 3; col++)
+					Sizes[1][col].Y += diff.Y;
+			}
+			else if (diff.Y < 0. && shrink) {
+				double mult = diff.Y / ts.Y;
+				for (let row = 0; row < 3; row++)
+				for (let col = 0; col < 3; col++)
+					Sizes[row][col].Y *= mult;
+			}
+		}
+	}
+}
+
+struct ColorSeq {
+	Array<Color> Colors;
+	
+	void Decode(String colorString, double alpha = 1.) {
+		let size = colorString.Length() / 4;
+		
+		Colors.Resize(size);
+		
+		for (let i = 0; i < size; i++) {
+			Color c = 0;
+			let index = i * 4;
+			
+			// RGB
+			c |= (colorString.CharCodeAt(index + 1) & 0xFF) << 16;
+			c |= (colorString.CharCodeAt(index + 2) & 0xFF) << 8;
+			c |= colorString.CharCodeAt(index + 3) & 0xFF;
+			
+			// Alpha
+			double a = double(colorString.CharCodeAt(index) & 0xFF) / 255.;
+			a *= alpha;
+			c |= int(a * 255.) << 24;
+			
+			Colors[i] = c;
+		}
+	}
+}
