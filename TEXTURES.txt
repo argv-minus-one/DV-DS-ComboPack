@@ -1909,19 +1909,19 @@ Sprite "FLFGJ0", 354, 200
 //// Meter graphics ////
 
 // HP meter frame
-Graphic "HPBFRMND", 31, 32 {
+Graphic "HPBFRND", 31, 32 {
 	Graphic "SLAMFRND", 0, 0 {
 		Blend "Black"
 	}
 }
 
-Graphic "HPBFRMNE", 1, 32 {
+Graphic "HPBFRNE", 1, 32 {
 	Graphic "SLAMFRNE", 0, 0 {
 		Blend "Black"
 	}
 }
 
-Graphic "HPBFRMNF", 31, 32 {
+Graphic "HPBFRNF", 31, 32 {
 	Graphic "SLAMFRND", 0, 0 {
 		Blend "Black"
 		Rotate 180
@@ -1929,21 +1929,36 @@ Graphic "HPBFRMNF", 31, 32 {
 }
 
 // HP meter critical frame
-Graphic "HPBFRMCD", 31, 32 {
+Graphic "HPBFRCD", 31, 32 {
 	Graphic "SLAMFRCD", 0, 0 {
 		Blend 255, 8, 1
 	}
 }
 
-Graphic "HPBFRMCE", 1, 32 {
+Graphic "HPBFRCE", 1, 32 {
 	Graphic "SLAMFRCE", 0, 0 {
 		Blend 255, 8, 1
 	}
 }
 
-Graphic "HPBFRMCF", 31, 32 {
+Graphic "HPBFRCF", 31, 32 {
 	Graphic "SLAMFRCD", 0, 0 {
 		Blend 255, 8, 1
+		Rotate 180
+	}
+}
+
+// HP meter background
+Graphic "HPBBGND", 31, 32 {
+	Graphic "SLAMBGND", 0, 0
+}
+
+Graphic "HPBBGNE", 1, 32 {
+	Graphic "SLAMBGNE", 0, 0
+}
+
+Graphic "HPBBGNF", 31, 32 {
+	Graphic "SLAMBGND", 0, 0 {
 		Rotate 180
 	}
 }

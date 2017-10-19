@@ -1,0 +1,259 @@
+/**
+ * A GUI widget that contains up to 9 other widgets, and draws them in a grid. The middle column and row will expand as needed to fill the draw area, while the other columns/rows will not expand.
+ */
+class GUIEdgeGroup : GUIWidget {
+	/**
+	 * The children of this widget. They are arranged into columns (the first array dimension), then rows (the second array dimension). For example, [2][3] is the bottom center child.
+	 */
+	GUIWidget Children[3][3];
+	
+	/*
+	struct ChildSizeTable {
+		Vector2 _[3][3];
+		
+		Vector2 Total() {
+			Vector2 t;
+			for (let col = 0; col < 3; col++) {
+				Vector2 colSize = (0,0);
+				for (let row = 0; row < 3; row++) {
+					colSize.Y += max(_[col][row].Y, 0.);
+					colSize.X = max(colSize.X, _[col][row].X);
+				}
+				t.Y = max(t.Y, colSize.Y);
+				t.X += colSize.X;
+			}
+			return t;
+		}
+		
+		void Copy(ChildSizeTable other) {
+			for (let col = 0; col < 3; col++)
+			for (let row = 0; row < 3; row++)
+				_[col][row] = other._[col][row];
+		}
+	}
+	
+	struct GridSizeTable {
+		double X[3], Y[3];
+		
+		void From(ChildSizeTable sizes) {
+			for (let col = 0; col < 3; col++)
+			for (let row = 0; row < 3; row++) {
+				X[col] = max(0., X[col], sizes._[col][row].X);
+				Y[row] = max(0., Y[row], sizes._[col][row].Y);
+			}
+		}
+		
+		Vector2 Total() {
+			return (
+				X[0] + X[1] + X[2],
+				Y[0] + Y[1] + Y[2]
+			);
+		}
+	}
+	
+	void PreferredChildSizes(out ChildSizeTable sizes, Vector2 outerSize = (-1., -1.)) {
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++)
+			sizes._[col][row] = Children[col][row] == null? (0, 0) : Children[col][row].PreferredSize((outerSize.X, outerSize.Y));
+	}
+	*/
+	
+	override double PreferredWidth(double height = -1.) {
+		double width[3];
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++)
+		if (Children[col][row] != null)
+			width[col] = max(width[col], Children[col][row].PreferredWidth(height));
+		return width[0] + width[1] + width[2];
+	}
+	
+	override double PreferredHeight(double width = -1.) {
+		double height[3];
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++)
+		if (Children[col][row] != null)
+			height[row] = max(height[row], Children[col][row].PreferredHeight(width));
+		return height[0] + height[1] + height[2];
+	}
+	
+	/*
+	void MinimumChildSizes(out ChildSizeTable sizes, Vector2 outerSize = (-1., -1.)) {
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++)
+			sizes._[col][row] = Children[col][row] == null? (0, 0) : Children[col][row].MinimumSize(outerSize);
+	}
+	*/
+	
+	/*
+	override double MinimumWidth(double height = -1.) {
+		double width[3];
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++)
+		if (Children[col][row] != null)
+			width[col] = max(width[col], Children[col][row].MinimumWidth(height));
+		return width[0] + width[1] + width[2];
+	}
+	
+	override double MinimumHeight(double width = -1.) {
+		double height[3];
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++)
+		if (Children[col][row] != null)
+			height[row] = max(height[row], Children[col][row].MinimumHeight(width));
+		return height[0] + height[1] + height[2];
+	}
+	*/
+	
+	private void CheckBias(in out EResizeBias bias, int col, int row) {
+		if (bias == RBIAS_NONE && Children[col][row] != null)
+			bias = Children[col][row].ResizeBias();
+	}
+	
+	override EResizeBias ResizeBias() {
+		// Check the center cells.
+		EResizeBias bias;
+		CheckBias(bias, 1, 1);
+		CheckBias(bias, 0, 1);
+		CheckBias(bias, 2, 1);
+		CheckBias(bias, 1, 0);
+		CheckBias(bias, 1, 2);
+		return bias;
+	}
+	
+	override void Layout(Rectangle area) {
+		Super.Layout(area);
+		
+		// Get the preferred sizes of the rows and columns.
+		double colSizes[3], rowSizes[3];
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++) {
+			let ps = Children[col][row] == null? (0, 0) : Children[col][row].PreferredSize(Bounds.Size);
+			colSizes[col] = max(0., colSizes[col], ps.X);
+			rowSizes[row] = max(0., rowSizes[row], ps.Y);
+		}
+		
+		// Find the total preferred size in both dimensions.
+		Vector2 totalPrefSize = (
+			colSizes[0] + colSizes[1] + colSizes[2],
+			rowSizes[0] + rowSizes[1] + rowSizes[2]
+		);
+		
+		// Take the difference between the space we're given and the total space the children prefer.
+		let diff = Bounds.Size - totalPrefSize;
+		
+		// Grow/shrink the columns/rows.
+		if (diff.X > 0.)
+			colSizes[1] += diff.X;
+		else for (let col = 0; col < 3; col++)
+			colSizes[col] += diff.X * (colSizes[col] / totalPrefSize.X);
+		
+		if (diff.Y > 0.)
+			rowSizes[1] += diff.Y;
+		else for (let row = 0; row < 3; row++)
+			rowSizes[row] += diff.Y * (rowSizes[row] / totalPrefSize.Y);
+		
+		// Size and position the children into their places on the grid.
+		let colPos = Bounds.Origin.X;
+		for (let col = 0; col < 3; col++) {
+			let rowPos = Bounds.Origin.Y;
+			
+			for (let row = 0; row < 3; row++) {
+				if (Children[col][row] != null) {
+					Rectangle childRect;
+					childRect.Origin = (colPos, rowPos);
+					childRect.Size = (colSizes[col], rowSizes[row]);
+					Children[col][row].Layout(childRect);
+				}
+				
+				rowPos += rowSizes[row];
+			}
+			
+			colPos += colSizes[col];
+		}
+		
+		// Done!
+		
+		/*
+		double colSizes[3], rowSizes[3];
+		ChildSizeTable minSizes, sizes;
+		MinimumChildSizes(minSizes, Bounds.Size);
+		sizes.Copy(minSizes);
+		
+		// Space is distributed according to the minimum sizes of the centers of each edge (that is, the [1][0], [2][1], [1][2], and [0][1] widgets). Space left over goes to the center widget. Corner widgets and preferred sizes don't influence space distribution.
+		
+		
+		let ts = minSizes.Total();
+		let diff = Bounds.Size - ts;
+		
+		if (ts.X > 0.) {
+			if (diff.X > 0.) {
+				for (let row = 0; row < 3; row++)
+					Sizes[1][row].X += diff.X;
+			}
+			else if (diff.X < 0. && shrink) {
+				double mult = diff.X / ts.X;
+				for (let row = 0; row < 3; row++)
+				for (let col = 0; col < 3; col++)
+					Sizes[col][row].X *= mult;
+			}
+		}
+		
+		if (ts.Y > 0.) {
+			if (diff.Y > 0.) {
+				for (let col = 0; col < 3; col++)
+					Sizes[1][col].Y += diff.Y;
+			}
+			else if (diff.Y < 0. && shrink) {
+				double mult = diff.Y / ts.Y;
+				for (let row = 0; row < 3; row++)
+				for (let col = 0; col < 3; col++)
+					Sizes[row][col].Y *= mult;
+			}
+		}
+
+		
+		double colSize[3], rowSize[3];
+		
+		for (let col = 0; col < 3; col += 2)
+		for (let row = 0; row < 3; row += 2)
+		if (Children[col][row] != null) {
+			colSize[col] = max(colSize[col], Children[col][row].
+		}
+		*/
+	}
+	
+	override void Draw() {
+		Super.Draw();
+		
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++)
+		if (Children[col][row] != null)
+			Children[col][row].Draw();
+	}
+	
+	static const String TextureSetNameSuffixes[] = {
+		"A", "B", "C", "D", "E", "F", "G", "H", "I"
+	};
+	
+	void UseTextureSet(String textureNamePrefix, int texUseType = TexMan.Type_Any, bool preserveAspectRatio = true) {
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++) {
+			let tex = TexMan.CheckForTexture(textureNamePrefix..TextureSetNameSuffixes[row * 3 + col], texUseType);
+			if (tex.IsValid()) {
+				let im = new("GUIImage");
+				im.Init(self);
+				im.Image = tex;
+				im.PreserveAspectRatio = preserveAspectRatio;
+				Children[col][row] = im;
+			}
+			else
+				Children[col][row] = null;
+		}
+	}
+	
+	void Clear() {
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++)
+			Children[col][row] = null;
+	}
+}

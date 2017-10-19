@@ -1,6 +1,18 @@
 // An assortment of data structures related to HUD graphics.
 
-struct GraphicsUtils {
+struct GUIUtil {
+	/** The machine epsilon for the “double” type.  */
+	const Epsilon = 1.1102230246251565E-16;
+	
+	static bool IsAboutZero(double x) {
+		return x < Epsilon && x > -Epsilon;
+	}
+	
+	static bool IsAboutEqual(double a, double b) {
+		let d = a - b;
+		return d > -Epsilon && d < Epsilon;
+	}
+	
 	static Color ApplyAlpha(Color c, double alpha) {
 		let colorAlpha = double(c.A) / 255.;
 		colorAlpha *= alpha;
@@ -29,6 +41,23 @@ struct GraphicsUtils {
 	}
 }
 
+enum GUIXAlignment {
+	XALIGN_CENTER,
+	XALIGN_LEFT,
+	XALIGN_RIGHT
+};
+
+enum GUIYAlignment {
+	YALIGN_CENTER,
+	YALIGN_TOP,
+	YALIGN_BOTTOM
+};
+
+struct GUIXYAlignment {
+	GUIXAlignment X;
+	GUIYAlignment Y;
+}
+
 struct Rectangle {
 	Vector2 Origin;
 	Vector2 Size;
@@ -48,13 +77,49 @@ struct Rectangle {
 		return (Size.X / texSize.X, Size.Y / texSize.Y);
 	}
 	
+	void PositionIn(Rectangle other, GUIXAlignment xalign, GUIYAlignment yalign) {
+		Size.X = max(Size.X, 0.);
+		Size.Y = max(Size.Y, 0.);
+		other.Size.X = max(other.Size.X, 0.);
+		other.Size.Y = max(other.Size.Y, 0.);
+		
+		switch (xalign) {
+			case XALIGN_LEFT:
+				Origin.X = other.Origin.X; break;
+			
+			case XALIGN_RIGHT:
+				Origin.X = other.Origin.X + other.Size.X - Size.X; break;
+			
+			default:
+				Origin.X = (other.Origin.X + other.Size.X / 2) - (Size.X / 2);
+		}
+		
+		switch (yalign) {
+			case YALIGN_TOP:
+				Origin.Y = other.Origin.Y; break;
+			
+			case YALIGN_BOTTOM:
+				Origin.Y = other.Origin.Y + other.Size.Y - Size.Y; break;
+			
+			default:
+				Origin.Y = (other.Origin.Y + other.Size.Y / 2) - (Size.Y / 2);
+		}
+	}
+	
 	String ToString() {
 		return String.Format("origin=(%f,%f) size=(%f,%f)", Origin.X, Origin.Y, Size.X, Size.Y);
 	}
 }
 
-struct Insets {
+struct GUIInsets {
 	double Top, Right, Bottom, Left;
+	
+	void Copy(GUIInsets other) {
+		Top = other.Top;
+		Right = other.Right;
+		Bottom = other.Bottom;
+		Left = other.Left;
+	}
 	
 	void Set(double top, double right, double bottom, double left) {
 		self.Top = top;
@@ -63,20 +128,48 @@ struct Insets {
 		self.Left = left;
 	}
 	
-	void Apply(in out Rectangle rect, Vector2 scale = (1, 1)) {
-		rect.Origin.X += Left * Scale.X;
-		rect.Origin.Y += Top * Scale.Y;
-		rect.Size.X -= (Left + Right) * Scale.X;
-		rect.Size.Y -= (Top + Bottom) * Scale.Y;
+	void Apply(in out Rectangle rect, Vector2 scale = (1, 1), bool outward = false) {
+		rect.Size = ApplySize(rect.Size, scale, outward);
+		
+		Vector2 originOffset = (
+			Left * Scale.X,
+			Top * Scale.Y
+		);
+		
+		if (outward)
+			rect.Origin -= originOffset;
+		else
+			rect.Origin += originOffset;
+	}
+	
+	Vector2 ApplySize(Vector2 size, Vector2 scale = (1, 1), bool outward = false) {
+		Vector2 totalInsets = (
+			(Left + Right) * Scale.X,
+			(Top + Bottom) * Scale.Y
+		);
+		
+		if (outward)
+			return size + totalInsets;
+		else
+			return size - totalInsets;
+	}
+	
+	double X(double scale = 1) {
+		return (Left + Right) * scale;
+	}
+	
+	double Y(double scale = 1) {
+		return (Top + Bottom) * scale;
 	}
 }
 
+/*
 class SlicedTextureSet {
 	static const String TextureNameSuffixes[] = {
 		"A", "B", "C", "D", "E", "F", "G", "H", "I"
 	};
 	
-	/** Table of textures. The outer array represents rows, and the inner array represents columns. For example, [0][2] is the top-right texture. */
+	// Table of textures. The outer array represents rows, and the inner array represents columns. For example, [0][2] is the top-right texture.
 	TextureID Textures[3][3];
 	
 	void Copy(SlicedTextureSet other) {
@@ -224,7 +317,9 @@ struct SlicedTextureSizes {
 		}
 	}
 }
+*/
 
+/*
 struct ColorSeq {
 	Array<Color> Colors;
 	
@@ -251,3 +346,4 @@ struct ColorSeq {
 		}
 	}
 }
+*/

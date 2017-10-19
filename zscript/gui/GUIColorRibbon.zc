@@ -1,0 +1,106 @@
+/**
+ * Draws a gradient (or other array of colors), in narrow strips of one color at a time, with Screen.Clear.
+ *
+ * Normally, one accomplishes this by drawing a 1×n texture, stretched out over the draw area. GUIColorRibbon's approach has some pros and cons:
+ * Pro: The draw area can be cleanly skewed, even in the software renderer.
+ * Con: This requires n draw calls (where n = the number of colors), instead of just one.
+ *
+ * The main use-case for this widget is drawing the slanted meters in the HUD of the Aetherius mod.
+ *
+ * This widget treats its Insets field specially, in that the insets are *not* counted toward the widget's preferred size. Thus, the insets can be used to control how much of the widget's bounds are actually drawn into. This is used to draw the aforementioned slanted meters.
+ *
+ * Note that the Layout method still needs to be called whenever the insets are changed. In the meter use-case, this will likely happen on every frame.
+ */
+class GUIColorRibbon : GUIWidget {
+	Array<Color> Colors;
+	
+	/**
+	 * How far to skew the fill area, in virtual unscaled pixels. Negative skew moves the top leftward; positive skew moves the top rightward.
+	 *
+	 * The actual amount of skew is affected by the effective scaling factor of this widget. This skew is only applied directly if EffScale() returns (1,1).
+	 */
+	double Skew;
+	
+	/**
+	 * Preferred size of this GUIColorRibbon on its long axis. This is reported through the PreferredWidth or PreferredHeight methods.
+	 *
+	 * This is applied before EffScale.
+	 */
+	// MAYBE: Note that not all of this area is necessarily drawn into. See the DrawFraction field for details.
+	double PreferredLength;
+	
+	/*
+	 * Controls how much of the length is actually drawn. This doesn't affect preferred size computations, but does affect drawing. Hence, this can be used to draw meters that go up and down, without triggering a layout pass.
+	 *
+	 * If the DrawFraction is between 0 and 1, the area drawn is aligned according to the Align field.
+	 *
+	 * The DrawFraction's value is clamped to 0 through 1 when drawing. Values below 0 or above 1 will be treated as 0 and 1, respectively. In case it would be convenient to sometimes set such out-of-bounds values for this field, it is safe to do so.
+	double DrawFraction;
+	 */
+	
+	void DecodeColorString(String colorString) {
+		let size = colorString.Length() / 4;
+		Colors.Resize(size);
+		
+		for (let i = 0; i < size; i++) {
+			let index = i * 4;
+			Colors[i] = Color(
+				255,
+				colorString.CharCodeAt(index + 1) & 0xFF,
+				colorString.CharCodeAt(index + 2) & 0xFF,
+				colorString.CharCodeAt(index + 3) & 0xFF
+			);
+		}
+	}
+	
+	override double PreferredWidth(double height = -1.) {
+		return PreferredLength * EffXScale();
+	}
+	
+	override double PreferredHeight(double width = -1.) {
+		return Colors.Size() * EffYScale();
+	}
+	
+	override void Draw() {
+		let scale = EffScale();
+		let nColors = Colors.Size();
+		let alpha = EffAlpha();
+		
+		Rectangle rowRect;
+		rowRect.Copy(Bounds);
+		Insets.Apply(rowRect, scale);
+		
+		rowRect.Size.Y /= double(nColors);
+		
+		let effSkew = Skew * scale.X;
+		let maxSkew = effSkew * nColors;
+		// TODO: Support other alignments.
+		rowRect.Size.X -= abs(maxSkew);
+		
+		// If the skew is negative (that is, top skews leftward), then we need to move the initial origin to the right to compensate. Otherwise, skewed rows will draw outside the bounds.
+		if (effSkew < 0.)
+			rowRect.Origin.X -= maxSkew;
+		
+		for (let i = 0; i < nColors; i++) {
+			Screen.Clear(
+				rowRect.Origin.X,
+				rowRect.Origin.Y,
+				rowRect.Origin.X + rowRect.Size.X,
+				rowRect.Origin.Y + rowRect.Size.Y,
+				GUIUtil.ApplyAlpha(Colors[i], alpha)
+				
+				/*
+				GUIUtil.ApplyAlpha(Colors[i], Alpha),
+				area.Origin.X + ((size - i) * rowSlant),
+				area.Origin.Y + (i * rowSize.Y),
+				rowSize.X,
+				rowSize.Y,
+				DrawFlags
+				*/
+			);
+			
+			rowRect.Origin.X += effSkew;
+			rowRect.Origin.Y += rowRect.Size.Y;
+		}
+	}
+}

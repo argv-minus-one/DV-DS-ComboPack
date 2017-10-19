@@ -1,5 +1,5 @@
 class AetheriusHUD : BaseStatusBar {
-	Array<AethHUDWidget> Widgets;
+	Array<GUIWidget> Widgets;
 	
 	override void Init() {
 		Super.Init();
@@ -7,21 +7,17 @@ class AetheriusHUD : BaseStatusBar {
 		
 		// HP meter
 		HPMeter = new("AethHUDMeter");
-		HPMeter.Init(self);
-		HPMeter.Pos = (200, -190);
-		HPMeter.DrawFlags = DI_ITEM_LEFT_TOP | DI_SCREEN_LEFT_BOTTOM;
-		HPMeter.FillColors.Decode(HPMeterFill);
-		HPMeter.OverfillColors.Decode(HPMeterOverfill);
-		HPMeter.Length = 500;
+		HPMeter.Init();
+		HPMeter.MainFill.DecodeColorString(HPMeterFill);
+		HPMeter.OverFill.DecodeColorString(HPMeterOverfill);
+		HPMeter.LengthBase = 500;
 		HPMeter.LengthScale = 1;
-		//HPMeter.Scale = (3, 5);
+		HPMeter.LabelText.Text = "HP";
+		HPMeter.SetFrameTextures("HPBFRN", "HPBFRC", "HPBBGN");
+		HPMeter.Align.X = XALIGN_LEFT;
+		//HPMeter.Scale = (5, 3);
+		HPMeter.LayoutAutoSize((200, Screen.GetHeight() - 190));
 		Widgets.Push(HPMeter);
-		
-		HPMeterFrameNormal = new("SlicedTextureSet");
-		HPMeterFrameNormal.SetByName("HPBFRMN", TexMan.Type_Any);
-		HPMeterFrameCritical = new("SlicedTextureSet");
-		HPMeterFrameCritical.SetByName("HPBFRMC", TexMan.Type_Any);
-		HPMeter.Frame = HPMeterFrameNormal;
 	}
 	
 	override void Tick() {
@@ -29,10 +25,7 @@ class AetheriusHUD : BaseStatusBar {
 		
 		HPMeter.Value = CPlayer.Health;
 		HPMeter.MaxValue = CPlayer.mo.GetMaxHealth(true);
-		HPMeter.Frame = HPMeter.Value < HPMeter.MaxValue / 4? HPMeterFrameCritical : HPMeterFrameNormal;
-		
-		for (let i = 0, size = Widgets.Size(); i < size; i++)
-			Widgets[i].Tick();
+		HPMeter.Tick();
 	}
 	
 	override void Draw(int state, double ticFrac) {
@@ -44,7 +37,7 @@ class AetheriusHUD : BaseStatusBar {
 			DrawCharacterPortrait(ticFrac);
 			
 			for (let i = 0, size = Widgets.Size(); i < size; i++)
-				Widgets[i].Draw(ticFrac);
+				Widgets[i].Draw();
 		}
 	}
 	
@@ -143,5 +136,4 @@ class AetheriusHUD : BaseStatusBar {
 	// Dear God, what a horrible hack. The bytes of this string are ARGB8888 colors.
 	const HPMeterFill = "\xFF\x54\x00\x00\xFF\x69\x00\x00\xFF\x85\x00\x00\xFF\xA2\x00\x00\xFF\xC4\x00\x00\xFF\xE9\x00\x00\xFF\xFF\x02\x03\xFF\xFF\x10\x11\xFF\xFF\x1D\x20\xFF\xFF\x2F\x32\xFF\xFF\x3B\x3D\xFF\xFF\x47\x49\xFF\xFF\x52\x54\xFF\xFF\x60\x63\xFF\xFF\x6C\x70\xFF\xFF\x7D\x80\xFF\xFF\x91\x94\xFF\xFF\xA5\xA7\xFF\xFF\xC1\xC1\xFF\xFF\xDC\xDC";
 	const HPMeterOverfill = "\xFF\xFF\xF9\xF9\xFF\xFF\xF3\xF3\xFF\xFF\xED\xED\xFF\xFF\xE8\xE9\xFF\xFF\xE2\xE4\xFF\xFF\xDD\xDE\xFF\xFF\xD9\xDA\xFF\xFF\xD3\xD4\xFF\xFF\xCE\xCF\xFF\xFF\xC8\xC9\xFF\xFF\xC0\xC2\xFF\xFF\xB2\xB4\xFF\xFF\xA0\xA3\xFF\xFF\x72\x7A\xFF\xFB\x00\x00\xFF\xF4\x00\x00\xFF\xEC\x00\x00\xFF\xE5\x00\x00\xFF\xDC\x00\x00\xFF\xD4\x00\x00";
-	SlicedTextureSet HPMeterFrameNormal, HPMeterFrameCritical;
 }

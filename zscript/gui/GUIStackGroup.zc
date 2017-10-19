@@ -1,0 +1,63 @@
+/**
+ * A widget that contains an array of other widgets, and draws them on top of each other. The first widget in the array is drawn on the bottom of the stack; the last widget is drawn on top.
+ *
+ * Child widgets align themselves in the space according to their own Align field, not that of the GUIStackGroup. Thus, a single GUIStackGroup might contain one widget in its top-left corner and another widget in its bottom-right.
+ */
+class GUIStackGroup : GUIWidget {
+	Array<GUIWidget> Children;
+	
+	override double PreferredWidth(double height = -1.) {
+		double s = 0.;
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			s = max(s, Children[i].PreferredWidth(height));
+		return s + ((Insets.Left + Insets.Right) * EffXScale());
+	}
+	
+	override double PreferredHeight(double width = -1.) {
+		double s = 0.;
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			s = max(s, Children[i].PreferredHeight(width));
+		return s + ((Insets.Top + Insets.Bottom) * EffYScale());
+	}
+	
+	/*
+	override double MinimumWidth(double height = -1.) {
+		double s = 0.;
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			s = max(s, Children[i].MinimumWidth(height));
+		return s + ((Insets.Left + Insets.Right) * EffXScale());
+	}
+	
+	override double MinimumHeight(double width = -1.) {
+		double s = 0.;
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			s = max(s, Children[i].MinimumHeight(width));
+		return s + ((Insets.Top + Insets.Bottom) * EffYScale());
+	}
+	*/
+	
+	override EResizeBias ResizeBias() {
+		let bias = RBIAS_NONE;
+		for (let i = 0, l = Children.Size(); i < l; i++) {
+			let childBias = Children[i].ResizeBias();
+			switch (Children[i].ResizeBias()) {
+				case RBIAS_VERTICAL:   bias = RBIAS_VERTICAL; break;
+				case RBIAS_HORIZONTAL: return RBIAS_HORIZONTAL;
+			}
+		}
+		return bias;
+	}
+	
+	override void Layout(Rectangle area) {
+		Super.Layout(area);
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			Children[i].Layout(Bounds);
+	}
+	
+	override void Draw() {
+		Super.Draw();
+		
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			Children[i].Draw();
+	}
+}

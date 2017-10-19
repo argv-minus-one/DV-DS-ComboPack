@@ -1,0 +1,318 @@
+/**
+ * An all-in-one meter widget that uses GUIColorRibbon for fill, GUIText for labeling, and arbitrary widgets drawn under/over the fill part.
+ */
+class GUIRibbonMeter : GUIWidget {
+	DynamicValueInterpolator ValueInterp, MaxValueInterp;
+	int Value, MaxValue;
+	GUIText LabelText, NumberText;
+	GUIColorRibbon MainFill, OverFill;
+	bool DrawValue, DrawMaxValue;
+	GUIInsets FillInsets;
+	GUIWidget DrawUnder, DrawOver;
+	
+	/** If LengthScale is set to a positive value, then the length of the meter is MaxValue * LengthScale + LengthAdd, and the LengthBase field is the maximum length instead. */
+	double LengthScale;
+	double LengthBase;
+	double LengthAdd;
+	
+	/*
+	private double PrevLengthScale, PrevLengthBase, PrevLengthAdd;
+	private int PrevMaxValue;
+	*/
+	
+	override void Init(GUIWidget parent = null) {
+		Super.Init(parent);
+		
+		/*
+		PrevLengthScale = PrevLengthBase = PrevLengthAdd = -1.;
+		PrevMaxValue = -1;
+		*/
+		
+		LabelText = new("GUIText");
+		LabelText.Init(self);
+		LabelText.Align.X = XALIGN_LEFT;
+		
+		NumberText = new("GUIText");
+		NumberText.Init(self);
+		NumberText.PrefLineLength = 7;
+		
+		MainFill = new("GUIColorRibbon");
+		MainFill.Init(self);
+		
+		OverFill = new("GUIColorRibbon");
+		OverFill.Init(self);
+		
+		DrawMaxValue = DrawValue = true;
+		ValueInterp = DynamicValueInterpolator.Create(0, 0.25, 1, 8);
+		MaxValueInterp = DynamicValueInterpolator.Create(0, 0.15, 1, 6);
+		LengthBase = 200;
+	}
+	
+	void SetBackgroundTextureSet(String textureNamePrefix, int texUseType, bool preserveAspectRatio = true) {
+		DrawUnder = new("GUIEdgeGroup");
+		DrawUnder.Init();
+		GUIEdgeGroup(DrawUnder).UseTextureSet(textureNamePrefix, texUseType, preserveAspectRatio);
+		RequestLayout();
+	}
+	
+	void SetForegroundTextureSet(String textureNamePrefix, int texUseType, bool preserveAspectRatio = true) {
+		DrawOver = new("GUIEdgeGroup");
+		DrawOver.Init();
+		GUIEdgeGroup(DrawOver).UseTextureSet(textureNamePrefix, texUseType, preserveAspectRatio);
+		RequestLayout();
+	}
+	
+	void Tick() {
+		ValueInterp.Update(Value);
+		
+		let oldMaxValueInterp = MaxValueInterp.GetValue();
+		MaxValueInterp.Update(MaxValue);
+		
+		//UpdateFillLengths();
+		
+		// If the whole meter needs to grow/shrink, then we need to recompute layout.
+		if (oldMaxValueInterp != MaxValueInterp.GetValue() && LengthScale > 0.)
+			RequestLayout();
+	}
+	
+	/*
+	protected void UpdateFillLengths() {
+		let mvi = MaxValueInterp.GetValue();
+		if (
+			(MainFill != null || OverFill != null) &&
+			(
+				LengthBase != PrevLengthBase ||
+				LengthAdd != PrevLengthAdd ||
+				LengthScale != PrevLengthScale ||
+				(LengthScale > 0. && PrevMaxValue != mvi
+			)
+		) {
+			double l;
+			if (LengthScale > 0.)
+				l = min(LengthBase, double(mvi) * LengthScale + LengthAdd);
+			else
+				l = LengthBase;
+			if (MainFill != null) MainFill.PreferredLength = l;
+			if (OverFill != null) OverFill.PreferredLength = l;
+			RequestLayout();
+		}
+		
+		PrevLengthBase = LengthBase;
+		PrevLengthAdd = LengthAdd;
+		PrevLengthScale = LengthScale;
+		PrevMaxValue = mvi;
+	}
+	*/
+	
+	override double PreferredWidth(double height = -1.) {
+		return max(
+			NumberText == null? 0. : NumberText.PreferredWidth(height),
+			MainFill == null? 0. : MainFill.PreferredWidth(height),
+			OverFill == null? 0. : OverFill.PreferredWidth(height),
+			DrawUnder == null? 0. : DrawUnder.PreferredWidth(height),
+			DrawOver == null? 0. : DrawOver.PreferredWidth(height)
+		) + Insets.X(EffXScale());
+	}
+	
+	override double PreferredHeight(double width = -1.) {
+		return max(
+			NumberText == null? 0. : NumberText.PreferredHeight(width),
+			MainFill == null? 0. : MainFill.PreferredHeight(width),
+			OverFill == null? 0. : OverFill.PreferredHeight(width),
+			DrawUnder == null? 0. : DrawUnder.PreferredHeight(width),
+			DrawOver == null? 0. : DrawOver.PreferredHeight(width)
+		) + Insets.Y(EffYScale());
+	}
+	
+	override void Layout(Rectangle area) {
+		if (MainFill != null || OverFill != null) {
+			double fl;
+			if (LengthScale > 0.)
+				fl = min(LengthBase, double(MaxValueInterp.GetValue()) * LengthScale + LengthAdd);
+			else
+				fl = LengthBase;
+			if (MainFill != null) MainFill.PreferredLength = fl;
+			if (OverFill != null) OverFill.PreferredLength = fl;
+		}
+		
+		Super.Layout(area);
+		
+		if (NumberText != null) NumberText.Layout(Bounds);
+		if (LabelText != null) LabelText.Layout(Bounds);
+		if (DrawUnder != null) DrawUnder.Layout(Bounds);
+		if (DrawOver != null) DrawOver.Layout(Bounds);
+		
+		if (MainFill != null) {
+			// Reset the child's insets. We manipulate Size.X on every frame to control how much is filled, but the other three coordinates remain the same.
+			MainFill.Insets.Copy(FillInsets);
+			// We don't bother calling Layout on it here, because it has to be called on every frame anyway.
+		}
+		
+		if (OverFill != null)
+			OverFill.Insets.Copy(FillInsets);
+	}
+	
+	//private bool ComplainedAboutNoFillColors;
+	
+	override void Draw(/*double ticFrac*/) {
+		let currentValue = ValueInterp.GetValue();
+		let currentMaxValue = MaxValueInterp.GetValue();
+		
+		if (DrawUnder != null) DrawUnder.Draw();
+		
+		if (MainFill != null) {
+			let mainFillFraction = clamp(currentValue / currentMaxValue, 0., 1.);
+			let mainFillRemainingWidth = mainFill.Bounds.Size.X - FillInsets.X(mainFill.EffXScale());
+			MainFill.Insets.Right = FillInsets.Right + (mainFillRemainingWidth * mainFillFraction);
+			MainFill.Layout(Bounds);
+			MainFill.Draw();
+		}
+		
+		if (OverFill != null) {
+			let overFillFraction = clamp(currentValue / currentMaxValue, 0., 1.);
+			let overFillReoveringWidth = overFill.Bounds.Size.X - FillInsets.X(overFill.EffXScale());
+			OverFill.Insets.Right = FillInsets.Right + (overFillReoveringWidth * overFillFraction);
+			OverFill.Layout(Bounds);
+			OverFill.Draw();
+		}
+		
+		if (DrawOver != null) DrawOver.Draw();
+		if (LabelText != null) LabelText.Draw();
+		
+		if (NumberText != null && DrawValue) {
+			if (DrawMaxValue)
+				NumberText.Text = String.Format("%d/%d", currentValue, currentMaxValue);
+			else
+				NumberText.Text = String.Format("%d", currentValue);
+			
+			NumberText.LayoutText();
+			NumberText.Draw();
+		}
+		
+		/*
+		if (FillColors.Colors.Size() < 1) {
+			if (!ComplainedAboutNoFillColors) {
+				Console.Printf("\cr%s has no fill colors!", GetClassName());
+				ComplainedAboutNoFillColors = true;
+			}
+			return;
+		}
+		else
+			ComplainedAboutNoFillColors = false;
+		
+		//// Compute size ////
+		Rectangle frameArea;
+		String numberText;
+		frameArea.Origin = Pos;
+		
+		// DrawString doesn't accept a scale factor, so ignore scaling for this one.
+		// TODO: Find some way to scale it anyway?
+		[frameArea.Size, numberText] = NumberAreaSizeAndText();
+		
+		{
+			Vector2 v = DesiredFillAreaSize();
+			frameArea.Size = GUIUtil.Vec2Max(frameArea.Size, v);
+		}
+		
+		if (Background != null) {
+			Vector2 v = GUIUtil.Vec2Mul(Background.TotalTextureSize(), Scale);
+			frameArea.Size = GUIUtil.Vec2Max(frameArea.Size, v);
+		}
+		
+		if (Frame != null) {
+			Vector2 v = GUIUtil.Vec2Mul(Frame.TotalTextureSize(), Scale);
+			frameArea.Size = GUIUtil.Vec2Max(frameArea.Size, v);
+		}
+		
+		Rectangle fillArea;
+		fillArea.Copy(frameArea);
+		Insets.Apply(fillArea, Scale);
+		
+		//// Draw ////
+		if (Background != null)
+			Background.DrawHUD(hud, frameArea, DrawFlags, Alpha, Scale);
+		
+		DrawMeterFill(
+			fillArea, FillColors,
+			clamp(double(ValueInterp.mCurrentValue) / double(MaxValueInterp.mCurrentValue), 0., 1.)
+		);
+		DrawMeterFill(
+			fillArea, OverfillColors,
+			clamp(double(ValueInterp.mCurrentValue - MaxValueInterp.mCurrentValue) / double(MaxValueInterp.mCurrentValue), 0., 1.)
+		);
+		
+		if (Frame != null)
+			Frame.DrawHUD(hud, frameArea, DrawFlags, Alpha, Scale);
+		
+		DrawCenterText(frameArea, NumberFont, numberText);
+		*/
+	}
+	
+	/*
+	protected virtual Vector2 DesiredFillAreaSize() {
+		double desiredLength;
+		
+		if (LengthScale > 0.)
+			desiredLength = min(MaxValueInterp.GetValue() * LengthScale + LengthAdd, Length);
+		else
+			desiredLength = Length;
+		
+		return (desiredLength * Scale.X, double(FillColors.Colors.Size()) * Scale.Y);
+	}
+	
+	protected virtual Vector2, String NumberAreaSizeAndText() {
+		if (!DrawValue)
+			return (0, 0), "";
+		
+		let text = BaseStatusBar.FormatNumber(ValueInterp.GetValue());
+		if (DrawMaxValue)
+			text = text .. "/" .. BaseStatusBar.FormatNumber(MaxValueInterp.GetValue());
+		
+		Vector2 size = (
+			NumberFont.mFont.StringWidth(text .. "xx"),
+			NumberFont.mFont.GetHeight()
+		);
+		
+		// Text is not scaled by the engine, so don't apply the scale factor here.
+		return (size.X, size.Y), text;
+	}
+	
+	protected void DrawMeterFill(Rectangle area, ColorSeq colors, double lengthFrac) {
+		if (length <= 0. || colors.Colors.Size() <= 0)
+			return;
+		
+		Vector2 rowSize;
+		rowSize.Y = area.Size.Y / colors.Colors.Size();
+		double rowSlant = Scale.X;
+		rowSize.X = (area.Size.X - (colors.Colors.Size() * rowSlant)) * lengthFrac;
+		
+		for (let i = 0, size = colors.Colors.Size(); i < size; i++) {
+			Color c = GUIUtil.ApplyAlpha(colors.Colors[i], Alpha);
+			
+			hud.Fill(
+				c,
+				area.Origin.X + ((size - i) * rowSlant),
+				area.Origin.Y + (i * rowSize.Y),
+				rowSize.X,
+				rowSize.Y,
+				DrawFlags
+			);
+		}
+	}
+	
+	protected void DrawCenterText(Rectangle frameArea, HUDFont font_, String text) {
+		let relativeOrigin = frameArea.Origin;
+		relativeOrigin.X += frameArea.Size.X / 2;
+		relativeOrigin.Y += (frameArea.Size.Y / 2) - (NumberFont.mFont.GetHeight() / 2);
+		
+		hud.DrawString(
+			font_,
+			text,
+			relativeOrigin,
+			DrawFlags | BaseStatusBar.DI_TEXT_ALIGN_CENTER,
+			Font.CR_WHITE,
+			Alpha
+		);
+	}
+	*/
+}

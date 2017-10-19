@@ -1,0 +1,79 @@
+/**
+ * Draws a texture.
+ */
+class GUIImage : GUIWidget {
+	TextureID Image;
+	bool PreserveAspectRatio;
+	
+	override void Init(GUIWidget parent = null) {
+		Super.Init(parent);
+		PreserveAspectRatio = true;
+	}
+	
+	double ImageAspectRatio() {
+		if (Image.IsValid()) {
+			let s = ScaledTexSize();
+			return s.X / s.Y;
+		}
+		else
+			return 1.;
+	}
+	
+	override EResizeBias ResizeBias() {
+		if (PreserveAspectRatio && Image.IsValid()) {
+			// Images' resize bias is along their short axis. That is, the size of the short axis depends on the size of the long axis.
+			let s = ScaledTexSize();
+			if (s.Y < s.X)
+				return RBIAS_VERTICAL;
+			else
+				return RBIAS_HORIZONTAL;
+		}
+		else
+			return RBIAS_NONE;
+	}
+	
+	private Vector2 ScaledTexSize() {
+		return GUIUtil.Vec2Mul(TexMan.GetScaledSize(Image), EffScale());
+	}
+	
+	override double PreferredWidth(double height = -1.) {
+		if (Image.IsValid()) {
+			if (height > 0.)
+				return height * ImageAspectRatio();
+			else {
+				let sts = ScaledTexSize();
+				return sts.X * EffXScale();
+			}
+		}
+		else
+			return 0.;
+	}
+	
+	override double PreferredHeight(double width = -1.) {
+		if (Image.IsValid()) {
+			if (width > 0.)
+				return width / ImageAspectRatio();
+			else {
+				let sts = ScaledTexSize();
+				return sts.Y * EffYScale();
+			}
+		}
+		else
+			return 0.;
+	}
+	
+	override void Draw() {
+		Super.Draw();
+		
+		if (Image.IsValid())
+			Screen.DrawTexture(
+				Image,
+				false,
+				Bounds.Origin.X,
+				Bounds.Origin.Y,
+				DTA_DestWidthF, Bounds.Size.X,
+				DTA_DestHeightF, Bounds.Size.Y,
+				DTA_Alpha, EffAlpha()
+			);
+	}
+}
