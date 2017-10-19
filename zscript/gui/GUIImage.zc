@@ -38,7 +38,7 @@ class GUIImage : GUIWidget {
 	
 	override double PreferredWidth(double height = -1.) {
 		if (Image.IsValid()) {
-			if (height > 0.)
+			if (height > 0. && ResizeBias() == RBIAS_VERTICAL)
 				return height * ImageAspectRatio();
 			else {
 				let sts = ScaledTexSize();
@@ -51,7 +51,7 @@ class GUIImage : GUIWidget {
 	
 	override double PreferredHeight(double width = -1.) {
 		if (Image.IsValid()) {
-			if (width > 0.)
+			if (width > 0. && ResizeBias() == RBIAS_HORIZONTAL)
 				return width / ImageAspectRatio();
 			else {
 				let sts = ScaledTexSize();
