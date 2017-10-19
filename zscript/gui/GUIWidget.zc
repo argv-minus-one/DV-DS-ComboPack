@@ -264,6 +264,9 @@ class GUIWidget ui {
 		
 		Bounds.PositionIn(area, Align.X, Align.Y);
 		LayoutDone();
+		
+		if (zsgui_debug_layout)
+			Console.Printf("ZsGUI: Basic layout for %s done. Provided area was %s. Final bounds are %s.", ToString(), area.ToString(), Bounds.ToString());
 	}
 	
 	/**

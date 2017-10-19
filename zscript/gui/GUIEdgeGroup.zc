@@ -131,6 +131,10 @@ class GUIEdgeGroup : GUIWidget {
 		for (let col = 0; col < 3; col++)
 		for (let row = 0; row < 3; row++) {
 			let ps = Children[col][row] == null? (0, 0) : Children[col][row].PreferredSize(Bounds.Size);
+			
+			if (zsgui_debug_edgegroup && Children[col][row] != null)
+				Console.Printf("Preferred size for child %s is %fx%f.", Children[col][row].ToString(), ps.X, ps.Y);
+			
 			colSizes[col] = max(0., colSizes[col], ps.X);
 			rowSizes[row] = max(0., rowSizes[row], ps.Y);
 		}
