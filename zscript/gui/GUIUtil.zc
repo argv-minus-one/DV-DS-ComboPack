@@ -161,6 +161,10 @@ struct GUIInsets {
 	double Y(double scale = 1) {
 		return (Top + Bottom) * scale;
 	}
+	
+	String ToString() {
+		return String.Format("t:%f,r:%f,b:%f,l:%f", Top, Right, Bottom, Left);
+	}
 }
 
 /*
