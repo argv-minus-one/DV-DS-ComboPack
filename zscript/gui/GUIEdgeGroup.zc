@@ -124,7 +124,7 @@ class GUIEdgeGroup : GUIWidget {
 		Super.Layout(area);
 		
 		if (zsgui_debug_edgegroup)
-			Console.Printf(">>> ZsGUI: Laying out %s.", ToString());
+			Console.Printf(">>> ZsGUI: Laying out %s in area %s.", ToString(), area.ToString());
 		
 		// Get the preferred sizes of the rows and columns.
 		double colSizes[3], rowSizes[3];
