@@ -1,0 +1,1 @@
+server bool zsgui_debug_edgegroup = false;

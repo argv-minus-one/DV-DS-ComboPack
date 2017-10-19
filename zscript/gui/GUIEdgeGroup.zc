@@ -123,6 +123,9 @@ class GUIEdgeGroup : GUIWidget {
 	override void Layout(Rectangle area) {
 		Super.Layout(area);
 		
+		if (zsgui_debug_edgegroup)
+			Console.Printf(">>> ZsGUI: Laying out %s.", ToString());
+		
 		// Get the preferred sizes of the rows and columns.
 		double colSizes[3], rowSizes[3];
 		for (let col = 0; col < 3; col++)
@@ -132,11 +135,24 @@ class GUIEdgeGroup : GUIWidget {
 			rowSizes[row] = max(0., rowSizes[row], ps.Y);
 		}
 		
+		if (zsgui_debug_edgegroup)
+			Console.Printf(
+				"Computed column sizes: %f, %f, %f.\nComputed row sizes: %f, %f, %f.",
+				colSizes[0], colSizes[1], colSizes[2],
+				rowSizes[0], rowSizes[1], rowSizes[2]
+			);
+		
 		// Find the total preferred size in both dimensions.
 		Vector2 totalPrefSize = (
 			colSizes[0] + colSizes[1] + colSizes[2],
 			rowSizes[0] + rowSizes[1] + rowSizes[2]
 		);
+		
+		if (zsgui_debug_edgegroup)
+			Console.Printf(
+				"Total preferred size: %f,%f",
+				totalPrefSize.X, totalPrefSize.Y
+			);
 		
 		// Take the difference between the space we're given and the total space the children prefer.
 		let diff = Bounds.Size - totalPrefSize;
@@ -152,6 +168,13 @@ class GUIEdgeGroup : GUIWidget {
 		else for (let row = 0; row < 3; row++)
 			rowSizes[row] += diff.Y * (rowSizes[row] / totalPrefSize.Y);
 		
+		if (zsgui_debug_edgegroup)
+			Console.Printf(
+				"Adjusted column sizes: %f, %f, %f\nAdjusted row sizes: %f, %f, %f",
+				colSizes[0], colSizes[1], colSizes[2],
+				rowSizes[0], rowSizes[1], rowSizes[2]
+			);
+		
 		// Size and position the children into their places on the grid.
 		let colPos = Bounds.Origin.X;
 		for (let col = 0; col < 3; col++) {
@@ -163,6 +186,14 @@ class GUIEdgeGroup : GUIWidget {
 					childRect.Origin = (colPos, rowPos);
 					childRect.Size = (colSizes[col], rowSizes[row]);
 					Children[col][row].Layout(childRect);
+					
+					if (zsgui_debug_edgegroup)
+						Console.Printf(
+							"Laid out child %s (column %d, row %d): %s",
+							Children[col][row].ToString(),
+							col, row,
+							childRect.ToString()
+						);
 				}
 				
 				rowPos += rowSizes[row];
@@ -171,6 +202,8 @@ class GUIEdgeGroup : GUIWidget {
 			colPos += colSizes[col];
 		}
 		
+		if (zsgui_debug_edgegroup)
+			Console.Printf("<<< ZsGUI: Finished laying out %s.", ToString());
 		// Done!
 		
 		/*
