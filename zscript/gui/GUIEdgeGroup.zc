@@ -241,6 +241,7 @@ class GUIEdgeGroup : GUIWidget {
 			let tex = TexMan.CheckForTexture(textureNamePrefix..TextureSetNameSuffixes[row * 3 + col], texUseType);
 			if (tex.IsValid()) {
 				let im = new("GUIImage");
+				im.ConsoleLabel = String.Format("%s.%s", ConsoleLabel, TextureSetNameSuffixes[row * 3 + col]);
 				im.Init(self);
 				im.Image = tex;
 				im.PreserveAspectRatio = preserveAspectRatio;

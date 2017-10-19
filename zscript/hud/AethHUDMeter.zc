@@ -12,11 +12,14 @@ class AethHUDMeter : GUIRibbonMeter {
 		
 		CriticalThreshold = .25;
 		NormalFrame = new("GUIEdgeGroup");
+		NormalFrame.ConsoleLabel = ConsoleLabel..".NormalFrame";
 		NormalFrame.Init(self);
 		CriticalFrame = new("GUIEdgeGroup");
+		CriticalFrame.ConsoleLabel = ConsoleLabel..".CriticalFrame";
 		CriticalFrame.Init(self);
 		
 		BackgroundGlass = new("GUIEdgeGroup");
+		BackgroundGlass.ConsoleLabel = ConsoleLabel..".BackgroundGlass";
 		BackgroundGlass.Init(self);
 		DrawUnder = BackgroundGlass;
 	}

@@ -5,6 +5,13 @@ class GUIWidget ui {
 	GUIInsets Insets;
 	bool Resizable/*, ResizeProportionally*/;
 	
+	/**
+	 * Label for this widget. It will appear in console debug and error messages concerning this widget.
+	 *
+	 * This field should be set *before* calling the Init method, as Init itself may emit log messages.
+	 */
+	String ConsoleLabel;
+	
 	/** The current bounding area for this widget. Accounts for the Scale of this and ancestor widgets. */
 	Rectangle Bounds;
 	
@@ -281,7 +288,7 @@ class GUIWidget ui {
 	 * Returns a textual description of this widget. This is used when logging error messages.
 	 */
 	virtual String ToString() {
-		return GetClassName();
+		return String.Format("%s %s", GetClassName(), ConsoleLabel);
 	}
 	
 	virtual void Draw() {

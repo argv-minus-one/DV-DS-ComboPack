@@ -7,6 +7,7 @@ class AetheriusHUD : BaseStatusBar {
 		
 		// HP meter
 		HPMeter = new("AethHUDMeter");
+		HPMeter.ConsoleLabel = "AetheriusHUD.HPMeter";
 		HPMeter.Init();
 		HPMeter.MainFill.DecodeColorString(HPMeterFill);
 		HPMeter.OverFill.DecodeColorString(HPMeterOverfill);
