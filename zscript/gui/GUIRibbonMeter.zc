@@ -55,7 +55,7 @@ class GUIRibbonMeter : GUIWidget {
 	void SetBackgroundTextureSet(String textureNamePrefix, int texUseType, bool preserveAspectRatio = true) {
 		DrawUnder = new("GUIEdgeGroup");
 		DrawUnder.ConsoleLabel = ConsoleLabel..".DrawUnder";
-		DrawUnder.Init();
+		DrawUnder.Init(self);
 		GUIEdgeGroup(DrawUnder).UseTextureSet(textureNamePrefix, texUseType, preserveAspectRatio);
 		RequestLayout();
 	}
@@ -63,7 +63,7 @@ class GUIRibbonMeter : GUIWidget {
 	void SetForegroundTextureSet(String textureNamePrefix, int texUseType, bool preserveAspectRatio = true) {
 		DrawOver = new("GUIEdgeGroup");
 		DrawOver.ConsoleLabel = ConsoleLabel..".DrawOver";
-		DrawOver.Init();
+		DrawOver.Init(self);
 		GUIEdgeGroup(DrawOver).UseTextureSet(textureNamePrefix, texUseType, preserveAspectRatio);
 		RequestLayout();
 	}

@@ -26,7 +26,7 @@ class GUIWidget ui {
 	 */
 	GUIXYAlignment Align;
 	
-	virtual void Init(GUIWidget parent = null) {
+	virtual void Init(GUIWidget parent) {
 		self.Parent = parent;
 		Alpha = 1;
 		Scale = (1, 1);

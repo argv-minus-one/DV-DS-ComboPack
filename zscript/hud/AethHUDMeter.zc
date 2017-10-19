@@ -3,7 +3,7 @@ class AethHUDMeter : GUIRibbonMeter {
 	double CriticalThreshold;
 	bool CriticalIsHigh;
 	
-	override void Init(GUIWidget parent = null) {
+	override void Init(GUIWidget parent) {
 		Super.Init(parent);
 		
 		let hudFont = Font.GetFont('DQHUDFONTSML');
