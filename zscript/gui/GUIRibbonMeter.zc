@@ -130,7 +130,48 @@ class GUIRibbonMeter : GUIWidget {
 		) + Insets.Y(EffYScale());
 	}
 	
+	private void LayoutChild(GUIWidget widget, String widgetName) {
+		if (widget != null) {
+			widget.Layout(Bounds);
+			
+			if (zsgui_debug_ribbonmeter_layout)
+				Console.Printf("%s placement: %s.", widgetName, widget.Bounds.ToString());
+		}
+		else
+			Console.Printf("%s not present, so not laying out.", widgetName);
+	}
+	
+	private void LayoutFillChild(GUIColorRibbon widget, String widgetName, double fillFraction, bool forceLayout) {
+		if (widget != null) {
+			let fillRemainingWidth = widget.Bounds.Size.X - FillInsets.X(widget.EffXScale());
+			let prevInset = widget.Insets.Right;
+			widget.Insets.Right = FillInsets.Right + (fillRemainingWidth * fillFraction);
+			
+			if (forceLayout || widget.Insets.Right != prevInset) {
+				MainFill.Layout(Bounds);
+				
+				if (zsgui_debug_ribbonmeter_layout)
+					Console.Printf("%s has been laid out with insets %s, and is now positioned at %s.", widgetName, widget.Insets.ToString(), widget.Bounds.ToString());
+			}
+		}
+	}
+	
+	private double GetFillFraction(double adjust = 0.) {
+		let vi = ValueInterp.GetValue(), mvi = MaxValueInterp.GetValue();
+		double rf;
+		
+		if (mvi > 0)
+			rf = double(vi) / double(mvi);
+		else
+			rf = 1;
+		
+		return clamp(rf + adjust, 0., 1.);
+	}
+	
 	override void Layout(Rectangle area) {
+		if (zsgui_debug_ribbonmeter_layout)
+			Console.Printf(">>> ZsGUI: Laying out %s into area %s.", ToString(), area.ToString());
+		
 		if (MainFill != null || OverFill != null) {
 			double fl;
 			if (LengthScale > 0.)
@@ -143,42 +184,32 @@ class GUIRibbonMeter : GUIWidget {
 		
 		Super.Layout(area);
 		
-		if (NumberText != null) NumberText.Layout(Bounds);
-		if (LabelText != null) LabelText.Layout(Bounds);
-		if (DrawUnder != null) DrawUnder.Layout(Bounds);
-		if (DrawOver != null) DrawOver.Layout(Bounds);
+		if (zsgui_debug_ribbonmeter_layout)
+			Console.Printf("Computed bounds: %s", Bounds.ToString());
 		
-		if (MainFill != null) {
-			// Reset the child's insets. We manipulate Size.X on every frame to control how much is filled, but the other three coordinates remain the same.
-			MainFill.Insets.Copy(FillInsets);
-			// We don't bother calling Layout on it here, because it has to be called on every frame anyway.
-		}
+		LayoutChild(NumberText, "NumberText");
+		LayoutChild(LabelText, "LabelText");
+		LayoutChild(DrawUnder, "DrawUnder");
+		LayoutChild(DrawOver, "DrawOver");
+		LayoutFillChild(MainFill, "MainFill", GetFillFraction(), true);
+		LayoutFillChild(OverFill, "OverFill", GetFillFraction(-1), true);
 		
-		if (OverFill != null)
-			OverFill.Insets.Copy(FillInsets);
+		if (zsgui_debug_ribbonmeter_layout)
+			Console.Printf("<<< ZsGUI: Laying out %s finished.", ToString());
 	}
 	
 	//private bool ComplainedAboutNoFillColors;
 	
 	override void Draw(/*double ticFrac*/) {
-		let currentValue = ValueInterp.GetValue();
-		let currentMaxValue = MaxValueInterp.GetValue();
-		
 		if (DrawUnder != null) DrawUnder.Draw();
 		
 		if (MainFill != null) {
-			let mainFillFraction = clamp(currentValue / currentMaxValue, 0., 1.);
-			let mainFillRemainingWidth = mainFill.Bounds.Size.X - FillInsets.X(mainFill.EffXScale());
-			MainFill.Insets.Right = FillInsets.Right + (mainFillRemainingWidth * mainFillFraction);
-			MainFill.Layout(Bounds);
+			LayoutFillChild(MainFill, "MainFill", GetFillFraction(), false);
 			MainFill.Draw();
 		}
 		
 		if (OverFill != null) {
-			let overFillFraction = clamp(currentValue / currentMaxValue, 0., 1.);
-			let overFillReoveringWidth = overFill.Bounds.Size.X - FillInsets.X(overFill.EffXScale());
-			OverFill.Insets.Right = FillInsets.Right + (overFillReoveringWidth * overFillFraction);
-			OverFill.Layout(Bounds);
+			LayoutFillChild(OverFill, "OverFill", GetFillFraction(-1), false);
 			OverFill.Draw();
 		}
 		
@@ -187,9 +218,9 @@ class GUIRibbonMeter : GUIWidget {
 		
 		if (NumberText != null && DrawValue) {
 			if (DrawMaxValue)
-				NumberText.Text = String.Format("%d/%d", currentValue, currentMaxValue);
+				NumberText.Text = String.Format("%d/%d", ValueInterp.GetValue(), MaxValueInterp.GetValue());
 			else
-				NumberText.Text = String.Format("%d", currentValue);
+				NumberText.Text = String.Format("%d", ValueInterp.GetValue());
 			
 			NumberText.LayoutText();
 			NumberText.Draw();
