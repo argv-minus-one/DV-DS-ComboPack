@@ -1,0 +1,43 @@
+class AethHUDMeter : GUIRibbonMeter {
+	GUIEdgeGroup NormalFrame, CriticalFrame, BackgroundGlass;
+	double CriticalThreshold;
+	bool CriticalIsHigh;
+	
+	override void Init(GUIWidget parent = null) {
+		Super.Init(parent);
+		
+		let hudFont = Font.GetFont('DQHUDFONTSML');
+		NumberText.TextFont = hudFont;
+		LabelText.TextFont = hudFont;
+		
+		CriticalThreshold = .25;
+		NormalFrame = new("GUIEdgeGroup");
+		NormalFrame.Init(self);
+		CriticalFrame = new("GUIEdgeGroup");
+		CriticalFrame.Init(self);
+		
+		BackgroundGlass = new("GUIEdgeGroup");
+		BackgroundGlass.Init(self);
+		DrawUnder = BackgroundGlass;
+	}
+	
+	void SetFrameTextures(String normalPrefix, String criticalPrefix, String backgroundPrefix, int texUseType = TexMan.Type_Any, bool preserveAspectRatio = true) {
+		if (normalPrefix)
+			NormalFrame.UseTextureSet(normalPrefix, texUseType, preserveAspectRatio);
+		if (criticalPrefix)
+			CriticalFrame.UseTextureSet(criticalPrefix, texUseType, preserveAspectRatio);
+		if (backgroundPrefix)
+			BackgroundGlass.UseTextureSet(backgroundPrefix, texUseType, preserveAspectRatio);
+	}
+	
+	override void Draw() {
+		let vp = ValueInterp.GetValue() / MaxValueInterp.GetValue();
+		
+		if ((CriticalIsHigh && vp > CriticalThreshold) || (!CriticalIsHigh && vp < CriticalThreshold))
+			DrawOver = CriticalFrame;
+		else
+			DrawOver = NormalFrame;
+		
+		Super.Draw();
+	}
+}
