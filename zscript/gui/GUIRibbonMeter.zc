@@ -169,6 +169,8 @@ class GUIRibbonMeter : GUIWidget {
 	}
 	
 	override void Layout(Rectangle area) {
+		Super.Layout(area);
+		
 		if (zsgui_debug_ribbonmeter_layout)
 			Console.Printf(">>> ZsGUI: Laying out %s into area %s.", ToString(), area.ToString());
 		
@@ -201,6 +203,8 @@ class GUIRibbonMeter : GUIWidget {
 	//private bool ComplainedAboutNoFillColors;
 	
 	override void Draw(/*double ticFrac*/) {
+		Super.Draw();
+		
 		if (DrawUnder != null) DrawUnder.Draw();
 		
 		if (MainFill != null) {
