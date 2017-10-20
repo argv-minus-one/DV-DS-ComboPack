@@ -148,7 +148,7 @@ class GUIRibbonMeter : GUIWidget {
 			widget.Insets.Right = FillInsets.Right + (fillRemainingWidth * fillFraction);
 			
 			if (forceLayout || widget.Insets.Right != prevInset) {
-				MainFill.Layout(Bounds);
+				widget.Layout(Bounds);
 				
 				if (zsgui_debug_ribbonmeter_layout)
 					Console.Printf("%s has been laid out with insets %s, and is now positioned at %s.", widgetName, widget.Insets.ToString(), widget.Bounds.ToString());
