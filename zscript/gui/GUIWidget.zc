@@ -16,9 +16,7 @@ class GUIWidget ui {
 	Rectangle Bounds;
 	
 	/**
-	 * How this widget is to align itself inside its bounding area, if it does not exactly fit.
-	 *
-	 * This determines how to align the widget in a larger space than it can fill.
+	 * How this widget is to align its content inside its bounding area.
 	 *
 	 * If this widget must draw outside its bounds, it will do so in the opposite direction. For example, a top-left-aligned widget will overflow in the bottom-right direction.
 	 *
