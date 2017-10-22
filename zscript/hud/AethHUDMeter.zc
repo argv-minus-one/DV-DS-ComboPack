@@ -24,13 +24,13 @@ class AethHUDMeter : GUIRibbonMeter {
 		DrawUnder = BackgroundGlass;
 	}
 	
-	void SetFrameTextures(String normalPrefix, String criticalPrefix, String backgroundPrefix, int texUseType = TexMan.Type_Any, bool preserveAspectRatio = true) {
+	void SetFrameTextures(String normalPrefix, String criticalPrefix, String backgroundPrefix, int texUseType = TexMan.Type_Any) {
 		if (normalPrefix)
-			NormalFrame.UseTextureSet(normalPrefix, texUseType, preserveAspectRatio);
+			NormalFrame.UseTextureSet(normalPrefix, texUseType);
 		if (criticalPrefix)
-			CriticalFrame.UseTextureSet(criticalPrefix, texUseType, preserveAspectRatio);
+			CriticalFrame.UseTextureSet(criticalPrefix, texUseType);
 		if (backgroundPrefix)
-			BackgroundGlass.UseTextureSet(backgroundPrefix, texUseType, preserveAspectRatio);
+			BackgroundGlass.UseTextureSet(backgroundPrefix, texUseType);
 	}
 	
 	override void Draw() {

@@ -44,19 +44,19 @@ class GUIRibbonMeter : GUIWidget {
 		LengthBase = 200;
 	}
 	
-	void SetBackgroundTextureSet(String textureNamePrefix, int texUseType, bool preserveAspectRatio = true) {
+	void SetBackgroundTextureSet(String textureNamePrefix, int texUseType) {
 		DrawUnder = new("GUIEdgeGroup");
 		DrawUnder.ConsoleLabel = ConsoleLabel..".DrawUnder";
 		DrawUnder.Init(self);
-		GUIEdgeGroup(DrawUnder).UseTextureSet(textureNamePrefix, texUseType, preserveAspectRatio);
+		GUIEdgeGroup(DrawUnder).UseTextureSet(textureNamePrefix, texUseType);
 		RequestLayout();
 	}
 	
-	void SetForegroundTextureSet(String textureNamePrefix, int texUseType, bool preserveAspectRatio = true) {
+	void SetForegroundTextureSet(String textureNamePrefix, int texUseType) {
 		DrawOver = new("GUIEdgeGroup");
 		DrawOver.ConsoleLabel = ConsoleLabel..".DrawOver";
 		DrawOver.Init(self);
-		GUIEdgeGroup(DrawOver).UseTextureSet(textureNamePrefix, texUseType, preserveAspectRatio);
+		GUIEdgeGroup(DrawOver).UseTextureSet(textureNamePrefix, texUseType);
 		RequestLayout();
 	}
 	

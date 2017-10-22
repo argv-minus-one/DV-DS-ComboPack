@@ -148,7 +148,7 @@ class GUIEdgeGroup : GUIWidget {
 		"A", "B", "C", "D", "E", "F", "G", "H", "I"
 	};
 	
-	void UseTextureSet(String textureNamePrefix, int texUseType = TexMan.Type_Any, bool preserveAspectRatio = true) {
+	void UseTextureSet(String textureNamePrefix, int texUseType = TexMan.Type_Any) {
 		for (let col = 0; col < 3; col++)
 		for (let row = 0; row < 3; row++) {
 			let tex = TexMan.CheckForTexture(textureNamePrefix..TextureSetNameSuffixes[row * 3 + col], texUseType);
@@ -157,7 +157,7 @@ class GUIEdgeGroup : GUIWidget {
 				im.ConsoleLabel = String.Format("%s.%s", ConsoleLabel, TextureSetNameSuffixes[row * 3 + col]);
 				im.Init(self);
 				im.Image = tex;
-				im.PreserveAspectRatio = preserveAspectRatio;
+				im.PreserveAspectRatio = false;
 				Children[col][row] = im;
 				
 				switch (col) {
