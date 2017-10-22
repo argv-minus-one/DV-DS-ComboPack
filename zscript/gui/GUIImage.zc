@@ -69,7 +69,7 @@ class GUIImage : GUIWidget {
 		Rectangle ca;
 		GetContentArea(ca);
 		
-		ImageDrawArea.Size = PreferredSize(ca.Size);
+		ImageDrawArea.Size = PreserveAspectRatio? PreferredSize(ca.Size) : ca.Size;
 		ImageDrawArea.PositionIn(ca, Align.X, Align.Y);
 		
 		if (zsgui_debug_imagewidget_layout)
