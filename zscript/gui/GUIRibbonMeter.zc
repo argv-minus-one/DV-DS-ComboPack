@@ -31,10 +31,12 @@ class GUIRibbonMeter : GUIWidget {
 		MainFill = new("GUIColorRibbon");
 		MainFill.ConsoleLabel = ConsoleLabel..".MainFill";
 		MainFill.Init(self);
+		MainFill.Align.X = XALIGN_LEFT;
 		
 		OverFill = new("GUIColorRibbon");
 		OverFill.ConsoleLabel = ConsoleLabel..".OverFill";
 		OverFill.Init(self);
+		OverFill.Align.X = XALIGN_LEFT;
 		
 		DrawMaxValue = DrawValue = true;
 		ValueInterp = DynamicValueInterpolator.Create(0, 0.25, 1, 8);
