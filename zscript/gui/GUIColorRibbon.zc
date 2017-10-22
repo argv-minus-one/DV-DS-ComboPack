@@ -62,12 +62,15 @@ class GUIColorRibbon : GUIWidget {
 	}
 	
 	override void Draw() {
+		Rectangle ca;
+		GetContentArea(ca);
+		
 		let scale = EffScale();
 		let nColors = Colors.Size();
 		let alpha = EffAlpha();
 		
 		Rectangle rowRect;
-		rowRect.Copy(Bounds);
+		rowRect.Copy(ca);
 		Insets.Apply(rowRect, scale);
 		
 		rowRect.Size.Y /= double(nColors);

@@ -3,7 +3,6 @@ class GUIWidget ui {
 	double Alpha;
 	Vector2 Scale;
 	GUIInsets Insets;
-	bool Resizable;
 	
 	/**
 	 * Label for this widget. It will appear in console debug and error messages concerning this widget.
@@ -12,7 +11,13 @@ class GUIWidget ui {
 	 */
 	String ConsoleLabel;
 	
-	/** The current bounding area for this widget. Accounts for the Scale of this and ancestor widgets. */
+	/**
+	 * The current bounding area for this widget. Accounts for the Scale of this and ancestor widgets.
+	 *
+	 * This is set by the parent widget's Layout method (if there is a parent) or the application (if this is a top-level widget).
+	 *
+	 * Widgets are not to change their own Bounds (unless told to do so, e.g. by the AutoSize method). Information about the layout of a widget's content (such as where to draw lines of text) should be stored in other fields defined by the specific widget class, not in the Bounds field.
+	 */
 	Rectangle Bounds;
 	
 	/**
@@ -28,7 +33,6 @@ class GUIWidget ui {
 		self.Parent = parent;
 		Alpha = 1;
 		Scale = (1, 1);
-		Resizable = true;
 	}
 	
 	/**
@@ -91,6 +95,16 @@ class GUIWidget ui {
 	}
 	
 	/**
+	 * Computes the current content area of this widget.
+	 *
+	 * This is mainly intended for use by this widget's layout code, for positioning its content.
+	 */
+	void GetContentArea(out Rectangle rect) {
+		rect.Copy(Bounds);
+		Insets.Apply(rect, EffScale());
+	}
+	
+	/**
 	 * Returns the current resize bias of this widget. The resize bias (if any) means that this widget needs to know one of its sizes before it can compute the other.
 	 *
 	 * Possible return values are:
@@ -134,11 +148,10 @@ class GUIWidget ui {
 		return scale.Y;
 	}
 	
-	void LayoutAutoSize(Vector2 origin) {
-		Rectangle rect;
-		rect.Origin = origin;
-		rect.Size = (-1, -1);
-		Layout(rect);
+	void AutoSize() {
+		Bounds.Size = PreferredSize();
+		Bounds.PositionAbout(Bounds.Origin, Align.X, Align.Y);
+		Layout();
 	}
 	
 	private bool _LayoutDone;
@@ -146,30 +159,22 @@ class GUIWidget ui {
 	/**
 	 * Lays out this widget and all descendants.
 	 *
-	 * This method is expected to resize and reposition this widget and any child widgets into the space allotted for this widget (as given in the “area” parameter).
-	 *
-	 * If you override this method but don't call Super.Layout, then you need to call the LayoutDone method before returning. If you do neither, your widget will still work, but it will waste a bunch of CPU time.
+	 * This method is expected to resize and reposition this widget and any child widgets into the space allotted for this widget's content (as given by the GetContentArea method). For each child widget, this method must set the child's Bounds, then call its Layout method.
 	 *
 	 * This is called by the Draw method initially, and again whenever the RequestLayout method is called.
 	 *
-	 * If Resizable is true, and the given area has a negative size in one or both dimensions, then the preferred size will be used.
+	 * Subclasses need to override this method to perform whatever layout steps they need, including positioning of any child widgets. Subclasses also need to call Super.Layout at some point.
+	 *
+	 * The base class implementation of this method simply resets the flag set by RequestLayout, and if enabled, emits a log message stating this widget's current bounds and content area.
 	 */
-	virtual void Layout(Rectangle area) {
-		if (Resizable)
-			Bounds.Size = Insets.ApplySize(PreferredSize(area.Size), EffScale());
-		
-		Bounds.PositionIn(area, Align.X, Align.Y);
-		LayoutDone();
-		
-		if (zsgui_debug_layout)
-			Console.Printf("ZsGUI: Basic layout for %s done. Provided area was %s. Final bounds are %s.", ToString(), area.ToString(), Bounds.ToString());
-	}
-	
-	/**
-	 * This method needs to be called once the Layout method completes. If you override the Layout method and don't call Super.Layout, then you need to call this method.
-	 */
-	protected void LayoutDone() {
+	virtual void Layout() {
 		_LayoutDone = true;
+		
+		if (zsgui_debug_layout) {
+			Rectangle ca;
+			GetContentArea(ca);
+			Console.Printf("ZsGUI: Laying out %s into area %s (content area %s).", ToString(), Bounds.ToString(), ca.ToString());
+		}
 	}
 	
 	/**
@@ -192,6 +197,6 @@ class GUIWidget ui {
 	
 	virtual void Draw() {
 		if (!_LayoutDone)
-			Layout(Bounds);
+			Layout();
 	}
 }

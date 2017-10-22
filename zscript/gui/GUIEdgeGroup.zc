@@ -41,17 +41,20 @@ class GUIEdgeGroup : GUIWidget {
 		return bias;
 	}
 	
-	override void Layout(Rectangle area) {
-		Super.Layout(area);
+	override void Layout() {
+		Super.Layout();
+		
+		Rectangle ca;
+		GetContentArea(ca);
 		
 		if (zsgui_debug_edgegroup)
-			Console.Printf(">>> ZsGUI: Laying out %s in area %s.", ToString(), area.ToString());
+			Console.Printf(">>> ZsGUI: Laying out %s in area %s.", ToString(), ca.ToString());
 		
 		// Get the preferred sizes of the rows and columns.
 		double colSizes[3], rowSizes[3];
 		for (let col = 0; col < 3; col++)
 		for (let row = 0; row < 3; row++) {
-			let ps = Children[col][row] == null? (0, 0) : Children[col][row].PreferredSize(Bounds.Size);
+			let ps = Children[col][row] == null? (0, 0) : Children[col][row].PreferredSize(ca.Size);
 			
 			if (zsgui_debug_edgegroup && Children[col][row] != null)
 				Console.Printf("Preferred size for child %s is %fx%f.", Children[col][row].ToString(), ps.X, ps.Y);
@@ -80,7 +83,7 @@ class GUIEdgeGroup : GUIWidget {
 			);
 		
 		// Take the difference between the space we're given and the total space the children prefer.
-		let diff = Bounds.Size - totalPrefSize;
+		let diff = ca.Size - totalPrefSize;
 		
 		// Grow/shrink the columns/rows.
 		if (diff.X > 0.)
@@ -101,23 +104,23 @@ class GUIEdgeGroup : GUIWidget {
 			);
 		
 		// Size and position the children into their places on the grid.
-		let colPos = Bounds.Origin.X;
+		let colPos = ca.Origin.X;
 		for (let col = 0; col < 3; col++) {
-			let rowPos = Bounds.Origin.Y;
+			let rowPos = ca.Origin.Y;
 			
 			for (let row = 0; row < 3; row++) {
-				if (Children[col][row] != null) {
-					Rectangle childRect;
-					childRect.Origin = (colPos, rowPos);
-					childRect.Size = (colSizes[col], rowSizes[row]);
-					Children[col][row].Layout(childRect);
+				let child = Children[col][row];
+				if (child != null) {
+					child.Bounds.Origin = (colPos, rowPos);
+					child.Bounds.Size = (colSizes[col], rowSizes[row]);
+					child.Layout();
 					
 					if (zsgui_debug_edgegroup)
 						Console.Printf(
 							"Laid out child %s (column %d, row %d): %s",
-							Children[col][row].ToString(),
+							child.ToString(),
 							col, row,
-							childRect.ToString()
+							child.Bounds.ToString()
 						);
 				}
 				

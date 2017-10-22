@@ -4,6 +4,7 @@
 class GUIImage : GUIWidget {
 	TextureID Image;
 	bool PreserveAspectRatio;
+	Rectangle ImageDrawArea;
 	
 	override void Init(GUIWidget parent = null) {
 		Super.Init(parent);
@@ -62,6 +63,19 @@ class GUIImage : GUIWidget {
 			return 0.;
 	}
 	
+	override void Layout() {
+		Super.Layout();
+		
+		Rectangle ca;
+		GetContentArea(ca);
+		
+		ImageDrawArea.Size = PreferredSize(ca.Size);
+		ImageDrawArea.PositionIn(ca, Align.X, Align.Y);
+		
+		if (zsgui_debug_imagewidget_layout)
+			Console.Printf("%s will draw its image in %s.", ToString(), ImageDrawArea.ToString());
+	}
+	
 	override void Draw() {
 		Super.Draw();
 		
@@ -69,10 +83,10 @@ class GUIImage : GUIWidget {
 			Screen.DrawTexture(
 				Image,
 				false,
-				Bounds.Origin.X,
-				Bounds.Origin.Y,
-				DTA_DestWidthF, Bounds.Size.X,
-				DTA_DestHeightF, Bounds.Size.Y,
+				ImageDrawArea.Origin.X,
+				ImageDrawArea.Origin.Y,
+				DTA_DestWidthF, ImageDrawArea.Size.X,
+				DTA_DestHeightF, ImageDrawArea.Size.Y,
 				DTA_Alpha, EffAlpha()
 			);
 	}

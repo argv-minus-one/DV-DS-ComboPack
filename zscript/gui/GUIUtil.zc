@@ -106,6 +106,30 @@ struct Rectangle {
 		}
 	}
 	
+	void PositionAbout(Vector2 point, GUIXAlignment xalign, GUIYAlignment yalign) {
+		switch (xalign) {
+			case XALIGN_LEFT:
+				Origin.X = point.X; break;
+			
+			case XALIGN_RIGHT:
+				Origin.X = point.X - Size.X; break;
+			
+			default:
+				Origin.X = point.X - (Size.X / 2.);
+		}
+		
+		switch (yalign) {
+			case YALIGN_TOP:
+				Origin.Y = point.Y; break;
+			
+			case YALIGN_BOTTOM:
+				Origin.Y = point.Y - Size.Y; break;
+			
+			default:
+				Origin.Y = point.Y - (Size.Y / 2.);
+		}
+	}
+	
 	String ToString() {
 		return String.Format("%f,%f %fx%f", Origin.X, Origin.Y, Size.X, Size.Y);
 	}

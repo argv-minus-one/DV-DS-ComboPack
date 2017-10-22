@@ -32,10 +32,16 @@ class GUIStackGroup : GUIWidget {
 		return bias;
 	}
 	
-	override void Layout(Rectangle area) {
-		Super.Layout(area);
-		for (let i = 0, l = Children.Size(); i < l; i++)
-			Children[i].Layout(Bounds);
+	override void Layout() {
+		Super.Layout();
+		
+		Rectangle ca;
+		GetContentArea(ca);
+		
+		for (let i = 0, l = Children.Size(); i < l; i++) {
+			Children[i].Bounds.Copy(ca);
+			Children[i].Layout();
+		}
 	}
 	
 	override void Draw() {

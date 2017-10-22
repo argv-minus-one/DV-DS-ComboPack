@@ -89,28 +89,22 @@ class GUIRibbonMeter : GUIWidget {
 		) + Insets.Y(EffYScale());
 	}
 	
-	private void LayoutChild(GUIWidget widget, String widgetName) {
+	private void LayoutChild(GUIWidget widget, String widgetName, Rectangle ca) {
 		if (widget != null) {
-			widget.Layout(Bounds);
-			
-			if (zsgui_debug_ribbonmeter_layout)
-				Console.Printf("%s placement: %s.", widgetName, widget.Bounds.ToString());
+			widget.Bounds.Copy(ca);
+			widget.Layout();
 		}
-		else
-			Console.Printf("%s not present, so not laying out.", widgetName);
 	}
 	
-	private void LayoutFillChild(GUIColorRibbon widget, String widgetName, double fillFraction, bool forceLayout) {
+	private void LayoutFillChild(GUIColorRibbon widget, String widgetName, Rectangle ca, double fillFraction, bool forceLayout) {
 		if (widget != null) {
-			let fillRemainingWidth = widget.Bounds.Size.X - FillInsets.X(widget.EffXScale());
+			let fillRemainingWidth = ca.Size.X - FillInsets.X(widget.EffXScale());
 			let prevInset = widget.Insets.Right;
 			widget.Insets.Right = FillInsets.Right + (fillRemainingWidth * fillFraction);
 			
 			if (forceLayout || widget.Insets.Right != prevInset) {
-				widget.Layout(Bounds);
-				
-				if (zsgui_debug_ribbonmeter_layout)
-					Console.Printf("%s has been laid out with insets %s, and is now positioned at %s.", widgetName, widget.Insets.ToString(), widget.Bounds.ToString());
+				widget.Bounds.Copy(ca);
+				widget.Layout();
 			}
 		}
 	}
@@ -127,11 +121,14 @@ class GUIRibbonMeter : GUIWidget {
 		return clamp(rf + adjust, 0., 1.);
 	}
 	
-	override void Layout(Rectangle area) {
-		Super.Layout(area);
+	override void Layout() {
+		Super.Layout();
+		
+		Rectangle ca;
+		GetContentArea(ca);
 		
 		if (zsgui_debug_ribbonmeter_layout)
-			Console.Printf(">>> ZsGUI: Laying out %s into area %s.", ToString(), area.ToString());
+			Console.Printf(">>> ZsGUI: Laying out %s into area %s.", ToString(), ca.ToString());
 		
 		if (MainFill != null || OverFill != null) {
 			double fl;
@@ -143,17 +140,12 @@ class GUIRibbonMeter : GUIWidget {
 			if (OverFill != null) OverFill.PreferredLength = fl;
 		}
 		
-		Super.Layout(area);
-		
-		if (zsgui_debug_ribbonmeter_layout)
-			Console.Printf("Computed bounds: %s", Bounds.ToString());
-		
-		LayoutChild(NumberText, "NumberText");
-		LayoutChild(LabelText, "LabelText");
-		LayoutChild(DrawUnder, "DrawUnder");
-		LayoutChild(DrawOver, "DrawOver");
-		LayoutFillChild(MainFill, "MainFill", GetFillFraction(), true);
-		LayoutFillChild(OverFill, "OverFill", GetFillFraction(-1), true);
+		LayoutChild(NumberText, "NumberText", ca);
+		LayoutChild(LabelText, "LabelText", ca);
+		LayoutChild(DrawUnder, "DrawUnder", ca);
+		LayoutChild(DrawOver, "DrawOver", ca);
+		LayoutFillChild(MainFill, "MainFill", ca, GetFillFraction(), true);
+		LayoutFillChild(OverFill, "OverFill", ca, GetFillFraction(-1), true);
 		
 		if (zsgui_debug_ribbonmeter_layout)
 			Console.Printf("<<< ZsGUI: Laying out %s finished.", ToString());
@@ -162,15 +154,18 @@ class GUIRibbonMeter : GUIWidget {
 	override void Draw() {
 		Super.Draw();
 		
+		Rectangle ca;
+		GetContentArea(ca);
+		
 		if (DrawUnder != null) DrawUnder.Draw();
 		
 		if (MainFill != null) {
-			LayoutFillChild(MainFill, "MainFill", GetFillFraction(), false);
+			LayoutFillChild(MainFill, "MainFill", ca, GetFillFraction(), false);
 			MainFill.Draw();
 		}
 		
 		if (OverFill != null) {
-			LayoutFillChild(OverFill, "OverFill", GetFillFraction(-1), false);
+			LayoutFillChild(OverFill, "OverFill", ca, GetFillFraction(-1), false);
 			OverFill.Draw();
 		}
 		
@@ -178,12 +173,18 @@ class GUIRibbonMeter : GUIWidget {
 		if (LabelText != null) LabelText.Draw();
 		
 		if (NumberText != null && DrawValue) {
-			if (DrawMaxValue)
-				NumberText.Text = String.Format("%d/%d", ValueInterp.GetValue(), MaxValueInterp.GetValue());
-			else
-				NumberText.Text = String.Format("%d", ValueInterp.GetValue());
+			String newText;
 			
-			NumberText.LayoutText();
+			if (DrawMaxValue)
+				newText = String.Format("%d/%d", ValueInterp.GetValue(), MaxValueInterp.GetValue());
+			else
+				newText = String.Format("%d", ValueInterp.GetValue());
+			
+			if (newText != NumberText.Text) {
+				NumberText.Text = newText;
+				NumberText.Layout();
+			}
+			
 			NumberText.Draw();
 		}
 	}

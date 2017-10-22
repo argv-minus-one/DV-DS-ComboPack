@@ -1,9 +1,11 @@
 /**
  * A widget that draws text.
  *
- * It is possible to change the displayed text without the cost of a full layout pass. See the PrefLineLength field and LayoutText method for details.
- *
  * The engine does not support scaling text, so the Scale and EffScale is ignored (except for the Insets).
+ *
+ * The Layout method must be called whenever the text, font, wrap, or other layout-relevant settings are changed. However, you can avoid a full-tree layout pass by calling Layout on this widget directly, if the text content is likely to fit into the already-allocated area.
+ *
+ * To help with the aforementioned optimization (and with layout of text widgets in general), the preferred size of this widget can be influenced using the PrefLineLength and PrefWidthDirect fields. See the documentation of PrefLineLength for details.
  */
 class GUIText : GUIWidget {
 	String Text;
@@ -16,13 +18,13 @@ class GUIText : GUIWidget {
 	/**
 	 * The preferred line length for text positioning and wrapping, in characters. If this value is not zero or negative, the preferred width is PrefLineLength * 1ch, where 1ch is (like CSS) the width of the ‘0’ (digit zero) character in the font used by this widget.
 	 *
-	 * Alternatively, you can set the exact preferred pixel width for this widget, by writing it to the PrefWidthDirect field.
+	 * Alternatively, you can set the preferred pixel width for this widget, by writing it to the PrefWidthDirect field.
 	 *
 	 * If this and PrefWidthDirect are both zero or negative, the preferred width is the widths of all the characters in the text to draw. So, if PrefLineLength is not set, this widget will prefer drawing all of its text on one long line, even if TextWrap is true. You need to set one of these fields if you want wrapping.
 	 *
-	 * The other purpose of these fields is to allow a GUIText's text content to change rapidly, without incurring the cost of a full layout pass. This is useful for rapidly-changing text, like health/ammo/armor counters. For example, if you need to draw an actor's current health in 3 digits, set this to 3.
+	 * The other purpose of these fields is to allow a GUIText's text content to change rapidly, without incurring the cost of a full-tree layout pass. This is useful for rapidly-changing text, like health/ammo/armor counters. For example, if you need to draw an actor's current health in 3 digits, set this to 3.
 	 *
-	 * You do still have to call LayoutText() after *every* change to the text. It's a lot cheaper than recomputing layout for the entire widget tree, though!
+	 * You do still have to call Layout() on this widget after *every* change to the text. Still, this is cheaper than a full-tree layout pass.
 	 *
 	 * As usual with preferred size, it's only a hint to layout code, not a hard demand. Layout code is free to adjust or ignore it. If this widget is laid out with a different width, and line wrapping is enabled, lines will be laid out appropriately for that width.
 	 */
@@ -62,19 +64,17 @@ class GUIText : GUIWidget {
 		return TextWrap? RBIAS_HORIZONTAL : RBIAS_NONE;
 	}
 	
-	/**
-	 * Recomputes text wrapping and positioning. This is called by the Layout method, but must also be called after any change to the text.
-	 *
-	 * If you change the font, this will probably not suffice, as the total space allotted to this widget will be incorrect as well. You'll need to rerun layout for the entire widget tree. Call RequestLayout to do that.
-	 */
-	void LayoutText() {
+	override void Layout() {
 		if (Text == "") {
 			Lines = null;
 			LineOriginsX.Clear();
 			LineOriginsY.Clear();
 		}
 		else if (TextWrap) {
-			Lines = TextFont.BreakLines(Text, int(Bounds.Size.X));
+			Rectangle ca;
+			GetContentArea(ca);
+			
+			Lines = TextFont.BreakLines(Text, int(ca.Size.X));
 			let nLines = Lines.Count();
 			LineOriginsX.Resize(nLines);
 			LineOriginsY.Resize(nLines);
@@ -84,7 +84,7 @@ class GUIText : GUIWidget {
 			textBounds.Size.Y = nLines * lineHeight;
 			for (let i = 0; i < nLines; i++)
 				textBounds.Size.X = max(textBounds.Size.X, Lines.StringWidth(i));
-			textBounds.PositionIn(Bounds, Align.X, Align.Y);
+			textBounds.PositionIn(ca, Align.X, Align.Y);
 			
 			for (let i = 0; i < nLines; i++) {
 				let text = Lines.StringAt(i);
@@ -102,11 +102,14 @@ class GUIText : GUIWidget {
 				Console.Printf(
 					"\cr%s does not have enough room to draw its text. The available space is (%f,%f), but the text at this width is %d pixels high. Text will be drawn out of bounds!",
 					ToString(),
-					Bounds.Size.X, Bounds.Size.Y,
+					ca.Size.X, ca.Size.Y,
 					nLines * lineHeight
 				);
 		}
 		else {
+			Rectangle ca;
+			GetContentArea(ca);
+			
 			Lines = null;
 			LineOriginsX.Resize(1);
 			LineOriginsY.Resize(1);
@@ -116,27 +119,19 @@ class GUIText : GUIWidget {
 				TextFont.StringWidth(Text),
 				TextFont.GetHeight()
 			);
-			lineRect.PositionIn(Bounds, Align.X, Align.Y);
+			lineRect.PositionIn(ca, Align.X, Align.Y);
 			
 			LineOriginsX[0] = lineRect.Origin.X;
 			LineOriginsY[0] = lineRect.Origin.Y;
 			
-			if (lineRect.Size.X > Bounds.Size.X || lineRect.Size.Y > Bounds.Size.Y)
+			if (lineRect.Size.X > ca.Size.X || lineRect.Size.Y > ca.Size.Y)
 				Console.Printf(
 					"\cr%s does not have enough room to draw its text. Line wrapping is disabled (the PrefLineLength field is zero or negative), and the required unwrapped space is (%f,%f), but the available space is (%f,%f). Text will be drawn out of bounds!",
 					ToString(),
-					Bounds.Size.X, Bounds.Size.Y,
+					ca.Size.X, ca.Size.Y,
 					lineRect.Size.X, lineRect.Size.Y
 				);
 		}
-	}
-	
-	override void Layout(Rectangle area) {
-		// Unlike GUIWidget::Layout, this version doesn't shrink the bounds to fit the preferred size. Instead, the lines of text are aligned individually inside the bounds, so we need the bounds to be preserved.
-		Bounds.Copy(area);
-		Insets.Apply(Bounds, EffScale());
-		LayoutText();
-		LayoutDone();
 	}
 	
 	override void Draw() {
