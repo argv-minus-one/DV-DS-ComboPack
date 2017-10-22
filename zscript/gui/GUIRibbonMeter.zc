@@ -102,10 +102,13 @@ class GUIRibbonMeter : GUIWidget {
 		if (widget != null) {
 			let fillRemainingWidth = ca.Size.X - FillInsets.X(widget.EffXScale());
 			let prevInset = widget.Insets.Right;
-			widget.Insets.Right = FillInsets.Right + (fillRemainingWidth * fillFraction);
+			widget.Insets.Right = FillInsets.Right + (fillRemainingWidth * (1. - fillFraction));
 			
 			if (forceLayout || widget.Insets.Right != prevInset) {
 				widget.Bounds.Copy(ca);
+				widget.Insets.Top = FillInsets.Top;
+				widget.Insets.Bottom = FillInsets.Bottom;
+				widget.Insets.Left = FillInsets.Left;
 				widget.Layout();
 			}
 		}
