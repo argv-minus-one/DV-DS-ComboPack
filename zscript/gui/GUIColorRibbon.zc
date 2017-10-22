@@ -88,15 +88,6 @@ class GUIColorRibbon : GUIWidget {
 				rowRect.Origin.X + rowRect.Size.X,
 				rowRect.Origin.Y + rowRect.Size.Y,
 				GUIUtil.ApplyAlpha(Colors[i], alpha)
-				
-				/*
-				GUIUtil.ApplyAlpha(Colors[i], Alpha),
-				area.Origin.X + ((size - i) * rowSlant),
-				area.Origin.Y + (i * rowSize.Y),
-				rowSize.X,
-				rowSize.Y,
-				DrawFlags
-				*/
 			);
 			
 			rowRect.Origin.X += effSkew;

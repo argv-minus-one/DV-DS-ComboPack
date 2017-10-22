@@ -33,17 +33,6 @@ class GUIText : GUIWidget {
 	override double PreferredWidth(double height = -1.) {
 		double width;
 		
-		/*
-		if (!TextWrap)
-			width = TextFont.StringWidth(Text);
-		else if (height > 0.) {
-			// Use ‘0’ (the digit zero) as the average character width. This is how the CSS ‘ch’ unit is defined, and we need to know the width of about 1ch right now.
-			let charWidth = TextFont.GetCharWidth(48);
-			
-			// This is a *very* rough guesstimate of how wide the text widget needs to be for a given height. It is probably nowhere near actually correct. Still, if we're asked to do this, that's the best we can offer.
-			width = (Text.Length() * charWidth) / (height / double(TextFont.GetHeight()));
-		}
-		else*/
 		if (PrefWidthDirect > 0.)
 			width = PrefWidthDirect;
 		else if (PrefLineLength > 0)

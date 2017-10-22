@@ -3,7 +3,7 @@ class GUIWidget ui {
 	double Alpha;
 	Vector2 Scale;
 	GUIInsets Insets;
-	bool Resizable/*, ResizeProportionally*/;
+	bool Resizable;
 	
 	/**
 	 * Label for this widget. It will appear in console debug and error messages concerning this widget.
@@ -28,7 +28,7 @@ class GUIWidget ui {
 		self.Parent = parent;
 		Alpha = 1;
 		Scale = (1, 1);
-		Resizable = /*ResizeProportionally =*/ true;
+		Resizable = true;
 	}
 	
 	/**
@@ -52,8 +52,6 @@ class GUIWidget ui {
 	 */
 	virtual double PreferredWidth(double height = -1.) {
 		return 0;
-		// Previously: By default, the preferred size is equal to the minimum size. In other words, the default implementation of PreferredWidth simply calls MinimumWidth.
-		//return MinimumWidth(height);
 	}
 	
 	/**
@@ -67,8 +65,6 @@ class GUIWidget ui {
 	 */
 	virtual double PreferredHeight(double width = -1.) {
 		return 0;
-		// Previously: By default, the preferred size is equal to the minimum size. In other words, the default implementation of PreferredHeight simply calls MinimumHeight.
-		//return MinimumHeight(width);
 	}
 	
 	/**
@@ -93,57 +89,6 @@ class GUIWidget ui {
 				return (PreferredWidth(outer.X), PreferredHeight(outer.Y));
 		}
 	}
-	
-	/*
-	 * Computes the minimum width for this widget.
-	 *
-	 * The minimum size is the smallest size at which this widget will draw. If told to draw into an area smaller than that, it will draw outside of that area.
-	 *
-	 * The parameter “height” contains the already-computed height of this widget, if one is available. If the ResizeBias is set to RBIAS_VERTICAL, layout managers should first compute a height (using MinimumHeight(-1)) before computing a preferred width. A negative value for the “height” parameter means that information is not available.
-	 *
-	 * The returned value accounts for the EffScale of this widget.
-	virtual double MinimumWidth(double height = -1.) {
-		return 0;
-	}
-	 */
-	
-	/*
-	 * Computes the minimum height of this widget.
-	 *
-	 * The minimum size is the smallest size at which this widget can draw correctly. If told to draw into an area smaller than that, it may draw outside of that area.
-	 *
-	 * The parameter “width” contains the already-computed width of this widget, if one is available. If the ResizeBias is set to RBIAS_HORIZONTAL, layout managers should first compute a width (using MinimumWidth(-1)) before computing a preferred height. A negative value for the “width” parameter means that information is not available.
-	 *
-	 * The returned value accounts for the EffScale of this widget.
-	virtual double MinimumHeight(double width = -1.) {
-		return 0;
-	}
-	 */
-	
-	/*
-	 * Computes the minimum size of this widget.
-	 *
-	 * The minimum size is the smallest size at which this widget will draw. If told to draw into an area smaller than that, it will draw outside of that area.
-	 *
-	 * This calls MinimumWidth and MinimumHeight to do the actual calculation. If the ResizeBias isn't RBIAS_NONE, the dimensions are computed in the appropriate order. Otherwise, they are computed independently.
-	 *
-	 * The parameter “outer” gives the pre-computed dimensions that this widget should fit itself into. These are passed as the parameters of the MinimumWidth and MinimumHeight methods. If no value is known for a given dimension, pass -1 in that dimension. The default value is (-1, -1), which requests the unconstrained minimum size.
-	Vector2 MinimumSize(Vector2 outerSize = (-1., -1.)) {
-		double d;
-		switch (ResizeBias()) {
-			case RBIAS_HORIZONTAL:
-				d = MinimumWidth(outer.Y);
-				return (d, MinimumHeight(d));
-			
-			case RBIAS_VERTICAL:
-				d = MinimumHeight(outer.X);
-				return (MinimumWidth(d), d);
-			
-			default:
-				return (MinimumWidth(outer.X), MinimumHeight(outer.Y));
-		}
-	}
-	 */
 	
 	/**
 	 * Returns the current resize bias of this widget. The resize bias (if any) means that this widget needs to know one of its sizes before it can compute the other.
@@ -210,53 +155,6 @@ class GUIWidget ui {
 	 * If Resizable is true, and the given area has a negative size in one or both dimensions, then the preferred size will be used.
 	 */
 	virtual void Layout(Rectangle area) {
-		/*
-		Insets.Apply(area, EffScale());
-		
-		if (Resizable) {
-			// Compute minimum and preferred sizes of this widget, accounting for its resize bias.
-			let ms = MinimumSize(area.Size);
-			
-			// If the minimum size is broken, log a detailed diagnostic. Hopefully, this will be enough information for people to figure out where the layout problem is.
-			if (ms.X > area.Size.X || ms.Y > area.Size.Y) {
-				let message = String.Format(
-					"\cr%s has a minimum size of (%f,%f), but is being told to draw in an area of size (%f,%f). Drawing into a larger area anyway, which may not look good! The top-level ancestor (%s) may need to be given more space, or have its layout otherwise changed.",
-					ToString(),
-					ms.X, ms.Y,
-					area.Size.X, area.Size.Y,
-					TopLevelAncestor().ToString()
-				);
-				
-				if (Parent == null)
-					message = message..("\n\cd  This widget is top-level.");
-				if (Parent != null) {
-					message = message..("\n\cd  List of ancestors, top-level last:");
-					for (let w = Parent; w != null; w = w.Parent) {
-						message = message.AppendFormat("\n\cd  %s", w.ToString());
-						if (w.Parent == null)
-							message = message.." [top]";
-					}
-				}
-				
-				Console.Printf(message);
-			}
-			
-			//let ps = PreferredSize(area.Size);
-			//let ar = ps.X / ps.Y;
-			
-			// Since we ask for preferred width/height based on resize bias (if any), this probably isn't necessary.
-			// Compare width and height to half-pixel precision.
-			if (ResizeProportionally && int(Bounds.Size.Y * ar * 2.) != int(Bounds.Size.X * 2.))) {
-				Vector2 diff = (abs(Bounds.Size.X - ps.X) / Bounds.Size.X, abs(Bounds.Size.Y - ps.Y) / Bounds.Size.Y);
-				
-				if (diff.X > diff.Y)
-					Bounds.Size.X = Bounds.Size.Y * ar;
-				else
-					Bounds.Size.Y = Bounds.Size.X / ar;
-			}
-		}
-		*/
-		
 		if (Resizable)
 			Bounds.Size = Insets.ApplySize(PreferredSize(area.Size), EffScale());
 		

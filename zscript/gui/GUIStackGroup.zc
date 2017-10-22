@@ -20,22 +20,6 @@ class GUIStackGroup : GUIWidget {
 		return s + ((Insets.Top + Insets.Bottom) * EffYScale());
 	}
 	
-	/*
-	override double MinimumWidth(double height = -1.) {
-		double s = 0.;
-		for (let i = 0, l = Children.Size(); i < l; i++)
-			s = max(s, Children[i].MinimumWidth(height));
-		return s + ((Insets.Left + Insets.Right) * EffXScale());
-	}
-	
-	override double MinimumHeight(double width = -1.) {
-		double s = 0.;
-		for (let i = 0, l = Children.Size(); i < l; i++)
-			s = max(s, Children[i].MinimumHeight(width));
-		return s + ((Insets.Top + Insets.Bottom) * EffYScale());
-	}
-	*/
-	
 	override EResizeBias ResizeBias() {
 		let bias = RBIAS_NONE;
 		for (let i = 0, l = Children.Size(); i < l; i++) {
