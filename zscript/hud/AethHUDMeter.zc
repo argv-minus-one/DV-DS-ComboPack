@@ -22,6 +22,10 @@ class AethHUDMeter : GUIRibbonMeter {
 		BackgroundGlass.ConsoleLabel = ConsoleLabel..".BackgroundGlass";
 		BackgroundGlass.Init(self);
 		DrawUnder = BackgroundGlass;
+		
+		MainFill.Skew = 1;
+		OverFill.Skew = 1;
+		FillInsets.Set(6, 8, 6, 27);
 	}
 	
 	void SetFrameTextures(String normalPrefix, String criticalPrefix, String backgroundPrefix, int texUseType = TexMan.Type_Any) {
