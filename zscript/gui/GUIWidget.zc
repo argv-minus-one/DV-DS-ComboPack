@@ -1,4 +1,4 @@
-class GUIWidget ui {
+class GUIWidget ui abstract {
 	GUIWidget Parent;
 	double Alpha;
 	Vector2 Scale;
