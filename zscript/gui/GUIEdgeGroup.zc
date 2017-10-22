@@ -159,6 +159,18 @@ class GUIEdgeGroup : GUIWidget {
 				im.Image = tex;
 				im.PreserveAspectRatio = preserveAspectRatio;
 				Children[col][row] = im;
+				
+				switch (col) {
+					case 0: im.Align.X = XALIGN_RIGHT; break;
+					case 2: im.Align.X = XALIGN_LEFT; break;
+					default: im.align.X = XALIGN_CENTER;
+				}
+				
+				switch (row) {
+					case 0: im.Align.Y = YALIGN_BOTTOM; break;
+					case 2: im.Align.Y = YALIGN_TOP; break;
+					default: im.Align.Y = YALIGN_CENTER;
+				}
 			}
 			else
 				Children[col][row] = null;
