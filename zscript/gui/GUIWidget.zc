@@ -25,7 +25,7 @@ class GUIWidget ui abstract {
 	 *
 	 * If this widget must draw outside its bounds, it will do so in the opposite direction. For example, a top-left-aligned widget will overflow in the bottom-right direction.
 	 *
-	 * In top-level widgets, this is set by the application. In non-top-level widgets, this is set by the parent.
+	 * By default, the alignment is centered in both dimensions. Widgets may change this in their Init method. Applications may set this as well.
 	 */
 	GUIXYAlignment Align;
 	
