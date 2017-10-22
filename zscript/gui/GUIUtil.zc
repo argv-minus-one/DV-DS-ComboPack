@@ -91,7 +91,7 @@ struct Rectangle {
 				Origin.X = other.Origin.X + other.Size.X - Size.X; break;
 			
 			default:
-				Origin.X = (other.Origin.X + other.Size.X / 2) - (Size.X / 2);
+				Origin.X = (other.Origin.X + other.Size.X / 2.) - (Size.X / 2.);
 		}
 		
 		switch (yalign) {
@@ -102,7 +102,7 @@ struct Rectangle {
 				Origin.Y = other.Origin.Y + other.Size.Y - Size.Y; break;
 			
 			default:
-				Origin.Y = (other.Origin.Y + other.Size.Y / 2) - (Size.Y / 2);
+				Origin.Y = (other.Origin.Y + other.Size.Y / 2.) - (Size.Y / 2.);
 		}
 	}
 	
