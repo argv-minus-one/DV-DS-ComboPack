@@ -34,7 +34,7 @@ class AethHUDMeter : GUIRibbonMeter {
 	}
 	
 	override void Draw() {
-		let vp = ValueInterp.GetValue() / MaxValueInterp.GetValue();
+		let vp = double(ValueInterp.GetValue()) / double(MaxValueInterp.GetValue());
 		
 		if ((CriticalIsHigh && vp > CriticalThreshold) || (!CriticalIsHigh && vp < CriticalThreshold))
 			DrawOver = CriticalFrame;
