@@ -27,6 +27,8 @@ SLAMFRND
 
 So, “SLAMFRND” means slanted meter, frame layer, normal state, center-left position.
 
-Note that the piece in the F position is not here. The engine generates the F piece by rotating the D piece 180°. This is configured in the TEXTURES file.
+Only images like “SLAMFRN” actually exist. Individual pieces like “SLAMFRND” are configured in the TEXTURES file.
 
-These images should all be plain white colored. This color is then blended with the intended color by the engine to produce the correctly colored output. This is also configured in the TEXTURES file.
+These images should all be grayscale with no alpha. They are used as an alpha channel for a solid color fill, to produce the correctly colored output.
+
+With this, only three generic images are needed to draw any meter in this style, regardless of colors.

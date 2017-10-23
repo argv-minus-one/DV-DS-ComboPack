@@ -14,13 +14,19 @@ class AethHUDMeter : GUIRibbonMeter {
 		NormalFrame = new("GUIEdgeGroup");
 		NormalFrame.ConsoleLabel = ConsoleLabel..".NormalFrame";
 		NormalFrame.Init(self);
+		NormalFrame.UseTextureSet("SLAMFRN");
+		
 		CriticalFrame = new("GUIEdgeGroup");
 		CriticalFrame.ConsoleLabel = ConsoleLabel..".CriticalFrame";
 		CriticalFrame.Init(self);
+		CriticalFrame.UseTextureSet("SLAMFRC");
+		
+		SetFrameColors();
 		
 		BackgroundGlass = new("GUIEdgeGroup");
 		BackgroundGlass.ConsoleLabel = ConsoleLabel..".BackgroundGlass";
 		BackgroundGlass.Init(self);
+		BackgroundGlass.UseTextureSet("SLAMBGN");
 		DrawUnder = BackgroundGlass;
 		
 		MainFill.Skew = 1;
@@ -28,13 +34,21 @@ class AethHUDMeter : GUIRibbonMeter {
 		FillInsets.Set(6, 8, 6, 27);
 	}
 	
-	void SetFrameTextures(String normalPrefix, String criticalPrefix, String backgroundPrefix, int texUseType = TexMan.Type_Any) {
-		if (normalPrefix)
-			NormalFrame.UseTextureSet(normalPrefix, texUseType);
-		if (criticalPrefix)
-			CriticalFrame.UseTextureSet(criticalPrefix, texUseType);
-		if (backgroundPrefix)
-			BackgroundGlass.UseTextureSet(backgroundPrefix, texUseType);
+	void SetFrameColors(Color normalColor = 0xff000000, int normalPaletteColor = -1, Color criticalColor = 0xffff0000, int criticalPaletteColor = -1) {
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++) {
+			let nw = NormalFrame.Children[col][row], cw = CriticalFrame.Children[col][row];
+			
+			if (nw is "GUIImage") {
+				GUIImage(nw).AlphaBlend = true;
+				GUIImage(nw).AlphaBlendColor.Set(normalColor, normalPaletteColor);
+			}
+			
+			if (cw is "GUIImage") {
+				GUIImage(cw).AlphaBlend = true;
+				GUIImage(cw).AlphaBlendColor.Set(criticalColor, criticalPaletteColor);
+			}
+		}
 	}
 	
 	override void Draw() {

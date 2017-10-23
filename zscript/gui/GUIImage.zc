@@ -6,6 +6,14 @@ class GUIImage : GUIWidget {
 	bool PreserveAspectRatio;
 	Rectangle ImageDrawArea;
 	
+	/**
+	 * If set to true, the image is not drawn directly. Instead, it is used as an alpha channel, and AlphaBlendColor is filled into the draw area.
+	 */
+	bool AlphaBlend;
+	
+	/** Blend color to use if AlphaBlend is true. */
+	PalettedColor AlphaBlendColor;
+	
 	override void Init(GUIWidget parent = null) {
 		Super.Init(parent);
 		PreserveAspectRatio = true;
@@ -87,7 +95,9 @@ class GUIImage : GUIWidget {
 				ImageDrawArea.Origin.Y,
 				DTA_DestWidthF, ImageDrawArea.Size.X,
 				DTA_DestHeightF, ImageDrawArea.Size.Y,
-				DTA_Alpha, EffAlpha()
+				DTA_Alpha, EffAlpha(),
+				DTA_FillColor, AlphaBlendColor.DTAColor,
+				DTA_AlphaChannel, AlphaBlend
 			);
 	}
 }

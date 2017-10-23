@@ -1908,57 +1908,45 @@ Sprite "FLFGJ0", 354, 200
 
 //// Meter graphics ////
 
-// HP meter frame
-Graphic "HPBFRND", 31, 32 {
-	Graphic "SLAMFRND", 0, 0 {
-		Blend "Black"
-	}
+// Slanted meter frame
+Graphic "SLAMFRND", 31, 32 {
+	Graphic "SLAMFRN", 0, 0
 }
 
-Graphic "HPBFRNE", 1, 32 {
-	Graphic "SLAMFRNE", 0, 0 {
-		Blend "Black"
-	}
+Graphic "SLAMFRNE", 1, 32 {
+	Graphic "SLAMFRN", -31, 0
 }
 
-Graphic "HPBFRNF", 31, 32 {
-	Graphic "SLAMFRND", 0, 0 {
-		Blend "Black"
+Graphic "SLAMFRNF", 31, 32 {
+	Graphic "SLAMFRN", -1, 0 {
 		Rotate 180
 	}
 }
 
-// HP meter critical frame
-Graphic "HPBFRCD", 31, 32 {
-	Graphic "SLAMFRCD", 0, 0 {
-		Blend 255, 8, 1
-	}
+Graphic "SLAMFRCD", 31, 32 {
+	Graphic "SLAMFRC", 0, 0
 }
 
-Graphic "HPBFRCE", 1, 32 {
-	Graphic "SLAMFRCE", 0, 0 {
-		Blend 255, 8, 1
-	}
+Graphic "SLAMFRCE", 1, 32 {
+	Graphic "SLAMFRC", -31, 0
 }
 
-Graphic "HPBFRCF", 31, 32 {
-	Graphic "SLAMFRCD", 0, 0 {
-		Blend 255, 8, 1
+Graphic "SLAMFRCF", 31, 32 {
+	Graphic "SLAMFRC", -1, 0 {
 		Rotate 180
 	}
 }
 
-// HP meter background
-Graphic "HPBBGND", 31, 32 {
-	Graphic "SLAMBGND", 0, 0
+Graphic "SLAMBGND", 31, 32 {
+	Graphic "SLAMBGN", 0, 0
 }
 
-Graphic "HPBBGNE", 1, 32 {
-	Graphic "SLAMBGNE", 0, 0
+Graphic "SLAMBGNE", 1, 32 {
+	Graphic "SLAMBGN", -31, 0
 }
 
-Graphic "HPBBGNF", 31, 32 {
-	Graphic "SLAMBGND", 0, 0 {
+Graphic "SLAMBGNF", 31, 32 {
+	Graphic "SLAMBGN", -1, 0 {
 		Rotate 180
 	}
 }
