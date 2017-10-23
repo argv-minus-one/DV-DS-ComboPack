@@ -149,10 +149,13 @@ class GUIEdgeGroup : GUIWidget {
 	};
 	
 	void UseTextureSet(String textureNamePrefix, int texUseType = TexMan.Type_Any) {
+		bool found = false;
+		
 		for (let col = 0; col < 3; col++)
 		for (let row = 0; row < 3; row++) {
 			let tex = TexMan.CheckForTexture(textureNamePrefix..TextureSetNameSuffixes[row * 3 + col], texUseType);
 			if (tex.IsValid()) {
+				found = true;
 				let im = new("GUIImage");
 				im.ConsoleLabel = String.Format("%s.%s", ConsoleLabel, TextureSetNameSuffixes[row * 3 + col]);
 				im.Init(self);
@@ -175,6 +178,9 @@ class GUIEdgeGroup : GUIWidget {
 			else
 				Children[col][row] = null;
 		}
+		
+		if (!found)
+			Console.Printf("\crGUIEdgeGroup.UseTextureSet: No textures found with prefix %s!", textureNamePrefix);
 	}
 	
 	void Clear() {
