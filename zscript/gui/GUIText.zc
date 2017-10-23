@@ -65,6 +65,8 @@ class GUIText : GUIWidget {
 	}
 	
 	override void Layout() {
+		Super.Layout();
+		
 		if (Text == "") {
 			Lines = null;
 			LineOriginsX.Clear();
