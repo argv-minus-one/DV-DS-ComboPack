@@ -1,5 +1,6 @@
 #include "zscript/gui/GUIUtil.zc"
 #include "zscript/gui/GUIWidget.zc"
+#include "zscript/gui/GUIArrayGroup.zc"
 #include "zscript/gui/GUIStackGroup.zc"
 #include "zscript/gui/GUIEdgeGroup.zc"
 #include "zscript/gui/GUIImage.zc"

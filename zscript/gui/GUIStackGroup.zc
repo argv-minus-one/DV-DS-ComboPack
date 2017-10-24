@@ -3,33 +3,13 @@
  *
  * Child widgets align themselves in the space according to their own Align field, not that of the GUIStackGroup. Thus, a single GUIStackGroup might contain one widget in its top-left corner and another widget in its bottom-right.
  */
-class GUIStackGroup : GUIWidget {
-	Array<GUIWidget> Children;
-	
+class GUIStackGroup : GUIArrayGroup {
 	override double PreferredWidth(double height = -1.) {
-		double s = 0.;
-		for (let i = 0, l = Children.Size(); i < l; i++)
-			s = max(s, Children[i].PreferredWidth(height));
-		return s + ((Insets.Left + Insets.Right) * EffXScale());
+		return ChildrenMaxPreferredWidth(height) + Insets.X(EffXScale());
 	}
 	
 	override double PreferredHeight(double width = -1.) {
-		double s = 0.;
-		for (let i = 0, l = Children.Size(); i < l; i++)
-			s = max(s, Children[i].PreferredHeight(width));
-		return s + ((Insets.Top + Insets.Bottom) * EffYScale());
-	}
-	
-	override EResizeBias ResizeBias() {
-		let bias = RBIAS_NONE;
-		for (let i = 0, l = Children.Size(); i < l; i++) {
-			let childBias = Children[i].ResizeBias();
-			switch (Children[i].ResizeBias()) {
-				case RBIAS_VERTICAL:   bias = RBIAS_VERTICAL; break;
-				case RBIAS_HORIZONTAL: return RBIAS_HORIZONTAL;
-			}
-		}
-		return bias;
+		return ChildrenMaxPreferredHeight(width) + Insets.Y(EffYScale());
 	}
 	
 	override void Layout() {
@@ -42,12 +22,5 @@ class GUIStackGroup : GUIWidget {
 			Children[i].Bounds.Copy(ca);
 			Children[i].Layout();
 		}
-	}
-	
-	override void Draw() {
-		Super.Draw();
-		
-		for (let i = 0, l = Children.Size(); i < l; i++)
-			Children[i].Draw();
 	}
 }

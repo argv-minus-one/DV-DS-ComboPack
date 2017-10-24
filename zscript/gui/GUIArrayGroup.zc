@@ -1,0 +1,76 @@
+/**
+ * Abstract superclass of group widgets that can contain any number of children, of any type.
+ *
+ * This class:
+ * • Defines an array of child widgets.
+ * • Computes a ResizeBias based on those of the children.
+ * • Provides helper methods for computing the group's preferred size. (Actual PreferredWidth/Height implementations are not provided.)
+ * • Provides a default Draw implementation, which simply draws the children in order.
+ */
+class GUIArrayGroup : GUIWidget abstract {
+	Array<GUIWidget> Children;
+	
+	override EResizeBias ResizeBias() {
+		let bias = RBIAS_NONE;
+		for (let i = 0, l = Children.Size(); i < l; i++) {
+			let childBias = Children[i].ResizeBias();
+			switch (Children[i].ResizeBias()) {
+				case RBIAS_VERTICAL:   bias = RBIAS_VERTICAL; break;
+				case RBIAS_HORIZONTAL: return RBIAS_HORIZONTAL;
+			}
+		}
+		return bias;
+	}
+	
+	/**
+	 * Adds up the preferred widths of the Children.
+	 */
+	protected double ChildrenSumPreferredWidth(double height = -1) {
+		double a;
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			a += Children[i].PreferredWidth(height);
+		return a;
+	}
+	
+	/**
+	 * Finds the largest preferred width of the Children.
+	 */
+	protected double ChildrenMaxPreferredWidth(double height = -1) {
+		double a;
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			a = max(a, Children[i].PreferredWidth(height));
+		return a;
+	}
+	
+	/**
+	 * Adds up the preferred heights of the Children.
+	 */
+	protected double ChildrenSumPreferredHeight(double width = -1) {
+		double a;
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			a += Children[i].PreferredHeight(width);
+		return a;
+	}
+	
+	/**
+	 * Finds the largest preferred height of the Children.
+	 */
+	protected double ChildrenMaxPreferredHeight(double width = -1) {
+		double a;
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			a = max(a, Children[i].PreferredHeight(width));
+		return a;
+	}
+	
+	/**
+	 * The default implementation of Draw for GUIArrayGroup simply draws all of the Children in order.
+	 *
+	 * If different drawing behavior is needed, you still need to call GUIWidget::Draw. To do that, write “GUIWidget.Draw();” instead of the usual “Super.Draw();”.
+	 */
+	override void Draw() {
+		Super.Draw();
+		
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			Children[i].Draw();
+	}
+}
