@@ -1,0 +1,107 @@
+/**
+ * A drawing context. Each DrawContext has its own coordinate system and draw settings, independent of any other DrawContext. It also provides a context-sensitive drawing API, which delegates to the drawing API of struct Screen.
+ *
+ * All fields of this struct are hidden, and may change in future versions (e.g. if a future version of ZScript provides support for matrix transformations). Instead, use the accessor and mutator methods to manipulate the context.
+ */
+struct DrawContext {
+	private bool Initialized;
+	String ConsoleLabel;
+	private Vector2 ScaleXfrm;
+	private double EffAlpha;
+	Font TextFont;
+	int TextColor;
+	ERenderStyle RenderStyle;
+	bool UseClipArea;
+	Rectangle ClipArea;
+	
+	/** Translation of this DC, in unscaled coordinates. */
+	private Vector2 TranslateXfrm;
+	
+	/**
+	 * Completely resets the state of this DrawContext. After that, calls to its draw methods will be equivalent to calling Screen methods directly.
+	 *
+	 * The ConsoleLabel is not reset.
+	 */
+	void Initial() {
+		TranslateXfrm = (0, 0);
+		ScaleXfrm = (1, 1);
+		EffAlpha = 1;
+		TextFont = "SmallFont";
+		TextColor = Font.CR_UNDEFINED;
+		RenderStyle = STYLE_Normal;
+		UseClipArea = false;
+		ClipArea.Zero();
+		Initialized = true;
+	}
+	
+	/**
+	 * Copies the state of the given DrawContext into this one.
+	 *
+	 * The ConsoleLabel is not copied.
+	 */
+	void Copy(DrawContext other) {
+		TranslateXfrm = other.TranslateXfrm;
+		ScaleXfrm = other.ScaleXfrm;
+		EffAlpha = other.EffAlpha;
+		TextFont = other.TextFont;
+		TextColor = other.TextColor;
+		RenderStyle = other.RenderStyle;
+		UseClipArea = false;
+		ClipArea.Copy(other.ClipArea);
+		Initialized = true;
+	}
+	
+	String ToString() {
+		return String.Format("DrawContext %s (xlta X:%f Y:%f, scale X:%f Y:%f)", ConsoleLabel, TranslateXfrm.X, TranslateXfrm.Y, ScaleXfrm.X, ScaleXfrm.Y);
+	}
+	
+	/**
+	 * Translates the coordinate system of this DrawContext by the given vector.
+	 *
+	 * By default, the ClipArea is adjusted such that it covers the same area in the new coordinate system as it did in the previous one. If the preserveClip parameter is set to true, however, the ClipArea keeps the same coordinates, effectively translating it too.
+	 */
+	void Translate(Vector2 v, bool preserveClip = false) {
+		TranslateXfrm += GUIUtil.Vec2Mul(v, ScaleXfrm);
+		
+		if (!preserveClip)
+			ClipArea.Origin -= v;
+	}
+	
+	/**
+	 * Scales the coordinate system of this DrawContext by the given vector.
+	 *
+	 * By default, the ClipArea is adjusted such that it covers the same area in the new coordinate system as it did in the previous one. If the preserveClip parameter is set to true, however, the ClipArea keeps the same coordinates, effectively scaling it too.
+	 */
+	void Scale(Vector2 v, bool preserveClip = false) {
+		if (v.X <= 0. || v.Y <= 0.) {
+			if (zsgui_debug_drawcontext_abortonerror)
+				Object.ThrowAbortException("%s: Call to Scale(%f,%f). Zero or negative scale factors are not allowed. \c-(To only log this condition without crashing, set the CVar \c+zsgui_debug_drawcontext_abortonerror\c- to \c+false\c-.)", ToString(), v.X, v.Y);
+			else
+				Console.Printf("%s: \crIgnoring call to Scale(%f,%f). Zero or negative scale factors are not allowed. \c-(To crash on this condition and get a ZScript stack trace, set the CVar \c+zsgui_debug_drawcontext_abortonerror\c- to \c+true\c-.)", ToString(), v.X, v.Y);
+		}
+		else {
+			ScaleXfrm = GUIUtil.Vec2Mul(ScaleXfrm, v);
+			
+			if (!preserveClip) {
+				ClipArea.Origin = GUIUtil.Vec2Div(ClipArea.Origin, v);
+				ClipArea.Size = GUIUtil.Vec2Div(ClipArea.Size, v);
+			}
+		}
+	}
+	
+	void Fade(double v) {
+		EffAlpha *= clamp(v, 0., 1.);
+	}
+	
+	double GetEffAlpha() {
+		return EffAlpha;
+	}
+	
+	Vector2 ToRealCoords(Vector2 v) {
+		return GUIUtil.Vec2Mul(v + TranslateXfrm, ScaleXfrm);
+	}
+	
+	Vector2 FromRealCoords(Vector2 v) {
+		return GUIUtil.Vec2Div(v - TranslateXfrm, ScaleXfrm);
+	}
+}

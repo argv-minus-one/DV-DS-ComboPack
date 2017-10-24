@@ -2,3 +2,4 @@ server bool zsgui_debug_edgegroup = false;
 server bool zsgui_debug_ribbonmeter_layout = false;
 server bool zsgui_debug_layout = false;
 server bool zsgui_debug_imagewidget_layout = false;
+server bool zsgui_debug_drawcontext_abortonerror = false;

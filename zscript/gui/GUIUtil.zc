@@ -40,6 +40,10 @@ struct GUIUtil {
 		return (a.X * b.X, a.Y * b.Y);
 	}
 	
+	static Vector2 Vec2Div(Vector2 a, Vector2 b) {
+		return (a.X / b.X, a.Y / b.Y);
+	}
+	
 	static int NearestPaletteColor(Color c) {
 		// Roughly the same algorithm as BestColor in v_palette.cpp.
 		int paletteColorSoFar;
@@ -63,6 +67,13 @@ struct GUIUtil {
 		}
 		
 		return paletteColorSoFar;
+	}
+	
+	static Vector2 ScreenSizeVec() {
+		return (
+			Screen.GetWidth(),
+			Screen.GetHeight()
+		);
 	}
 }
 
