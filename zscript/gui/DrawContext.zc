@@ -17,6 +17,11 @@ struct DrawContext {
 	/** Translation of this DC, in unscaled coordinates. */
 	private Vector2 TranslateXfrm;
 	
+	bool AlphaMaskFill;
+	PalettedColor AlphaMaskFillColor;
+	
+	bool IgnoreTextureMasks;
+	
 	/**
 	 * Completely resets the state of this DrawContext. After that, calls to its draw methods will be equivalent to calling Screen methods directly.
 	 *
@@ -99,11 +104,145 @@ struct DrawContext {
 		return EffAlpha;
 	}
 	
+	double ToRealXCoord(double x) {
+		return TranslateXfrm.X + (x * ScaleXfrm.X);
+	}
+	
+	double ToRealYCoord(double y) {
+		return TranslateXfrm.Y + (y * ScaleXfrm.Y);
+	}
+	
 	Vector2 ToRealCoords(Vector2 v) {
 		return TranslateXfrm + GUIUtil.Vec2Mul(v, ScaleXfrm);
 	}
 	
 	Vector2 FromRealCoords(Vector2 v) {
 		return GUIUtil.Vec2Div(v, ScaleXfrm) - TranslateXfrm;
+	}
+	
+	Color ApplyAlpha(Color c) {
+		return Color(int(double(c.A) * EffAlpha), c.R, c.G, c.B);
+	}
+	
+	void RectToRealCoords(in out Rectangle rect) {
+		rect.Origin = ToRealCoords(rect.Origin);
+		rect.Size = GUIUtil.Vec2Mul(rect.Size, ScaleXfrm);
+	}
+	
+	void RectFromRealCoords(in out Rectangle rect) {
+		rect.Origin = FromRealCoords(rect.Origin);
+		rect.Size = GUIUtil.Vec2Div(rect.Size, ScaleXfrm);
+	}
+	
+	void Fill(Rectangle area, Color trueColor, int palColor = -1) {
+		RectToRealCoords(area);
+		Screen.Clear(area.Origin.X, area.Origin.Y, area.Origin.X + area.Size.X, area.Origin.Y + area.Size.Y, ApplyAlpha(trueColor), palColor);
+	}
+	
+	void Dim(Rectangle area, Color c, double amount) {
+		RectToRealCoords(area);
+		Screen.Dim(c, amount * EffAlpha, area.Origin.X, area.Origin.Y, area.Size.X, area.Size.Y);
+	}
+	
+	private void RealClipArea(in out Rectangle cla) {
+		if (UseClipArea) {
+			cla.Copy(ClipArea);
+			RectToRealCoords(cla);
+		}
+	}
+	
+	void DrawTexture(Rectangle area, TextureID tex, bool animate = false) {
+		Rectangle texArea;
+		texArea.Size = (INT_MAX, INT_MAX); // Oddly, that's what the engine uses, even though the coords are doubles.
+		PalettedColor fillColor; // dummy
+		
+		DrawTexture_(area, tex, texArea, animate, false, fillColor);
+	}
+	
+	void DrawTexturePiece(Rectangle area, TextureID tex, Rectangle texArea, bool animate = false) {
+		PalettedColor fillColor; // dummy
+		
+		DrawTexture_(area, tex, texArea, animate, false, fillColor);
+	}
+	
+	void DrawAlphaFill(Rectangle area, PalettedColor fillColor, TextureID mask, bool animate = false) {
+		Rectangle texArea;
+		texArea.Size = (INT_MAX, INT_MAX);
+		
+		DrawTexture_(area, mask, texArea, animate, true, fillColor);
+	}
+	
+	void DrawAlphaFillPiece(Rectangle area, PalettedColor fillColor, TextureID mask, Rectangle maskArea, bool animate = false) {
+		DrawTexture_(area, mask, maskArea, animate, true, fillColor);
+	}
+	
+	private void DrawTexture_(Rectangle area, TextureID tex, Rectangle texArea, bool animate, bool alphaFill, PalettedColor fillColor) {
+		RectToRealCoords(area);
+		Rectangle cla; RealClipArea(cla);
+		
+		Screen.DrawTexture(
+			tex, animate,
+			area.Origin.X, area.Origin.Y,
+			DTA_DestWidthF, area.Size.X,
+			DTA_DestHeightF, area.Size.Y,
+			DTA_Alpha, EffAlpha,
+			DTA_ClipTop, UseClipArea? int(cla.Origin.Y) : 0,
+			DTA_ClipBottom, UseClipArea? int((cla.Origin.Y + cla.Size.Y) + .5) : Screen.GetHeight(),
+			DTA_ClipLeft, UseClipArea? int(cla.Origin.X) : 0,
+			DTA_ClipRight, UseClipArea? int((cla.Origin.X + cla.Size.X) + .5) : Screen.GetWidth(),
+			DTA_Masked, !IgnoreTextureMasks,
+			DTA_RenderStyle, RenderStyle,
+			DTA_WindowLeft, texArea.Origin.X,
+			DTA_WindowRight, texArea.Origin.X + texArea.Size.X,
+			DTA_AlphaChannel, alphaFill,
+			DTA_FillColor, fillColor.DTAColor
+		);
+	}
+	
+	void DrawFrame(Rectangle area) {
+		RectToRealCoords(area);
+		Screen.DrawFrame(int(area.Origin.X), int(area.Origin.Y), int(area.Size.X + .5), int(area.Size.Y + .5));
+	}
+	
+	void DrawChar(Vector2 origin, int character, int charCellWidth = 0, int charCellHeight = 0) {
+		origin = ToRealCoords(origin);
+		charCellWidth = int(ToRealXCoord(charCellWidth) + .5);
+		charCellHeight = int(ToRealYCoord(charCellHeight) + .5);
+		Rectangle cla; RealClipArea(cla);
+		
+		Screen.DrawChar(
+			TextFont, TextColor,
+			origin.X, origin.Y,
+			character,
+			DTA_CellX, charCellWidth,
+			DTA_CellY, charCellHeight,
+			DTA_Alpha, EffAlpha,
+			DTA_ClipTop, UseClipArea? int(cla.Origin.Y) : 0,
+			DTA_ClipBottom, UseClipArea? int((cla.Origin.Y + cla.Size.Y) + .5) : Screen.GetHeight(),
+			DTA_ClipLeft, UseClipArea? int(cla.Origin.X) : 0,
+			DTA_ClipRight, UseClipArea? int((cla.Origin.X + cla.Size.X) + .5) : Screen.GetWidth(),
+			DTA_RenderStyle, RenderStyle
+		);
+	}
+	
+	void DrawText(Vector2 origin, String text, int charCellWidth = 0, int charCellHeight = 0) {
+		origin = ToRealCoords(origin);
+		charCellWidth = int(ToRealXCoord(charCellWidth) + .5);
+		charCellHeight = int(ToRealYCoord(charCellHeight) + .5);
+		Rectangle cla; RealClipArea(cla);
+		
+		Screen.DrawText(
+			TextFont, TextColor,
+			origin.X, origin.Y,
+			text,
+			DTA_CellX, charCellWidth,
+			DTA_CellY, charCellHeight,
+			DTA_Alpha, EffAlpha,
+			DTA_ClipTop, UseClipArea? int(cla.Origin.Y) : 0,
+			DTA_ClipBottom, UseClipArea? int((cla.Origin.Y + cla.Size.Y) + .5) : Screen.GetHeight(),
+			DTA_ClipLeft, UseClipArea? int(cla.Origin.X) : 0,
+			DTA_ClipRight, UseClipArea? int((cla.Origin.X + cla.Size.X) + .5) : Screen.GetWidth(),
+			DTA_RenderStyle, RenderStyle
+		);
 	}
 }
