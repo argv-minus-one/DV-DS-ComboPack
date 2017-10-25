@@ -100,10 +100,10 @@ struct DrawContext {
 	}
 	
 	Vector2 ToRealCoords(Vector2 v) {
-		return GUIUtil.Vec2Mul(v + TranslateXfrm, ScaleXfrm);
+		return TranslateXfrm + GUIUtil.Vec2Mul(v, ScaleXfrm);
 	}
 	
 	Vector2 FromRealCoords(Vector2 v) {
-		return GUIUtil.Vec2Div(v - TranslateXfrm, ScaleXfrm);
+		return GUIUtil.Vec2Div(v, ScaleXfrm) - TranslateXfrm;
 	}
 }
