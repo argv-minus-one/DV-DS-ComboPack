@@ -61,10 +61,12 @@ struct DrawContext {
 	 * By default, the ClipArea is adjusted such that it covers the same area in the new coordinate system as it did in the previous one. If the preserveClip parameter is set to true, however, the ClipArea keeps the same coordinates, effectively translating it too.
 	 */
 	void Translate(Vector2 v, bool preserveClip = false) {
-		TranslateXfrm += GUIUtil.Vec2Mul(v, ScaleXfrm);
+		let vs = GUIUtil.Vec2Mul(v, ScaleXfrm);
+		
+		TranslateXfrm += vs;
 		
 		if (!preserveClip)
-			ClipArea.Origin -= v;
+			ClipArea.Origin -= vs;
 	}
 	
 	/**
