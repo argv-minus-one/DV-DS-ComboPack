@@ -1,16 +1,19 @@
 // An assortment of data structures related to HUD graphics.
 
+const INT_MAX = 0x7fffffff;
+const INT_MIN = -0x80000000;
+
+/** The machine epsilon for the “double” type. */
+const DOUBLE_EPSILON = 1.1102230246251565E-16;
+
 struct GUIUtil {
-	/** The machine epsilon for the “double” type.  */
-	const Epsilon = 1.1102230246251565E-16;
-	
 	static bool IsAboutZero(double x) {
-		return x < Epsilon && x > -Epsilon;
+		return x < DOUBLE_EPSILON && x > -DOUBLE_EPSILON;
 	}
 	
 	static bool IsAboutEqual(double a, double b) {
 		let d = a - b;
-		return d > -Epsilon && d < Epsilon;
+		return d > -DOUBLE_EPSILON && d < DOUBLE_EPSILON;
 	}
 	
 	static Color ApplyAlpha(Color c, double alpha) {
