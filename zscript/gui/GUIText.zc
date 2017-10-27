@@ -141,10 +141,19 @@ class GUIText : GUIWidget {
 		DC.TextColor = TextColor;
 		
 		for (let line = 0, nLines = LineOriginsX.Size(); line < nLines; line++) {
+			let lineText = Lines? Lines.StringAt(line) : Text;
 			DC.DrawText(
 				(LineOriginsX[line], LineOriginsY[line]),
-				Lines != null? Lines.StringAt(line) : Text
+				lineText
 			);
+			
+			if (zsgui_debug_show_box_textlines) {
+				Rectangle frameRect;
+				frameRect.Origin = (LineOriginsX[line], LineOriginsY[line]);
+				frameRect.Size.X = TextFont.StringWidth(lineText);
+				frameRect.Size.Y = TextFont.GetHeight();
+				DC.DrawFrame(frameRect);
+			}
 		}
 	}
 	

@@ -235,5 +235,11 @@ class GUIWidget ui abstract {
 	virtual void Draw() {
 		if (!LayoutDone)
 			Layout();
+		
+		if (zsgui_debug_show_box) {
+			Rectangle bounds;
+			bounds.Size = DC.Bounds;
+			DC.DrawFrame(bounds);
+		}
 	}
 }

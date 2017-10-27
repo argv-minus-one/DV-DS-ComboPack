@@ -6,3 +6,5 @@ server bool zsgui_debug_drawcontext_abortonerror = false;
 server bool zsgui_debug_draw_fill = false;
 server bool zsgui_debug_draw_texture = false;
 server bool zsgui_debug_draw_text = false;
+server bool zsgui_debug_show_box = false;
+server bool zsgui_debug_show_box_textlines = false;
