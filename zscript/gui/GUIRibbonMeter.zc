@@ -21,7 +21,6 @@ class GUIRibbonMeter : GUIWidget {
 		LabelText = new("GUIText");
 		LabelText.ConsoleLabel = ConsoleLabel..".LabelText";
 		LabelText.Init(self);
-		LabelText.Align.X = XALIGN_LEFT;
 		
 		NumberText = new("GUIText");
 		NumberText.ConsoleLabel = ConsoleLabel..".NumberText";
@@ -44,8 +43,12 @@ class GUIRibbonMeter : GUIWidget {
 		LengthBase = 200;
 		
 		WStack = new("GUIStackGroup");
-		WStack.ConsoleLabel = ConsoleLabel.."WStack";
+		WStack.ConsoleLabel = ConsoleLabel..".WStack";
 		WStack.Init(self);
+		
+		WSeq = new("GUISeqGroup");
+		WSeq.ConsoleLabel = ConsoleLabel..".WSeq";
+		WSeq.Init(self);
 	}
 	
 	void SetBackgroundTextureSet(String textureNamePrefix, int texUseType) {
@@ -76,23 +79,13 @@ class GUIRibbonMeter : GUIWidget {
 	}
 	
 	override double PreferredWidth(double height = -1.) {
-		return max(
-			NumberText == null? 0. : NumberText.PreferredWidth(height),
-			MainFill == null? 0. : MainFill.PreferredWidth(height),
-			OverFill == null? 0. : OverFill.PreferredWidth(height),
-			DrawUnder == null? 0. : DrawUnder.PreferredWidth(height),
-			DrawOver == null? 0. : DrawOver.PreferredWidth(height)
-		) + Insets.X();
+		SetupTree();
+		return WSeq.PreferredWidth(height) + Insets.X(Scale.X);
 	}
 	
 	override double PreferredHeight(double width = -1.) {
-		return max(
-			NumberText == null? 0. : NumberText.PreferredHeight(width),
-			MainFill == null? 0. : MainFill.PreferredHeight(width),
-			OverFill == null? 0. : OverFill.PreferredHeight(width),
-			DrawUnder == null? 0. : DrawUnder.PreferredHeight(width),
-			DrawOver == null? 0. : DrawOver.PreferredHeight(width)
-		) + Insets.Y();
+		SetupTree();
+		return WSeq.PreferredHeight(width) + Insets.Y(Scale.Y);
 	}
 	
 	private double GetFillFraction(double adjust = 0.) {
@@ -108,6 +101,65 @@ class GUIRibbonMeter : GUIWidget {
 	}
 	
 	private GUIStackGroup WStack;
+	private GUISeqGroup WSeq;
+	private bool TreeSetupDone;
+	
+	private void SetupTree() {
+		if (TreeSetupDone)
+			return;
+		
+		WSeq.ReverseOrder = Align.X == XALIGN_RIGHT;
+		WSeq.Children.Clear();
+		
+		WStack.Children.Clear();
+		
+		if (DrawUnder) {
+			WStack.Children.Push(DrawUnder);
+			DrawUnder.ConsoleLabel = ConsoleLabel..".DrawUnder";
+		}
+		
+		if (MainFill) {
+			MainFill.Align.Copy(Align);
+			MainFill.Insets.Copy(FillInsets);
+			WStack.Children.Push(MainFill);
+			MainFill.ConsoleLabel = ConsoleLabel..".MainFill";
+		}
+		
+		if (OverFill) {
+			OverFill.Align.Copy(Align);
+			OverFill.Insets.Copy(FillInsets);
+			WStack.Children.Push(OverFill);
+			OverFill.ConsoleLabel = ConsoleLabel..".OverFill";
+		}
+		
+		if (DrawOver) {
+			WStack.Children.Push(DrawOver);
+			DrawOver.ConsoleLabel = ConsoleLabel..".DrawOver";
+		}
+		
+		if (NumberText && DrawValue) {
+			NumberText.Insets.Copy(FillInsets);
+			WStack.Children.Push(NumberText);
+			NumberText.ConsoleLabel = ConsoleLabel..".NumberText";
+		}
+		
+		if (LabelText) {
+			WSeq.Children.Push(LabelText);
+			WSeq.SpaceBetween = LabelText.TextFont.GetCharWidth(48);
+			LabelText.ConsoleLabel = ConsoleLabel..".LabelText";
+		}
+		else
+			WSeq.SpaceBetween = 0;
+		
+		WSeq.Children.Push(WStack);
+		
+		TreeSetupDone = true;
+	}
+	
+	override void RequestLayout() {
+		Super.RequestLayout();
+		TreeSetupDone = false;
+	}
 	
 	override void Layout() {
 		Super.Layout();
@@ -115,31 +167,12 @@ class GUIRibbonMeter : GUIWidget {
 		if (zsgui_debug_ribbonmeter_layout)
 			Console.Printf(">>> ZsGUI: Laying out %s into area %fx%f.", ToString(), DC.Bounds.X, DC.Bounds.Y);
 		
-		WStack.Children.Clear();
-		
-		if (DrawUnder)
-			WStack.Children.Push(DrawUnder);
-		if (MainFill) {
-			MainFill.Align.Copy(Align);
-			MainFill.Insets.Copy(FillInsets);
-			WStack.Children.Push(MainFill);
-		}
-		if (OverFill) {
-			OverFill.Align.Copy(Align);
-			OverFill.Insets.Copy(FillInsets);
-			WStack.Children.Push(OverFill);
-		}
-		if (DrawOver)
-			WStack.Children.Push(DrawOver);
-		if (NumberText && DrawValue)
-			WStack.Children.Push(NumberText);
-		if (LabelText)
-			WStack.Children.Push(LabelText);
+		SetupTree();
 		
 		Rectangle ca;
 		ca.Size = DC.Bounds;
 		
-		LayoutChild(WStack, ca);
+		LayoutChild(WSeq, ca);
 	}
 	
 	override void Draw() {
@@ -164,6 +197,6 @@ class GUIRibbonMeter : GUIWidget {
 			}
 		}
 		
-		WStack.Draw();
+		WSeq.Draw();
 	}
 }
