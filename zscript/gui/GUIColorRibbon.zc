@@ -74,17 +74,16 @@ class GUIColorRibbon : GUIWidget {
 		rowRect.Size.Y = ca.Size.Y / double(nColors);
 		rowRect.PositionIn(ca, Align.X, YALIGN_TOP);
 		
-		let effSkew = Skew;
-		let maxSkew = effSkew * nColors;
+		let maxSkew = Skew * nColors;
 		
 		// If the skew is negative (that is, top skews leftward), then we need to move the initial origin to the right to compensate. Otherwise, skewed rows will draw outside the bounds.
-		if (effSkew < 0.)
+		if (Skew < 0.)
 			rowRect.Origin.X -= maxSkew;
 		
 		for (let i = 0; i < nColors; i++) {
 			DC.Fill(rowRect, Colors[i]);
 			
-			rowRect.Origin.X -= effSkew;
+			rowRect.Origin.X -= Skew;
 			rowRect.Origin.Y += rowRect.Size.Y;
 		}
 	}
