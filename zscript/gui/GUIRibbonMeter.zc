@@ -121,10 +121,12 @@ class GUIRibbonMeter : GUIWidget {
 			WStack.Children.Push(DrawUnder);
 		if (MainFill) {
 			MainFill.Align.Copy(Align);
+			MainFill.Insets.Copy(FillInsets);
 			WStack.Children.Push(MainFill);
 		}
 		if (OverFill) {
 			OverFill.Align.Copy(Align);
+			OverFill.Insets.Copy(FillInsets);
 			WStack.Children.Push(OverFill);
 		}
 		if (DrawOver)
