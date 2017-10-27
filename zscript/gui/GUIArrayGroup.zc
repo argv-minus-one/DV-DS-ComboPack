@@ -29,7 +29,7 @@ class GUIArrayGroup : GUIWidget abstract {
 		double a;
 		for (let i = 0, l = Children.Size(); i < l; i++)
 			a += Children[i].PreferredWidth(height);
-		return a;
+		return (a + Insets.X()) * Scale.X;
 	}
 	
 	/**
@@ -39,7 +39,7 @@ class GUIArrayGroup : GUIWidget abstract {
 		double a;
 		for (let i = 0, l = Children.Size(); i < l; i++)
 			a = max(a, Children[i].PreferredWidth(height));
-		return a;
+		return (a + Insets.X()) * Scale.X;
 	}
 	
 	/**
@@ -49,7 +49,7 @@ class GUIArrayGroup : GUIWidget abstract {
 		double a;
 		for (let i = 0, l = Children.Size(); i < l; i++)
 			a += Children[i].PreferredHeight(width);
-		return a;
+		return (a + Insets.Y()) * Scale.Y;
 	}
 	
 	/**
@@ -59,7 +59,7 @@ class GUIArrayGroup : GUIWidget abstract {
 		double a;
 		for (let i = 0, l = Children.Size(); i < l; i++)
 			a = max(a, Children[i].PreferredHeight(width));
-		return a;
+		return (a + Insets.Y()) * Scale.Y;
 	}
 	
 	/**

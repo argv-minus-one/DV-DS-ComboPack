@@ -32,11 +32,11 @@ class GUIColorRibbon : GUIWidget {
 	/*
 	 * Controls how much of the length is actually drawn. This doesn't affect preferred size computations, but does affect drawing. Hence, this can be used to draw meters that go up and down, without triggering a layout pass.
 	 *
-	 * If the DrawFraction is between 0 and 1, the area drawn is aligned according to the Align field.
+	 * If the DrawFraction is between 0 and 1, the area drawn is aligned according to the Align.X field. (Align.Y has no effect, because this widget always draws the entire height of its drawing area.)
 	 *
 	 * The DrawFraction's value is clamped to 0 through 1 when drawing. Values below 0 or above 1 will be treated as 0 and 1, respectively. In case it would be convenient to sometimes set such out-of-bounds values for this field, it is safe to do so.
-	double DrawFraction;
 	 */
+	double DrawFraction;
 	
 	void DecodeColorString(String colorString) {
 		let size = colorString.Length() / 4;
@@ -54,26 +54,27 @@ class GUIColorRibbon : GUIWidget {
 	}
 	
 	override double PreferredWidth(double height = -1.) {
-		return PreferredLength * EffXScale();
+		return (Insets.X() + PreferredLength) * Scale.X;
 	}
 	
 	override double PreferredHeight(double width = -1.) {
-		return Colors.Size() * EffYScale();
+		return (Insets.Y() + Colors.Size()) * Scale.Y;
 	}
 	
 	override void Draw() {
-		Rectangle ca;
-		GetContentArea(ca);
-		
-		let scale = EffScale();
 		let nColors = Colors.Size();
-		let alpha = EffAlpha();
+		if (nColors < 1)
+			return;
+		
+		Rectangle ca;
+		ca.Size = DC.Bounds;
 		
 		Rectangle rowRect;
-		rowRect.Copy(ca);
-		rowRect.Size.Y /= double(nColors);
+		rowRect.Size.X = ca.Size.X * DrawFraction;
+		rowRect.Size.Y = ca.Size.Y / double(nColors);
+		rowRect.PositionIn(ca, Align.X, YALIGN_TOP);
 		
-		let effSkew = Skew * scale.X;
+		let effSkew = Skew;
 		let maxSkew = effSkew * nColors;
 		
 		// If the skew is negative (that is, top skews leftward), then we need to move the initial origin to the right to compensate. Otherwise, skewed rows will draw outside the bounds.
@@ -81,13 +82,7 @@ class GUIColorRibbon : GUIWidget {
 			rowRect.Origin.X -= maxSkew;
 		
 		for (let i = 0; i < nColors; i++) {
-			Screen.Clear(
-				rowRect.Origin.X,
-				rowRect.Origin.Y,
-				rowRect.Origin.X + rowRect.Size.X,
-				rowRect.Origin.Y + rowRect.Size.Y,
-				GUIUtil.ApplyAlpha(Colors[i], alpha)
-			);
+			DC.Fill(rowRect, Colors[i]);
 			
 			rowRect.Origin.X -= effSkew;
 			rowRect.Origin.Y += rowRect.Size.Y;

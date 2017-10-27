@@ -21,7 +21,7 @@ class GUIImage : GUIWidget {
 	
 	double ImageAspectRatio() {
 		if (Image.IsValid()) {
-			let s = ScaledTexSize();
+			let s = ImageSize();
 			return s.X / s.Y;
 		}
 		else
@@ -31,7 +31,7 @@ class GUIImage : GUIWidget {
 	override EResizeBias ResizeBias() {
 		if (PreserveAspectRatio && Image.IsValid()) {
 			// Images' resize bias is along their short axis. That is, the size of the short axis depends on the size of the long axis.
-			let s = ScaledTexSize();
+			let s = ImageSize();
 			if (s.Y < s.X)
 				return RBIAS_VERTICAL;
 			else
@@ -41,8 +41,8 @@ class GUIImage : GUIWidget {
 			return RBIAS_NONE;
 	}
 	
-	private Vector2 ScaledTexSize() {
-		return GUIUtil.Vec2Mul(TexMan.GetScaledSize(Image), EffScale());
+	Vector2 ImageSize() {
+		return TexMan.GetScaledSize(Image);
 	}
 	
 	override double PreferredWidth(double height = -1.) {
@@ -50,8 +50,8 @@ class GUIImage : GUIWidget {
 			if (height > 0. && ResizeBias() == RBIAS_VERTICAL)
 				return height * ImageAspectRatio();
 			else {
-				let sts = ScaledTexSize();
-				return sts.X * EffXScale();
+				let sts = ImageSize();
+				return sts.X * Scale.X;
 			}
 		}
 		else
@@ -63,8 +63,8 @@ class GUIImage : GUIWidget {
 			if (width > 0. && ResizeBias() == RBIAS_HORIZONTAL)
 				return width / ImageAspectRatio();
 			else {
-				let sts = ScaledTexSize();
-				return sts.Y * EffYScale();
+				let sts = ImageSize();
+				return sts.Y * Scale.Y;
 			}
 		}
 		else
@@ -75,29 +75,27 @@ class GUIImage : GUIWidget {
 		Super.Layout();
 		
 		Rectangle ca;
-		GetContentArea(ca);
+		ca.Size = DC.Bounds;
 		
 		ImageDrawArea.Size = PreserveAspectRatio? PreferredSize(ca.Size) : ca.Size;
 		ImageDrawArea.PositionIn(ca, Align.X, Align.Y);
 		
-		if (zsgui_debug_imagewidget_layout)
-			Console.Printf("%s will draw its image in %s.", ToString(), ImageDrawArea.ToString());
+		if (zsgui_debug_imagewidget_layout) {
+			Rectangle cas;
+			cas.Copy(ca);
+			DC.ToScreenRect(cas);
+			Console.Printf("%s will draw its image in %s (screen coordinates: %s).", ToString(), ImageDrawArea.ToString(), cas.ToString());
+		}
 	}
 	
 	override void Draw() {
 		Super.Draw();
 		
-		if (Image.IsValid())
-			Screen.DrawTexture(
-				Image,
-				false,
-				ImageDrawArea.Origin.X,
-				ImageDrawArea.Origin.Y,
-				DTA_DestWidthF, ImageDrawArea.Size.X,
-				DTA_DestHeightF, ImageDrawArea.Size.Y,
-				DTA_Alpha, EffAlpha(),
-				DTA_FillColor, AlphaBlendColor.DTAColor,
-				DTA_AlphaChannel, AlphaBlend
-			);
+		if (Image.IsValid()) {
+			if (AlphaBlend)
+				DC.DrawAlphaFill(ImageDrawArea, AlphaBlendColor, Image);
+			else
+				DC.DrawTexture(ImageDrawArea, Image);
+		}
 	}
 }

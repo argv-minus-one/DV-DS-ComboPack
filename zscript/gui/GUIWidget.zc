@@ -12,13 +12,11 @@ class GUIWidget ui abstract {
 	String ConsoleLabel;
 	
 	/**
-	 * The current bounding area for this widget. Accounts for the Scale of this and ancestor widgets.
+	 * Current drawing context for this widget. It is set by the LayoutChild and TopLayout methods.
 	 *
-	 * This is set by the parent widget's Layout method (if there is a parent) or the application (if this is a top-level widget).
-	 *
-	 * Widgets are not to change their own Bounds (unless told to do so, e.g. by the AutoSize method). Information about the layout of a widget's content (such as where to draw lines of text) should be stored in other fields defined by the specific widget class, not in the Bounds field.
+	 * The coordinate system of this DrawContext is the content area of this widget, and accounts for this widget's Alpha, Scale, and Insets, as well as any transformations applied by the parent widget.
 	 */
-	Rectangle Bounds;
+	protected DrawContext DC;
 	
 	/**
 	 * How this widget is to align its content inside its bounding area.
@@ -52,7 +50,7 @@ class GUIWidget ui abstract {
 	 *
 	 * The parameter “height” contains the already-computed height of this widget, if one is available. If the ResizeBias is set to RBIAS_VERTICAL, layout code should first compute a height (using PreferredHeight(-1)) before computing a preferred width. A negative value for the “height” parameter means that information is not available.
 	 *
-	 * The returned value accounts for the EffScale of this widget.
+	 * The returned value accounts for the Scale and Insets of this widget.
 	 */
 	virtual double PreferredWidth(double height = -1.) {
 		return 0;
@@ -65,7 +63,7 @@ class GUIWidget ui abstract {
 	 *
 	 * The parameter “width” contains the already-computed width of this widget, if one is available. If the ResizeBias is set to RBIAS_HORIZONTAL, layout managers should first compute a width (using PreferredWidth(-1)) before computing a preferred height. A negative value for the “width” parameter means that information is not available.
 	 *
-	 * The returned value accounts for the EffScale of this widget.
+	 * The returned value accounts for the Scale and Insets of this widget.
 	 */
 	virtual double PreferredHeight(double width = -1.) {
 		return 0;
@@ -77,6 +75,8 @@ class GUIWidget ui abstract {
 	 * This calls PreferredWidth and PreferredHeight to do the actual calculation. If the ResizeBias isn't RBIAS_NONE, the dimensions are computed in the appropriate order. Otherwise, they are computed independently.
 	 *
 	 * The parameter “outer” gives the pre-computed dimensions that this widget should fit itself into. These are passed as the parameters of the PreferredWidth and PreferredHeight methods. If no value is known for a given dimension, pass -1 in that dimension. The default value is (-1, -1), which requests the unconstrained preferred size.
+	 *
+	 * The returned value accounts for the Scale and Insets of this widget.
 	 */
 	Vector2 PreferredSize(Vector2 outer = (-1., -1.)) {
 		double d;
@@ -92,16 +92,6 @@ class GUIWidget ui abstract {
 			default:
 				return (PreferredWidth(outer.X), PreferredHeight(outer.Y));
 		}
-	}
-	
-	/**
-	 * Computes the current content area of this widget.
-	 *
-	 * This is mainly intended for use by this widget's layout code, for positioning its content.
-	 */
-	void GetContentArea(out Rectangle rect) {
-		rect.Copy(Bounds);
-		Insets.Apply(rect, EffScale());
 	}
 	
 	/**
@@ -124,57 +114,97 @@ class GUIWidget ui abstract {
 		RBIAS_VERTICAL
 	};
 	
-	double EffAlpha() {
-		let a = Alpha;
-		if (Parent != null)
-			a *= Parent.EffAlpha();
-		return clamp(a, 0., 1.);
+	private void SetupDC() {
+		DC.ConsoleLabel = ConsoleLabel..".DC";
+		
+		if (UsingTopLayout) {
+			// Find the bounds.
+			DC.Bounds = AutoResize? PreferredSize(TopLayoutArea.Size) : TopLayoutArea.Size;
+			
+			// Find the (top-left) origin.
+			Rectangle effArea;
+			effArea.Size = DC.Bounds;
+			effArea.PositionAbout(TopLayoutArea.Origin, Align.X, Align.Y);
+			
+			// Initialize the drawing context.
+			DC.Initial();
+			DC.Translate(effArea.Origin);
+		}
+		
+		// Set up the drawing context.
+		DC.Scale(Scale);
+		DC.ApplyInsets(Insets);
+		DC.Fade(Alpha);
+		
+		if (zsgui_debug_layout)
+			Console.Printf("%s: Drawing context initialized: %s", ToString(), DC.ToString(fieldsOnly: true));
 	}
 	
-	Vector2 EffScale() {
-		if (Parent == null)
-			return Scale;
-		else
-			return GUIUtil.Vec2Mul(Scale, Parent.EffScale());
+	/**
+	 * Lays out a child widget. This method sets up the child's Parent, DC, and Bounds fields, then calls its Layout method.
+	 *
+	 * This method is similar to TopLayout, but is meant for child widgets instead of top-level ones.
+	 *
+	 * Note that this method is called on the *parent* widget, and given the child as a parameter.
+	 */
+	protected void LayoutChild(GUIWidget child, Rectangle area) {
+		LayoutChildWithDC(child, area, DC);
 	}
 	
-	double EffXScale() {
-		let scale = EffScale();
-		return scale.X;
+	protected void LayoutChildWithDC(GUIWidget child, Rectangle area, DrawContext dc) {
+		child.Parent = self;
+		child.UsingTopLayout = false;
+		child.DC.Copy(dc);
+		child.DC.Translate(area.Origin);
+		child.DC.Bounds = area.Size;
+		child.SetupDC();
+		child.Layout();
 	}
 	
-	double EffYScale() {
-		let scale = EffScale();
-		return scale.Y;
-	}
-	
-	void AutoSize() {
-		Bounds.Size = PreferredSize();
-		Bounds.PositionAbout(Bounds.Origin, Align.X, Align.Y);
+	/**
+	 * Lays out this top-level widget. Applications should call this method on their top-level widgets to position and size them.
+	 *
+	 * This method clears the Parent field, sets up the DC and Bounds fields, and calls Layout.
+	 *
+	 * This method is similar to LayoutChild, but is meant for top-level widgets instead of child ones.
+	 *
+	 * @param origin The point on screen that this widget is to be positioned at. The widget is aligned to this point according to the Align field.
+	 *
+	 * @param size The size that this widget is to have. May be negative, in which case the size is automatically computed from this widget's preferred size.
+	 *
+	 * @param autoResize If true, the size parameter is taken as only a hint, and the actual size is computed by passing size to the PreferredSize method. If false, the size parameter is used directly. If either dimension of size is negative, this parameter is ignored, and the actual size is computed as though it were true.
+	 */
+	void TopLayout(Vector2 origin, Vector2 size = (-1, -1), bool autoResize = true) {
+		UsingTopLayout = true;
+		Parent = null;
+		TopLayoutArea.Origin = origin;
+		TopLayoutArea.Size = size;
+		self.AutoResize = autoResize || size.X < 0. || size.Y < 0.;
 		Layout();
 	}
 	
-	private bool _LayoutDone;
+	private bool LayoutDone, UsingTopLayout, AutoResize;
+	private Rectangle TopLayoutArea;
 	
 	/**
-	 * Lays out this widget and all descendants.
+	 * Lays out this widget's content and descendants.
 	 *
-	 * This method is expected to resize and reposition this widget and any child widgets into the space allotted for this widget's content (as given by the GetContentArea method). For each child widget, this method must set the child's Bounds, then call its Layout method.
+	 * This method is expected to carry out any computation needed to draw, that doesn't have to be done every frame. In particular, this includes calculating positions and sizes for child widgets and other content; thus, the name Layout.
 	 *
-	 * This is called by the Draw method initially, and again whenever the RequestLayout method is called.
+	 * This is called by the TopLayout and LayoutChild methods.
 	 *
-	 * Subclasses need to override this method to perform whatever layout steps they need, including positioning of any child widgets. Subclasses also need to call Super.Layout at some point.
+	 * Subclasses need to override this method to perform whatever layout steps they need, including laying out any child widgets (with the LayoutChild method). Subclasses must call Super.Layout() first, as this base-class method may change the DC and Bounds fields, and resets the flag set by RequestLayout.
 	 *
-	 * The base class implementation of this method simply resets the flag set by RequestLayout, and if enabled, emits a log message stating this widget's current bounds and content area.
+	 * This base-class method also, if enabled, emits a log message stating this widget's current position and bounds (in screen coordinates).
 	 */
 	virtual void Layout() {
-		_LayoutDone = true;
+		if (UsingTopLayout)
+			SetupDC();
 		
-		if (zsgui_debug_layout) {
-			Rectangle ca;
-			GetContentArea(ca);
-			Console.Printf("ZsGUI: Laying out %s into area %s (content area %s).", ToString(), Bounds.ToString(), ca.ToString());
-		}
+		LayoutDone = true;
+		
+		if (zsgui_debug_layout)
+			Console.Printf("ZsGUI: Laying out %s into area %s (DC bounds: %f,%f).", ToString(), ScreenAreaToString(), DC.Bounds.X, DC.Bounds.Y);
 	}
 	
 	/**
@@ -183,7 +213,7 @@ class GUIWidget ui abstract {
 	 * This needs to be called whenever there is a change (other than by the Layout method) to this widget's size, position, scale factor, or parent.
 	 */
 	void RequestLayout() {
-		_LayoutDone = false;
+		LayoutDone = false;
 		if (Parent != null)
 			Parent.RequestLayout();
 	}
@@ -195,8 +225,15 @@ class GUIWidget ui abstract {
 		return String.Format("%s %s", GetClassName(), ConsoleLabel);
 	}
 	
+	String ScreenAreaToString() {
+		Rectangle r;
+		r.Size = DC.Bounds;
+		DC.ToScreenRect(r);
+		return r.ToString();
+	}
+	
 	virtual void Draw() {
-		if (!_LayoutDone)
+		if (!LayoutDone)
 			Layout();
 	}
 }

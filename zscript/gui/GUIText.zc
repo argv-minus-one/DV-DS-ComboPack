@@ -1,8 +1,6 @@
 /**
  * A widget that draws text.
  *
- * The engine does not support scaling text, so the Scale and EffScale is ignored (except for the Insets).
- *
  * The Layout method must be called whenever the text, font, wrap, or other layout-relevant settings are changed. However, you can avoid a full-tree layout pass by calling Layout on this widget directly, if the text content is likely to fit into the already-allocated area.
  *
  * To help with the aforementioned optimization (and with layout of text widgets in general), the preferred size of this widget can be influenced using the PrefLineLength and PrefWidthDirect fields. See the documentation of PrefLineLength for details.
@@ -42,7 +40,7 @@ class GUIText : GUIWidget {
 		else if (Text)
 			width = TextFont.StringWidth(Text);
 		
-		return width + Insets.X(EffXScale());
+		return width + Insets.X(Scale.X);
 	}
 	
 	override double PreferredHeight(double width = -1.) {
@@ -57,7 +55,7 @@ class GUIText : GUIWidget {
 		else if (Text)
 			height = TextFont.GetHeight();
 		
-		return height + Insets.Y(EffYScale());
+		return height + Insets.Y(Scale.Y);
 	}
 	
 	override EResizeBias ResizeBias() {
@@ -74,7 +72,7 @@ class GUIText : GUIWidget {
 		}
 		else if (TextWrap) {
 			Rectangle ca;
-			GetContentArea(ca);
+			ca.Size = DC.Bounds;
 			
 			Lines = TextFont.BreakLines(Text, int(ca.Size.X));
 			let nLines = Lines.Count();
@@ -110,7 +108,7 @@ class GUIText : GUIWidget {
 		}
 		else {
 			Rectangle ca;
-			GetContentArea(ca);
+			ca.Size = DC.Bounds;
 			
 			Lines = null;
 			LineOriginsX.Resize(1);
@@ -138,14 +136,14 @@ class GUIText : GUIWidget {
 	
 	override void Draw() {
 		Super.Draw();
-		let alpha = EffAlpha();
+		
+		DC.TextFont = TextFont;
+		DC.TextColor = TextColor;
 		
 		for (let line = 0, nLines = LineOriginsX.Size(); line < nLines; line++) {
-			Screen.DrawText(
-				TextFont, TextColor,
-				LineOriginsX[line], LineOriginsY[line],
-				Lines != null? Lines.StringAt(line) : Text,
-				DTA_Alpha, alpha
+			DC.DrawText(
+				(LineOriginsX[line], LineOriginsY[line]),
+				Lines != null? Lines.StringAt(line) : Text
 			);
 		}
 	}

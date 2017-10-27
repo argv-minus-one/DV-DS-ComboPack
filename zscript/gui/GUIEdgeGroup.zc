@@ -13,7 +13,7 @@ class GUIEdgeGroup : GUIWidget {
 		for (let row = 0; row < 3; row++)
 		if (Children[col][row] != null)
 			width[col] = max(width[col], Children[col][row].PreferredWidth(height));
-		return width[0] + width[1] + width[2];
+		return (width[0] + width[1] + width[2] + Insets.X()) * Scale.X;
 	}
 	
 	override double PreferredHeight(double width = -1.) {
@@ -22,7 +22,7 @@ class GUIEdgeGroup : GUIWidget {
 		for (let row = 0; row < 3; row++)
 		if (Children[col][row] != null)
 			height[row] = max(height[row], Children[col][row].PreferredHeight(width));
-		return height[0] + height[1] + height[2];
+		return (height[0] + height[1] + height[2] + Insets.Y()) * Scale.Y;
 	}
 	
 	private void CheckBias(in out EResizeBias bias, int col, int row) {
@@ -44,17 +44,14 @@ class GUIEdgeGroup : GUIWidget {
 	override void Layout() {
 		Super.Layout();
 		
-		Rectangle ca;
-		GetContentArea(ca);
-		
 		if (zsgui_debug_edgegroup)
-			Console.Printf(">>> ZsGUI: Laying out %s in area %s.", ToString(), ca.ToString());
+			Console.Printf(">>> ZsGUI: Laying out children of %s.", ToString());
 		
 		// Get the preferred sizes of the rows and columns.
 		double colSizes[3], rowSizes[3];
 		for (let col = 0; col < 3; col++)
 		for (let row = 0; row < 3; row++) {
-			let ps = Children[col][row] == null? (0, 0) : Children[col][row].PreferredSize(ca.Size);
+			let ps = Children[col][row] == null? (0, 0) : Children[col][row].PreferredSize(DC.Bounds);
 			
 			if (zsgui_debug_edgegroup && Children[col][row] != null)
 				Console.Printf("Preferred size for child %s is %fx%f.", Children[col][row].ToString(), ps.X, ps.Y);
@@ -83,7 +80,7 @@ class GUIEdgeGroup : GUIWidget {
 			);
 		
 		// Take the difference between the space we're given and the total space the children prefer.
-		let diff = ca.Size - totalPrefSize;
+		let diff = DC.Bounds - totalPrefSize;
 		
 		// Grow/shrink the columns/rows.
 		if (diff.X > 0.)
@@ -104,23 +101,24 @@ class GUIEdgeGroup : GUIWidget {
 			);
 		
 		// Size and position the children into their places on the grid.
-		let colPos = ca.Origin.X;
+		double colPos = 0;
 		for (let col = 0; col < 3; col++) {
-			let rowPos = ca.Origin.Y;
+			double rowPos = 0;
 			
 			for (let row = 0; row < 3; row++) {
 				let child = Children[col][row];
 				if (child != null) {
-					child.Bounds.Origin = (colPos, rowPos);
-					child.Bounds.Size = (colSizes[col], rowSizes[row]);
-					child.Layout();
+					Rectangle childArea;
+					childArea.Origin = (colPos, rowPos);
+					childArea.Size = (colSizes[col], rowSizes[row]);
+					LayoutChild(child, childArea);
 					
 					if (zsgui_debug_edgegroup)
 						Console.Printf(
 							"Laid out child %s (column %d, row %d): %s",
 							child.ToString(),
 							col, row,
-							child.Bounds.ToString()
+							childArea.ToString()
 						);
 				}
 				

@@ -95,6 +95,11 @@ enum GUIYAlignment {
 struct GUIXYAlignment {
 	GUIXAlignment X;
 	GUIYAlignment Y;
+	
+	void Copy(GUIXYAlignment other) {
+		X = other.X;
+		Y = other.Y;
+	}
 }
 
 struct Rectangle {
@@ -109,6 +114,18 @@ struct Rectangle {
 	void Zero() {
 		Origin = (0, 0);
 		Size = (0, 0);
+	}
+	
+	void ToInts(out RectangleInt other, bool roundInward = false) {
+		other.Origin[0] = int(Origin.X + (roundInward? .5 : 0.));
+		other.Origin[1] = int(Origin.Y + (roundInward? .5 : 0.));
+		other.Size[0] = int(Size.X + (roundInward? 0. : .5));
+		other.Size[1] = int(Size.Y + (roundInward? 0. : .5));
+	}
+	
+	void FullScreen() {
+		Origin = (0, 0);
+		Size = (Screen.GetWidth(), Screen.GetHeight());
 	}
 	
 	Vector2 ScaleForTexture(TextureID tex) {
@@ -169,8 +186,93 @@ struct Rectangle {
 		}
 	}
 	
+	double Top() { return Origin.Y; }
+	double Left() { return Origin.X; }
+	double Bottom() { return Origin.Y + Size.Y; }
+	double Right() { return Origin.X + Size.X; }
+	
+	Vector2 BottomRight() {
+		return (Origin.X + Size.X, Origin.Y + Size.Y);
+	}
+	
+	void Intersect(Rectangle other) {
+		Vector2 originDiff = (
+			max(other.Origin.X - Origin.X, 0.),
+			max(other.Origin.Y - Origin.Y, 0.)
+		);
+		
+		let brDiff = BottomRight() - other.BottomRight();
+		if (brDiff.X < 0.) brDiff.X = 0;
+		if (brDiff.Y < 0.) brDiff.Y = 0;
+		
+		Origin += originDiff;
+		Size -= originDiff + brDiff;
+	}
+	
+	void IntersectInt(RectangleInt other) {
+		Rectangle otherFloat;
+		other.ToFloats(otherFloat);
+		Intersect(otherFloat);
+	}
+	
 	String ToString() {
 		return String.Format("%f,%f %fx%f", Origin.X, Origin.Y, Size.X, Size.Y);
+	}
+}
+
+struct RectangleInt {
+	int Origin[2];
+	int Size[2];
+	
+	void Copy(RectangleInt other) {
+		Origin[0] = other.Origin[0];
+		Origin[1] = other.Origin[1];
+		Size[0] = other.Size[0];
+		Size[1] = other.Size[1];
+	}
+	
+	void Zero() {
+		Origin[0] = Origin[1] = Size[0] = Size[1] = 0;
+	}
+	
+	void ToFloats(out Rectangle other) {
+		other.Origin = (Origin[0], Origin[1]);
+		other.Size = (Size[0], Size[1]);
+	}
+	
+	void FullScreen() {
+		Origin[0] = Origin[1] = 0;
+		Size[0] = Screen.GetWidth();
+		Size[1] = Screen.GetHeight();
+	}
+	
+	int Left() { return Origin[0]; }
+	int Top() { return Origin[1]; }
+	int Bottom() { return Origin[1] + Size[1]; }
+	int Right() { return Origin[0] + Size[0]; }
+	
+	void Intersect(RectangleInt other) {
+		int cornerDiffs[4];
+		for (let i = 0; i < 2; i++)
+			cornerDiffs[i] = max(Origin[i] - other.Origin[i], 0);
+		cornerDiffs[2] = min(Right() - other.Right(), 0);
+		cornerDiffs[3] = min(Bottom() - other.Bottom(), 0);
+		
+		for (let i = 0; i < 2; i++)
+			Origin[i] += cornerDiffs[i];
+		
+		for (let i = 0; i < 2; i++)
+			Size[i] -= cornerDiffs[i - 2] + cornerDiffs[i];
+	}
+	
+	void IntersectFloat(Rectangle other, bool roundInward = false) {
+		RectangleInt otherInt;
+		other.ToInts(otherInt, roundInward);
+		Intersect(otherInt);
+	}
+	
+	String ToString() {
+		return String.Format("%d,%d %dx%d", Origin[0], Origin[1], Size[0], Size[1]);
 	}
 }
 

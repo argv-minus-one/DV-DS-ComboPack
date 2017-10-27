@@ -16,8 +16,8 @@ class AetheriusHUD : BaseStatusBar {
 		HPMeter.LabelText.Text = "HP";
 		HPMeter.Align.X = XALIGN_LEFT;
 		//HPMeter.Scale = (5, 3);
-		HPMeter.Bounds.Origin = (200, Screen.GetHeight() - 190);
-		HPMeter.AutoSize();
+		// TODO: Coordinates relative to screen edges/corners/size
+		HPMeter.TopLayout((200, Screen.GetHeight() - 190));
 		Widgets.Push(HPMeter);
 	}
 	

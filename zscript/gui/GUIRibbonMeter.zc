@@ -42,6 +42,10 @@ class GUIRibbonMeter : GUIWidget {
 		ValueInterp = DynamicValueInterpolator.Create(0, 0.25, 1, 8);
 		MaxValueInterp = DynamicValueInterpolator.Create(0, 0.15, 1, 6);
 		LengthBase = 200;
+		
+		WStack = new("GUIStackGroup");
+		WStack.ConsoleLabel = ConsoleLabel.."WStack";
+		WStack.Init(self);
 	}
 	
 	void SetBackgroundTextureSet(String textureNamePrefix, int texUseType) {
@@ -78,7 +82,7 @@ class GUIRibbonMeter : GUIWidget {
 			OverFill == null? 0. : OverFill.PreferredWidth(height),
 			DrawUnder == null? 0. : DrawUnder.PreferredWidth(height),
 			DrawOver == null? 0. : DrawOver.PreferredWidth(height)
-		) + Insets.X(EffXScale());
+		) + Insets.X();
 	}
 	
 	override double PreferredHeight(double width = -1.) {
@@ -88,30 +92,7 @@ class GUIRibbonMeter : GUIWidget {
 			OverFill == null? 0. : OverFill.PreferredHeight(width),
 			DrawUnder == null? 0. : DrawUnder.PreferredHeight(width),
 			DrawOver == null? 0. : DrawOver.PreferredHeight(width)
-		) + Insets.Y(EffYScale());
-	}
-	
-	private void LayoutChild(GUIWidget widget, String widgetName, Rectangle ca) {
-		if (widget != null) {
-			widget.Bounds.Copy(ca);
-			widget.Layout();
-		}
-	}
-	
-	private void LayoutFillChild(GUIColorRibbon widget, String widgetName, Rectangle ca, double fillFraction, bool forceLayout) {
-		if (widget != null) {
-			let fillRemainingWidth = ca.Size.X - FillInsets.X(widget.EffXScale());
-			let prevInset = widget.Insets.Right;
-			widget.Insets.Right = FillInsets.Right + (fillRemainingWidth * (1. - fillFraction));
-			
-			if (forceLayout || widget.Insets.Right != prevInset) {
-				widget.Bounds.Copy(ca);
-				widget.Insets.Top = FillInsets.Top;
-				widget.Insets.Bottom = FillInsets.Bottom;
-				widget.Insets.Left = FillInsets.Left;
-				widget.Layout();
-			}
-		}
+		) + Insets.Y();
 	}
 	
 	private double GetFillFraction(double adjust = 0.) {
@@ -126,56 +107,46 @@ class GUIRibbonMeter : GUIWidget {
 		return clamp(rf + adjust, 0., 1.);
 	}
 	
+	private GUIStackGroup WStack;
+	
 	override void Layout() {
 		Super.Layout();
 		
-		Rectangle ca;
-		GetContentArea(ca);
-		
 		if (zsgui_debug_ribbonmeter_layout)
-			Console.Printf(">>> ZsGUI: Laying out %s into area %s.", ToString(), ca.ToString());
+			Console.Printf(">>> ZsGUI: Laying out %s into area %fx%f.", ToString(), DC.Bounds.X, DC.Bounds.Y);
 		
-		if (MainFill != null || OverFill != null) {
-			double fl;
-			if (LengthScale > 0.)
-				fl = min(LengthBase, double(MaxValueInterp.GetValue()) * LengthScale + LengthAdd);
-			else
-				fl = LengthBase;
-			if (MainFill != null) MainFill.PreferredLength = fl;
-			if (OverFill != null) OverFill.PreferredLength = fl;
+		WStack.Children.Clear();
+		
+		if (DrawUnder)
+			WStack.Children.Push(DrawUnder);
+		if (MainFill) {
+			MainFill.Align.Copy(Align);
+			WStack.Children.Push(MainFill);
 		}
+		if (OverFill) {
+			OverFill.Align.Copy(Align);
+			WStack.Children.Push(OverFill);
+		}
+		if (DrawOver)
+			WStack.Children.Push(DrawOver);
+		if (NumberText && DrawValue)
+			WStack.Children.Push(NumberText);
+		if (LabelText)
+			WStack.Children.Push(LabelText);
 		
-		LayoutChild(NumberText, "NumberText", ca);
-		LayoutChild(LabelText, "LabelText", ca);
-		LayoutChild(DrawUnder, "DrawUnder", ca);
-		LayoutChild(DrawOver, "DrawOver", ca);
-		LayoutFillChild(MainFill, "MainFill", ca, GetFillFraction(), true);
-		LayoutFillChild(OverFill, "OverFill", ca, GetFillFraction(-1), true);
+		Rectangle ca;
+		ca.Size = DC.Bounds;
 		
-		if (zsgui_debug_ribbonmeter_layout)
-			Console.Printf("<<< ZsGUI: Laying out %s finished.", ToString());
+		LayoutChild(WStack, ca);
 	}
 	
 	override void Draw() {
 		Super.Draw();
 		
-		Rectangle ca;
-		GetContentArea(ca);
-		
-		if (DrawUnder != null) DrawUnder.Draw();
-		
-		if (MainFill != null) {
-			LayoutFillChild(MainFill, "MainFill", ca, GetFillFraction(), false);
-			MainFill.Draw();
-		}
-		
-		if (OverFill != null) {
-			LayoutFillChild(OverFill, "OverFill", ca, GetFillFraction(-1), false);
-			OverFill.Draw();
-		}
-		
-		if (DrawOver != null) DrawOver.Draw();
-		if (LabelText != null) LabelText.Draw();
+		if (MainFill)
+			MainFill.DrawFraction = GetFillFraction();
+		if (OverFill)
+			OverFill.DrawFraction = GetFillFraction(-1);
 		
 		if (NumberText != null && DrawValue) {
 			String newText;
@@ -189,8 +160,8 @@ class GUIRibbonMeter : GUIWidget {
 				NumberText.Text = newText;
 				NumberText.Layout();
 			}
-			
-			NumberText.Draw();
 		}
+		
+		WStack.Draw();
 	}
 }

@@ -3,3 +3,6 @@ server bool zsgui_debug_ribbonmeter_layout = false;
 server bool zsgui_debug_layout = false;
 server bool zsgui_debug_imagewidget_layout = false;
 server bool zsgui_debug_drawcontext_abortonerror = false;
+server bool zsgui_debug_draw_fill = false;
+server bool zsgui_debug_draw_texture = false;
+server bool zsgui_debug_draw_text = false;

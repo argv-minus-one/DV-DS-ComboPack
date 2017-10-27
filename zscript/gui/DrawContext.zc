@@ -10,15 +10,12 @@ struct DrawContext {
 	private double EffAlpha;
 	Font TextFont;
 	int TextColor;
-	ERenderStyle RenderStyle;
 	bool ClipToBounds;
 	
 	/**
 	 * Bottom-right coordinates of the nominal draw area. Code should not draw except between (0,0) and Bounds.
 	 *
 	 * If ClipToBounds is true, draw calls will be clipped to within that area. Otherwise, drawing outside of that area is discouraged but permitted.
-	 *
-	 * The Initial method sets this to the size of the screen.
 	 */
 	Vector2 Bounds;
 	
@@ -37,12 +34,10 @@ struct DrawContext {
 	 */
 	void Initial() {
 		TranslateXfrm = (0, 0);
-		Bounds = (Screen.GetWidth(), Screen.GetHeight());
 		ScaleXfrm = (1, 1);
 		EffAlpha = 1;
 		TextFont = "SmallFont";
 		TextColor = Font.CR_UNDEFINED;
-		RenderStyle = STYLE_Normal;
 		ClipToBounds = false;
 		Initialized = true;
 	}
@@ -58,14 +53,25 @@ struct DrawContext {
 		EffAlpha = other.EffAlpha;
 		TextFont = other.TextFont;
 		TextColor = other.TextColor;
-		RenderStyle = other.RenderStyle;
 		ClipToBounds = other.ClipToBounds;
 		Bounds = other.Bounds;
 		Initialized = true;
 	}
 	
-	String ToString() {
-		return String.Format("DrawContext %s (xlat X:%f Y:%f, scale X:%f Y:%f, bounds X:%f Y:%f)", ConsoleLabel, TranslateXfrm.X, TranslateXfrm.Y, ScaleXfrm.X, ScaleXfrm.Y, Bounds.X, Bounds.Y);
+	String ToString(bool fieldsOnly = false) {
+		let result = String.Format(
+			"xlat=(%f,%f) scale=(%f,%f) bounds=(%f,%f%s) alpha=%f",
+			TranslateXfrm.X, TranslateXfrm.Y,
+			ScaleXfrm.X, ScaleXfrm.Y,
+			Bounds.X, Bounds.Y,
+			ClipToBounds? " clipping" : "",
+			EffAlpha
+		);
+		
+		if (!fieldsOnly)
+			result = String.Format("DrawContext %s (%s)", ConsoleLabel, result);
+		
+		return result;
 	}
 	
 	/**
@@ -103,6 +109,26 @@ struct DrawContext {
 			if (scaleBounds)
 				Bounds = GUIUtil.Vec2Div(Bounds, v);
 		}
+	}
+	
+	void ShrinkDrawArea(double top, double right, double bottom, double left) {
+		Translate((left, top));
+		Bounds = (
+			max(Bounds.X - right - left, 0.),
+			max(Bounds.Y - bottom - top, 0.)
+		);
+	}
+	
+	void GrowDrawArea(double top, double right, double bottom, double left) {
+		ShrinkDrawArea(-top, -right, -bottom, -left);
+	}
+	
+	void ApplyInsets(GUIInsets insets) {
+		ShrinkDrawArea(insets.Top, insets.Right, insets.Bottom, insets.Left);
+	}
+	
+	void UnapplyInsets(GUIInsets insets) {
+		GrowDrawArea(insets.Top, insets.Right, insets.Bottom, insets.Left);
 	}
 	
 	void Fade(double v) {
@@ -143,14 +169,71 @@ struct DrawContext {
 		rect.Size = ToDCSize(rect.Size);
 	}
 	
+	void GetScreenDrawArea(out Rectangle rect) {
+		rect.Origin = (0, 0);
+		rect.Size = Bounds;
+		ToScreenRect(rect);
+	}
+	
+	void GetScreenDrawAreaInt(out RectangleInt rect, bool roundInward = false) {
+		Rectangle rectFloat;
+		GetScreenDrawArea(rectFloat);
+		rectFloat.ToInts(rect, roundInward);
+	}
+	
+	void ApplyClip(in out Rectangle screenRect) {
+		if (ClipToBounds) {
+			Rectangle clip;
+			GetScreenDrawArea(clip);
+			screenRect.Intersect(clip);
+		}
+	}
+	
+	void GetClipInt(out RectangleInt rect, bool roundInward = false) {
+		if (ClipToBounds)
+			GetScreenDrawAreaInt(rect, roundInward);
+		else
+			rect.FullScreen();
+	}
+	
 	void Fill(Rectangle area, Color trueColor, int palColor = -1) {
-		ToScreenRect(area);
-		Screen.Clear(area.Origin.X, area.Origin.Y, area.Origin.X + area.Size.X, area.Origin.Y + area.Size.Y, ApplyAlpha(trueColor), palColor);
+		Rectangle screenArea;
+		screenArea.Copy(area);
+		ToScreenRect(screenArea);
+		ApplyClip(screenArea);
+		
+		let alphaColor = ApplyAlpha(trueColor);
+		
+		if (zsgui_debug_draw_fill)
+			Console.Printf(
+				"%s: Filling area %s with color ARGB=%d,%d,%d,%d palette=%d.",
+				ToString(),
+				screenArea.ToString(),
+				alphaColor.A, alphaColor.R, alphaColor.G, alphaColor.B,
+				palColor
+			);
+		
+		Screen.Clear(screenArea.Origin.X, screenArea.Origin.Y, screenArea.Origin.X + screenArea.Size.X, screenArea.Origin.Y + screenArea.Size.Y, alphaColor, palColor);
 	}
 	
 	void Dim(Rectangle area, Color c, double amount) {
-		ToScreenRect(area);
-		Screen.Dim(c, amount * EffAlpha, area.Origin.X, area.Origin.Y, area.Size.X, area.Size.Y);
+		Rectangle screenArea;
+		screenArea.Copy(area);
+		ToScreenRect(screenArea);
+		ApplyClip(screenArea);
+		
+		let effAmount = amount * EffAlpha;
+		
+		if (zsgui_debug_draw_fill)
+			Console.Printf(
+				"%s: Dimming area %s with color RGB=%d,%d,%d amount=%f.",
+				ToString(),
+				screenArea.ToString(),
+				c.R, c.G, c.B,
+				effAmount
+			);
+		
+		Screen.Dim(c, amount, screenArea.Origin.X, screenArea.Origin.Y, screenArea.Size.X, screenArea.Size.Y);
 	}
 	
 	void DrawTexture(Rectangle area, TextureID tex, bool animate = false) {
@@ -179,77 +262,155 @@ struct DrawContext {
 	}
 	
 	private void DrawTexture_(Rectangle area, TextureID tex, Rectangle texArea, bool animate, bool alphaFill, PalettedColor fillColor) {
-		ToScreenRect(area);
+		Rectangle screenArea;
+		screenArea.Copy(area);
+		ToScreenRect(screenArea);
+		
+		RectangleInt clip;
+		GetClipInt(clip);
+		
+		if (zsgui_debug_draw_texture) {
+			String msg = String.Format(
+				"%s:\n\tDrawing texture %d to area %s.\n\tClip top=%d right=%d bottom=%d left=%d\n\tAlpha: %f\n\tTexture window (columns): %f,%f",
+				ToString(),
+				tex,
+				screenArea.ToString(),
+				clip.Top(), clip.Right(), clip.Bottom(), clip.Left(),
+				EffAlpha,
+				texArea.Left(), texArea.Right()
+			);
+			
+			if (alphaFill) {
+				let f = fillColor.DTAColor;
+				msg = String.Format(
+					"%s\n\tAlpha fill: RGB:%d,%d,%d palette:%d",
+					msg,
+					f.R, f.G, f.B, f.A
+				);
+			}
+			
+			if (IgnoreTextureMasks)
+				msg = msg.."\n\tIgnoring texture mask";
+			
+			if (animate)
+				msg = msg.."\n\tAnimated";
+			
+			Console.Printf("%s", msg);
+		}
 		
 		Screen.DrawTexture(
 			tex, animate,
-			area.Origin.X, area.Origin.Y,
-			DTA_DestWidthF, area.Size.X,
-			DTA_DestHeightF, area.Size.Y,
+			screenArea.Origin.X, screenArea.Origin.Y,
+			DTA_DestWidthF, screenArea.Size.X,
+			DTA_DestHeightF, screenArea.Size.Y,
 			DTA_Alpha, EffAlpha,
-			DTA_ClipTop, ClipToBounds? int(area.Origin.Y) : 0,
-			DTA_ClipBottom, ClipToBounds? int((area.Origin.Y + area.Size.Y) + .5) : Screen.GetHeight(),
-			DTA_ClipLeft, ClipToBounds? int(area.Origin.X) : 0,
-			DTA_ClipRight, ClipToBounds? int((area.Origin.X + area.Size.X) + .5) : Screen.GetWidth(),
+			DTA_ClipTop, clip.Top(),
+			DTA_ClipBottom, clip.Bottom(),
+			DTA_ClipLeft, clip.Left(),
+			DTA_ClipRight, clip.Right(),
 			DTA_Masked, !IgnoreTextureMasks,
-			DTA_RenderStyle, RenderStyle,
-			DTA_WindowLeft, texArea.Origin.X,
-			DTA_WindowRight, texArea.Origin.X + texArea.Size.X,
+			DTA_WindowLeftF, texArea.Left(),
+			DTA_WindowRightF, texArea.Right(),
 			DTA_AlphaChannel, alphaFill,
 			DTA_FillColor, fillColor.DTAColor
 		);
 	}
 	
 	void DrawFrame(Rectangle area) {
-		ToScreenRect(area);
-		Screen.DrawFrame(int(area.Origin.X), int(area.Origin.Y), int(area.Size.X + .5), int(area.Size.Y + .5));
+		Rectangle screenArea;
+		screenArea.Copy(area);
+		ToScreenRect(screenArea);
+		ApplyClip(screenArea);
+		
+		RectangleInt screenAreaInt;
+		screenArea.ToInts(screenAreaInt);
+		
+		if (zsgui_debug_draw_fill)
+			Console.Printf(
+				"%s:\n\tDrawing frame at %d,%d of size %d,%d.",
+				screenAreaInt.Origin[0], screenAreaInt.Origin[1],
+				screenAreaInt.Size[0], screenAreaInt.Size[1]
+			);
+		
+		Screen.DrawFrame(screenAreaInt.Origin[0], screenAreaInt.Origin[1], screenAreaInt.Size[0], screenAreaInt.Size[1]);
 	}
 	
 	void DrawChar(Vector2 origin, int character, int charCellWidth = 0, int charCellHeight = 0) {
-		origin = ToScreenPoint(origin);
-		Vector2 size;
-		if (ClipToBounds) size = ToScreenSize(Bounds);
+		let screenOrigin = ToScreenPoint(origin);
 		
-		let charCell = ToScreenSize((charCellWidth, charCellHeight));
-		charCellWidth = int(charCell.X + .5);
-		charCellHeight = int(charCell.Y + .5);
+		int charCell[2]; {
+			let charCellF = ToScreenSize((charCellWidth, charCellHeight));
+			charCell[0] = int(charCellF.X + .5);
+			charCell[1] = int(charCellF.Y + .5);
+		}
+		
+		RectangleInt clip;
+		GetClipInt(clip);
+		
+		if (zsgui_debug_draw_text)
+			Console.Printf(
+				"%s:\n\tDrawing single character %d at position %f,%f.\n\tChar cell size: %d,%d\n\tClip top=%d right=%d bottom=%d left=%d\n\tAlpha: %f",
+				ToString(),
+				character,
+				screenOrigin.X, screenOrigin.Y,
+				charCell[0], charCell[1],
+				clip.Top(), clip.Right(), clip.Bottom(), clip.Left(),
+				EffAlpha
+			);
 		
 		Screen.DrawChar(
 			TextFont, TextColor,
-			origin.X, origin.Y,
+			screenOrigin.X, screenOrigin.Y,
 			character,
-			DTA_CellX, charCellWidth,
-			DTA_CellY, charCellHeight,
+			DTA_CellX, charCell[0],
+			DTA_CellY, charCell[1],
 			DTA_Alpha, EffAlpha,
-			DTA_ClipTop, ClipToBounds? int(origin.Y) : 0,
-			DTA_ClipBottom, ClipToBounds? int((origin.Y + size.Y) + .5) : INT_MAX,
-			DTA_ClipLeft, ClipToBounds? int(origin.X) : 0,
-			DTA_ClipRight, ClipToBounds? int((origin.X + size.X) + .5) : INT_MAX,
-			DTA_RenderStyle, RenderStyle
+			DTA_ClipTop, clip.Top(),
+			DTA_ClipBottom, clip.Bottom(),
+			DTA_ClipLeft, clip.Left(),
+			DTA_ClipRight, clip.Right()
 		);
 	}
 	
 	void DrawText(Vector2 origin, String text, int charCellWidth = 0, int charCellHeight = 0) {
-		origin = ToScreenPoint(origin);
-		Vector2 size;
-		if (ClipToBounds) size = ToScreenSize(Bounds);
+		let screenOrigin = ToScreenPoint(origin);
 		
-		let charCell = ToScreenSize((charCellWidth, charCellHeight));
-		charCellWidth = int(charCell.X + .5);
-		charCellHeight = int(charCell.Y + .5);
+		int charCell[2]; {
+			let charCellF = ToScreenSize((charCellWidth, charCellHeight));
+			charCell[0] = int(charCellF.X + .5);
+			charCell[1] = int(charCellF.Y + .5);
+		}
+		
+		RectangleInt clip;
+		GetClipInt(clip);
+		
+		if (zsgui_debug_draw_text) {
+			let textBeginning = text.Left(40);
+			if (text.Length() > textBeginning.Length())
+				textBeginning = textBeginning.."...";
+			
+			Console.Printf(
+				"%s:\n\tDrawing string \"%s\" at position %f,%f.\n\tChar cell size: %d,%d\n\tClip top=%d right=%d bottom=%d left=%d\n\tAlpha: %f",
+				ToString(),
+				textBeginning,
+				screenOrigin.X, screenOrigin.Y,
+				charCell[0], charCell[1],
+				clip.Top(), clip.Right(), clip.Bottom(), clip.Left(),
+				EffAlpha
+			);
+		}
 		
 		Screen.DrawText(
 			TextFont, TextColor,
-			origin.X, origin.Y,
+			screenOrigin.X, screenOrigin.Y,
 			text,
-			DTA_CellX, charCellWidth,
-			DTA_CellY, charCellHeight,
+			DTA_CellX, charCell[0],
+			DTA_CellY, charCell[1],
 			DTA_Alpha, EffAlpha,
-			DTA_ClipTop, ClipToBounds? int(origin.Y) : 0,
-			DTA_ClipBottom, ClipToBounds? int((origin.Y + size.Y) + .5) : INT_MAX,
-			DTA_ClipLeft, ClipToBounds? int(origin.X) : 0,
-			DTA_ClipRight, ClipToBounds? int((origin.X + size.X) + .5) : INT_MAX,
-			DTA_RenderStyle, RenderStyle
+			DTA_ClipTop, clip.Top(),
+			DTA_ClipBottom, clip.Bottom(),
+			DTA_ClipLeft, clip.Left(),
+			DTA_ClipRight, clip.Right()
 		);
 	}
 }
