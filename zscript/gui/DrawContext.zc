@@ -104,50 +104,50 @@ struct DrawContext {
 		return EffAlpha;
 	}
 	
-	double ToRealXCoord(double x) {
-		return TranslateXfrm.X + (x * ScaleXfrm.X);
-	}
-	
-	double ToRealYCoord(double y) {
-		return TranslateXfrm.Y + (y * ScaleXfrm.Y);
-	}
-	
-	Vector2 ToRealCoords(Vector2 v) {
+	Vector2 ToScreenPoint(Vector2 v) {
 		return TranslateXfrm + GUIUtil.Vec2Mul(v, ScaleXfrm);
 	}
 	
-	Vector2 FromRealCoords(Vector2 v) {
+	Vector2 ToScreenSize(Vector2 v) {
+		return GUIUtil.Vec2Mul(v, ScaleXfrm);
+	}
+	
+	Vector2 ToDCPoint(Vector2 v) {
 		return GUIUtil.Vec2Div(v, ScaleXfrm) - TranslateXfrm;
+	}
+	
+	Vector2 ToDCSize(Vector2 v) {
+		return GUIUtil.Vec2Div(v, ScaleXfrm);
 	}
 	
 	Color ApplyAlpha(Color c) {
 		return Color(int(double(c.A) * EffAlpha), c.R, c.G, c.B);
 	}
 	
-	void RectToRealCoords(in out Rectangle rect) {
-		rect.Origin = ToRealCoords(rect.Origin);
-		rect.Size = GUIUtil.Vec2Mul(rect.Size, ScaleXfrm);
+	void ToScreenRect(in out Rectangle rect) {
+		rect.Origin = ToScreenPoint(rect.Origin);
+		rect.Size = ToScreenSize(rect.Size);
 	}
 	
-	void RectFromRealCoords(in out Rectangle rect) {
-		rect.Origin = FromRealCoords(rect.Origin);
-		rect.Size = GUIUtil.Vec2Div(rect.Size, ScaleXfrm);
+	void ToDCRect(in out Rectangle rect) {
+		rect.Origin = ToDCPoint(rect.Origin);
+		rect.Size = ToDCSize(rect.Size);
 	}
 	
 	void Fill(Rectangle area, Color trueColor, int palColor = -1) {
-		RectToRealCoords(area);
+		ToScreenRect(area);
 		Screen.Clear(area.Origin.X, area.Origin.Y, area.Origin.X + area.Size.X, area.Origin.Y + area.Size.Y, ApplyAlpha(trueColor), palColor);
 	}
 	
 	void Dim(Rectangle area, Color c, double amount) {
-		RectToRealCoords(area);
+		ToScreenRect(area);
 		Screen.Dim(c, amount * EffAlpha, area.Origin.X, area.Origin.Y, area.Size.X, area.Size.Y);
 	}
 	
-	private void RealClipArea(in out Rectangle cla) {
+	private void ToScreenClip(in out Rectangle cla) {
 		if (UseClipArea) {
 			cla.Copy(ClipArea);
-			RectToRealCoords(cla);
+			ToScreenRect(cla);
 		}
 	}
 	
@@ -177,8 +177,8 @@ struct DrawContext {
 	}
 	
 	private void DrawTexture_(Rectangle area, TextureID tex, Rectangle texArea, bool animate, bool alphaFill, PalettedColor fillColor) {
-		RectToRealCoords(area);
-		Rectangle cla; RealClipArea(cla);
+		ToScreenRect(area);
+		Rectangle cla; ToScreenClip(cla);
 		
 		Screen.DrawTexture(
 			tex, animate,
@@ -200,15 +200,17 @@ struct DrawContext {
 	}
 	
 	void DrawFrame(Rectangle area) {
-		RectToRealCoords(area);
+		ToScreenRect(area);
 		Screen.DrawFrame(int(area.Origin.X), int(area.Origin.Y), int(area.Size.X + .5), int(area.Size.Y + .5));
 	}
 	
 	void DrawChar(Vector2 origin, int character, int charCellWidth = 0, int charCellHeight = 0) {
-		origin = ToRealCoords(origin);
-		charCellWidth = int(ToRealXCoord(charCellWidth) + .5);
-		charCellHeight = int(ToRealYCoord(charCellHeight) + .5);
-		Rectangle cla; RealClipArea(cla);
+		origin = ToScreenPoint(origin);
+		Rectangle cla; ToScreenClip(cla);
+		
+		let charCell = ToScreenPoint((charCellWidth, charCellHeight));
+		charCellWidth = int(charCell.X + .5);
+		charCellHeight = int(charCell.Y + .5);
 		
 		Screen.DrawChar(
 			TextFont, TextColor,
@@ -226,10 +228,12 @@ struct DrawContext {
 	}
 	
 	void DrawText(Vector2 origin, String text, int charCellWidth = 0, int charCellHeight = 0) {
-		origin = ToRealCoords(origin);
-		charCellWidth = int(ToRealXCoord(charCellWidth) + .5);
-		charCellHeight = int(ToRealYCoord(charCellHeight) + .5);
-		Rectangle cla; RealClipArea(cla);
+		origin = ToScreenPoint(origin);
+		Rectangle cla; ToScreenClip(cla);
+		
+		let charCell = ToScreenPoint((charCellWidth, charCellHeight));
+		charCellWidth = int(charCell.X + .5);
+		charCellHeight = int(charCell.Y + .5);
 		
 		Screen.DrawText(
 			TextFont, TextColor,
