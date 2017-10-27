@@ -11,8 +11,16 @@ struct DrawContext {
 	Font TextFont;
 	int TextColor;
 	ERenderStyle RenderStyle;
-	bool UseClipArea;
-	Rectangle ClipArea;
+	bool ClipToBounds;
+	
+	/**
+	 * Bottom-right coordinates of the nominal draw area. Code should not draw except between (0,0) and Bounds.
+	 *
+	 * If ClipToBounds is true, draw calls will be clipped to within that area. Otherwise, drawing outside of that area is discouraged but permitted.
+	 *
+	 * The Initial method sets this to the size of the screen.
+	 */
+	Vector2 Bounds;
 	
 	/** Translation of this DC, in unscaled coordinates. */
 	private Vector2 TranslateXfrm;
@@ -29,13 +37,13 @@ struct DrawContext {
 	 */
 	void Initial() {
 		TranslateXfrm = (0, 0);
+		Bounds = (Screen.GetWidth(), Screen.GetHeight());
 		ScaleXfrm = (1, 1);
 		EffAlpha = 1;
 		TextFont = "SmallFont";
 		TextColor = Font.CR_UNDEFINED;
 		RenderStyle = STYLE_Normal;
-		UseClipArea = false;
-		ClipArea.Zero();
+		ClipToBounds = false;
 		Initialized = true;
 	}
 	
@@ -51,35 +59,38 @@ struct DrawContext {
 		TextFont = other.TextFont;
 		TextColor = other.TextColor;
 		RenderStyle = other.RenderStyle;
-		UseClipArea = false;
-		ClipArea.Copy(other.ClipArea);
+		ClipToBounds = other.ClipToBounds;
+		Bounds = other.Bounds;
 		Initialized = true;
 	}
 	
 	String ToString() {
-		return String.Format("DrawContext %s (xlat X:%f Y:%f, scale X:%f Y:%f)", ConsoleLabel, TranslateXfrm.X, TranslateXfrm.Y, ScaleXfrm.X, ScaleXfrm.Y);
+		return String.Format("DrawContext %s (xlat X:%f Y:%f, scale X:%f Y:%f, bounds X:%f Y:%f)", ConsoleLabel, TranslateXfrm.X, TranslateXfrm.Y, ScaleXfrm.X, ScaleXfrm.Y, Bounds.X, Bounds.Y);
 	}
 	
 	/**
 	 * Translates the coordinate system of this DrawContext by the given vector.
 	 *
-	 * By default, the ClipArea is adjusted such that it covers the same area in the new coordinate system as it did in the previous one. If the preserveClip parameter is set to true, however, the ClipArea keeps the same coordinates, effectively translating it too.
+	 * By default, the Bounds remain the same, effectively translating both the top-left and bottom-right corners of the drawing area. If translateBounds is set to false, the Bounds are instead adjusted so that the bottom-right corner stays where it is, and only the top-left corner moves.
+	 *
+	 * Note that, to prevent the Bounds from becoming negative, the bottom-right corner will still move if the top-left corner is moved past it in either dimension.
 	 */
-	void Translate(Vector2 v, bool preserveClip = false) {
-		let vs = GUIUtil.Vec2Mul(v, ScaleXfrm);
+	void Translate(Vector2 v, bool translateBounds = true) {
+		TranslateXfrm += GUIUtil.Vec2Mul(v, ScaleXfrm);
 		
-		TranslateXfrm += vs;
-		
-		if (!preserveClip)
-			ClipArea.Origin -= vs;
+		if (!translateBounds)
+			Bounds = (
+				max(Bounds.X - v.X, 0.),
+				max(Bounds.Y - v.Y, 0.)
+			);
 	}
 	
 	/**
 	 * Scales the coordinate system of this DrawContext by the given vector.
 	 *
-	 * By default, the ClipArea is adjusted such that it covers the same area in the new coordinate system as it did in the previous one. If the preserveClip parameter is set to true, however, the ClipArea keeps the same coordinates, effectively scaling it too.
+	 * By default, the Bounds are also scaled, such that the on-screen area between (0,0) and Bounds (that is, the drawing area) is the same. If scaleBounds is set to false, the Bounds are left as they are, effectively scaling the size of the drawing area instead.
 	 */
-	void Scale(Vector2 v, bool preserveClip = false) {
+	void Scale(Vector2 v, bool scaleBounds = true) {
 		if (v.X <= 0. || v.Y <= 0.) {
 			if (zsgui_debug_drawcontext_abortonerror)
 				Object.ThrowAbortException("%s: Call to Scale(%f,%f). Zero or negative scale factors are not allowed. \c-(To only log this condition without crashing, set the CVar \c+zsgui_debug_drawcontext_abortonerror\c- to \c+false\c-.)", ToString(), v.X, v.Y);
@@ -89,10 +100,8 @@ struct DrawContext {
 		else {
 			ScaleXfrm = GUIUtil.Vec2Mul(ScaleXfrm, v);
 			
-			if (!preserveClip) {
-				ClipArea.Origin = GUIUtil.Vec2Div(ClipArea.Origin, v);
-				ClipArea.Size = GUIUtil.Vec2Div(ClipArea.Size, v);
-			}
+			if (scaleBounds)
+				Bounds = GUIUtil.Vec2Div(Bounds, v);
 		}
 	}
 	
@@ -144,13 +153,6 @@ struct DrawContext {
 		Screen.Dim(c, amount * EffAlpha, area.Origin.X, area.Origin.Y, area.Size.X, area.Size.Y);
 	}
 	
-	private void ToScreenClip(in out Rectangle cla) {
-		if (UseClipArea) {
-			cla.Copy(ClipArea);
-			ToScreenRect(cla);
-		}
-	}
-	
 	void DrawTexture(Rectangle area, TextureID tex, bool animate = false) {
 		Rectangle texArea;
 		texArea.Size = (INT_MAX, INT_MAX); // Oddly, that's what the engine uses, even though the coords are doubles.
@@ -178,7 +180,6 @@ struct DrawContext {
 	
 	private void DrawTexture_(Rectangle area, TextureID tex, Rectangle texArea, bool animate, bool alphaFill, PalettedColor fillColor) {
 		ToScreenRect(area);
-		Rectangle cla; ToScreenClip(cla);
 		
 		Screen.DrawTexture(
 			tex, animate,
@@ -186,10 +187,10 @@ struct DrawContext {
 			DTA_DestWidthF, area.Size.X,
 			DTA_DestHeightF, area.Size.Y,
 			DTA_Alpha, EffAlpha,
-			DTA_ClipTop, UseClipArea? int(cla.Origin.Y) : 0,
-			DTA_ClipBottom, UseClipArea? int((cla.Origin.Y + cla.Size.Y) + .5) : Screen.GetHeight(),
-			DTA_ClipLeft, UseClipArea? int(cla.Origin.X) : 0,
-			DTA_ClipRight, UseClipArea? int((cla.Origin.X + cla.Size.X) + .5) : Screen.GetWidth(),
+			DTA_ClipTop, ClipToBounds? int(area.Origin.Y) : 0,
+			DTA_ClipBottom, ClipToBounds? int((area.Origin.Y + area.Size.Y) + .5) : Screen.GetHeight(),
+			DTA_ClipLeft, ClipToBounds? int(area.Origin.X) : 0,
+			DTA_ClipRight, ClipToBounds? int((area.Origin.X + area.Size.X) + .5) : Screen.GetWidth(),
 			DTA_Masked, !IgnoreTextureMasks,
 			DTA_RenderStyle, RenderStyle,
 			DTA_WindowLeft, texArea.Origin.X,
@@ -206,9 +207,10 @@ struct DrawContext {
 	
 	void DrawChar(Vector2 origin, int character, int charCellWidth = 0, int charCellHeight = 0) {
 		origin = ToScreenPoint(origin);
-		Rectangle cla; ToScreenClip(cla);
+		Vector2 size;
+		if (ClipToBounds) size = ToScreenSize(Bounds);
 		
-		let charCell = ToScreenPoint((charCellWidth, charCellHeight));
+		let charCell = ToScreenSize((charCellWidth, charCellHeight));
 		charCellWidth = int(charCell.X + .5);
 		charCellHeight = int(charCell.Y + .5);
 		
@@ -219,19 +221,20 @@ struct DrawContext {
 			DTA_CellX, charCellWidth,
 			DTA_CellY, charCellHeight,
 			DTA_Alpha, EffAlpha,
-			DTA_ClipTop, UseClipArea? int(cla.Origin.Y) : 0,
-			DTA_ClipBottom, UseClipArea? int((cla.Origin.Y + cla.Size.Y) + .5) : Screen.GetHeight(),
-			DTA_ClipLeft, UseClipArea? int(cla.Origin.X) : 0,
-			DTA_ClipRight, UseClipArea? int((cla.Origin.X + cla.Size.X) + .5) : Screen.GetWidth(),
+			DTA_ClipTop, ClipToBounds? int(origin.Y) : 0,
+			DTA_ClipBottom, ClipToBounds? int((origin.Y + size.Y) + .5) : INT_MAX,
+			DTA_ClipLeft, ClipToBounds? int(origin.X) : 0,
+			DTA_ClipRight, ClipToBounds? int((origin.X + size.X) + .5) : INT_MAX,
 			DTA_RenderStyle, RenderStyle
 		);
 	}
 	
 	void DrawText(Vector2 origin, String text, int charCellWidth = 0, int charCellHeight = 0) {
 		origin = ToScreenPoint(origin);
-		Rectangle cla; ToScreenClip(cla);
+		Vector2 size;
+		if (ClipToBounds) size = ToScreenSize(Bounds);
 		
-		let charCell = ToScreenPoint((charCellWidth, charCellHeight));
+		let charCell = ToScreenSize((charCellWidth, charCellHeight));
 		charCellWidth = int(charCell.X + .5);
 		charCellHeight = int(charCell.Y + .5);
 		
@@ -242,10 +245,10 @@ struct DrawContext {
 			DTA_CellX, charCellWidth,
 			DTA_CellY, charCellHeight,
 			DTA_Alpha, EffAlpha,
-			DTA_ClipTop, UseClipArea? int(cla.Origin.Y) : 0,
-			DTA_ClipBottom, UseClipArea? int((cla.Origin.Y + cla.Size.Y) + .5) : Screen.GetHeight(),
-			DTA_ClipLeft, UseClipArea? int(cla.Origin.X) : 0,
-			DTA_ClipRight, UseClipArea? int((cla.Origin.X + cla.Size.X) + .5) : Screen.GetWidth(),
+			DTA_ClipTop, ClipToBounds? int(origin.Y) : 0,
+			DTA_ClipBottom, ClipToBounds? int((origin.Y + size.Y) + .5) : INT_MAX,
+			DTA_ClipLeft, ClipToBounds? int(origin.X) : 0,
+			DTA_ClipRight, ClipToBounds? int((origin.X + size.X) + .5) : INT_MAX,
 			DTA_RenderStyle, RenderStyle
 		);
 	}
