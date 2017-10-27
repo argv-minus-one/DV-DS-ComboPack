@@ -57,7 +57,7 @@ struct DrawContext {
 	}
 	
 	String ToString() {
-		return String.Format("DrawContext %s (xlta X:%f Y:%f, scale X:%f Y:%f)", ConsoleLabel, TranslateXfrm.X, TranslateXfrm.Y, ScaleXfrm.X, ScaleXfrm.Y);
+		return String.Format("DrawContext %s (xlat X:%f Y:%f, scale X:%f Y:%f)", ConsoleLabel, TranslateXfrm.X, TranslateXfrm.Y, ScaleXfrm.X, ScaleXfrm.Y);
 	}
 	
 	/**
