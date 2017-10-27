@@ -31,7 +31,8 @@ class AethHUDMeter : GUIRibbonMeter {
 		
 		MainFill.Skew = 1;
 		OverFill.Skew = 1;
-		FillInsets.Set(6, 8, 6, 27);
+		FillInsets.Set(6, 8, 6, 8);
+		NumberText.Insets.Set(6, 31, -6, 31);
 	}
 	
 	void SetFrameColors(Color normalColor = 0xff000000, int normalPaletteColor = -1, Color criticalColor = 0xffff0000, int criticalPaletteColor = -1) {
