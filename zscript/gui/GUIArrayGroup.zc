@@ -28,7 +28,7 @@ class GUIArrayGroup : GUIWidget abstract {
 	protected double ChildrenSumPreferredWidth(double height = -1) {
 		double a;
 		for (let i = 0, l = Children.Size(); i < l; i++)
-			a += Children[i].PreferredWidth(height);
+			a += max(Children[i].PreferredWidth(height), 0.);
 		return (a + Insets.X()) * Scale.X;
 	}
 	
@@ -48,7 +48,7 @@ class GUIArrayGroup : GUIWidget abstract {
 	protected double ChildrenSumPreferredHeight(double width = -1) {
 		double a;
 		for (let i = 0, l = Children.Size(); i < l; i++)
-			a += Children[i].PreferredHeight(width);
+			a += max(Children[i].PreferredHeight(width), 0.);
 		return (a + Insets.Y()) * Scale.Y;
 	}
 	
