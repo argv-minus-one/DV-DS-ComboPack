@@ -1,0 +1,121 @@
+class GUISeqGroup : GUIArrayGroup {
+	double SpaceBetween;
+	bool SameLength, ReverseOrder;
+	
+	enum EOrientation {
+		ORIENT_HORIZONTAL,
+		ORIENT_VERTICAL
+	};
+	
+	EOrientation Orientation;
+	
+	override double PreferredWidth(double height = -1.) {
+		double cw;
+		if (Orientation == ORIENT_VERTICAL)
+			cw = ChildrenMaxPreferredWidth(height);
+		else {
+			double cc = Children.Size();
+			if (SameLength)
+				cw = ChildrenMaxPreferredWidth(height) * cc;
+			else
+				cw = ChildrenSumPreferredWidth(height);
+			cw += SpaceBetween * Scale.X * cc;
+		}
+		return cw + Insets.X(Scale.X);
+	}
+	
+	override double PreferredHeight(double width = -1.) {
+		double ch;
+		if (Orientation == ORIENT_HORIZONTAL)
+			ch = ChildrenMaxPreferredHeight(width);
+		else {
+			double cc = Children.Size();
+			if (SameLength)
+				ch = ChildrenMaxPreferredHeight(width) * cc;
+			else
+				ch = ChildrenSumPreferredHeight(width);
+			ch += SpaceBetween * Scale.Y * cc;
+		}
+		return ch + Insets.Y(Scale.Y);
+	}
+	
+	override void Layout() {
+		Super.Layout();
+		
+		let cc = Children.Size();
+		
+		if (cc < 1)
+			return;
+		
+		bool vert = Orientation == ORIENT_VERTICAL;
+		
+		if (SameLength) {
+			let eachLength = (vert? DC.Bounds.Y : DC.Bounds.X) / double(cc);
+			Rectangle childRect;
+			childRect.Size = DC.Bounds;
+			
+			if (vert)
+				childRect.Size.Y = eachLength;
+			else
+				childRect.Size.X = eachLength;
+			
+			for (let i = ReverseOrder? cc - 1 : 0; ReverseOrder? i >= 0 : i < cc; ReverseOrder? i-- : i++) {
+				LayoutChild(Children[i], childRect);
+				
+				if (vert)
+					childRect.Origin.Y += eachLength + SpaceBetween;
+				else
+					childRect.Origin.X += eachLength + SpaceBetween;
+			}
+		}
+		else {
+			Array<double> childLengths;
+			double totalChildLength;
+			childLengths.Resize(cc);
+			
+			for (let i = 0; i < cc; i++) {
+				childLengths[i] = vert?
+					Children[i].PreferredHeight(DC.Bounds.X) :
+					Children[i].PreferredWidth(DC.Bounds.Y);
+				
+				if (childLengths[i] < 0.)
+					childLengths[i] = 0.;
+				
+				totalChildLength += childLengths[i] + SpaceBetween;
+			}
+			
+			double lengthRatio = totalChildLength <= 0.?
+				1. :
+				(vert? DC.Bounds.Y : DC.Bounds.X) / totalChildLength;
+			
+			Rectangle childRect;
+			childRect.Size = DC.Bounds;
+			
+			for (let i = ReverseOrder? cc - 1 : 0; ReverseOrder? i >= 0 : i < cc; ReverseOrder? i-- : i++) {
+				if (vert)
+					childRect.Size.Y = childLengths[i] * lengthRatio;
+				else
+					childRect.Size.X = childLengths[i] * lengthRatio;
+				
+				LayoutChild(Children[i], childRect);
+				
+				if (vert)
+					childRect.Origin.Y += childRect.Size.Y + SpaceBetween;
+				else
+					childRect.Origin.X += childRect.Size.X + SpaceBetween;
+			}
+		}
+	}
+	
+	override String ToString() {
+		return String.Format(
+			"%s (%s, %s %s, %s order, %f space between)",
+			Super.ToString(),
+			Orientation == ORIENT_VERTICAL? "vertical" : "horizontal",
+			SameLength? "same" : "proportional",
+			Orientation == ORIENT_VERTICAL? "heights" : "widths",
+			ReverseOrder? "reverse" : "normal",
+			SpaceBetween
+		);
+	}
+}
