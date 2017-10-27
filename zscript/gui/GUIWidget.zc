@@ -211,11 +211,28 @@ class GUIWidget ui abstract {
 	 * Invalidates the layout of this widget and all ancestors. Layout will be recomputed during the next Draw call.
 	 *
 	 * This needs to be called whenever there is a change (other than by the Layout method) to this widget's size, position, scale factor, or parent.
+	 *
+	 * This method may be overridden, if a widget needs to perform some additional action whenever layout becomes needed. Be sure to call Super.RequestLayout() from overrides.
 	 */
-	void RequestLayout() {
+	virtual void RequestLayout() {
 		LayoutDone = false;
 		if (Parent != null)
 			Parent.RequestLayout();
+	}
+	
+	/**
+	 * Returns true if this widget needs to be laid out again (because RequestLayout has been called, or because Layout has never been called). Otherwise returns false.
+	 */
+	bool NeedsLayout() {
+		return !LayoutDone;
+	}
+	
+	/**
+	 * Calls Layout() only if NeedsLayout() would return true. Otherwise, does nothing.
+	 */
+	void LayoutIfNeeded() {
+		if (!LayoutDone)
+			Layout();
 	}
 	
 	/**
