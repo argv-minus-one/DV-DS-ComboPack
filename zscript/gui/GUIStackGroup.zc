@@ -5,27 +5,22 @@
  */
 class GUIStackGroup : GUIArrayGroup {
 	override double PreferredWidth(double height = -1.) {
-		return ChildrenMaxPreferredWidth(height) + Insets.X(Scale.X);
+		return ChildrenMaxPreferredWidth(height) + Insets.X();
 	}
 	
 	override double PreferredHeight(double width = -1.) {
-		return ChildrenMaxPreferredHeight(width) + Insets.Y(Scale.Y);
+		return ChildrenMaxPreferredHeight(width) + Insets.Y();
 	}
 	
 	override void Layout() {
 		Super.Layout();
 		
 		Rectangle ca;
-		ca.Size = DC.Bounds;
+		GetContentArea(ca);
 		
-		for (let i = 0, l = Children.Size(); i < l; i++)
-			LayoutChild(Children[i], ca);
-	}
-	
-	override void Draw() {
-		Super.Draw();
-		
-		for (let i = 0, l = Children.Size(); i < l; i++)
-			Children[i].Draw();
+		for (let i = 0, l = Children.Size(); i < l; i++) {
+			Children[i].Bounds.Copy(ca);
+			Children[i].Layout();
+		}
 	}
 }

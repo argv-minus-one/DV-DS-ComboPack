@@ -80,12 +80,12 @@ class GUIRibbonMeter : GUIWidget {
 	
 	override double PreferredWidth(double height = -1.) {
 		SetupTree();
-		return WSeq.PreferredWidth(height) + Insets.X(Scale.X);
+		return WSeq.PreferredWidth(height) + Insets.X();
 	}
 	
 	override double PreferredHeight(double width = -1.) {
 		SetupTree();
-		return WSeq.PreferredHeight(width) + Insets.Y(Scale.Y);
+		return WSeq.PreferredHeight(width) + Insets.Y();
 	}
 	
 	private double GetFillFraction(double adjust = 0.) {
@@ -163,13 +163,13 @@ class GUIRibbonMeter : GUIWidget {
 	override void Layout() {
 		Super.Layout();
 		
+		Rectangle ca;
+		GetContentArea(ca);
+		
 		if (zsgui_debug_ribbonmeter_layout)
-			Console.Printf(">>> ZsGUI: Laying out %s into area %fx%f.", ToString(), DC.Bounds.X, DC.Bounds.Y);
+			Console.Printf(">>> ZsGUI: Laying out %s into area %s.", ToString(), ca.ToString());
 		
 		SetupTree();
-		
-		Rectangle ca;
-		ca.Size = DC.Bounds;
 		
 		LayoutChild(WSeq, ca);
 	}

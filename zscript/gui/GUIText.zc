@@ -10,6 +10,7 @@ class GUIText : GUIWidget {
 	Font TextFont;
 	int TextColor;
 	bool TextWrap;
+	double Alpha;
 	protected BrokenLines Lines;
 	protected Array<double> LineOriginsX, LineOriginsY;
 	
@@ -35,6 +36,11 @@ class GUIText : GUIWidget {
 	
 	double PrefWidthDirect;
 	
+	override void Init(GUIWidget parent) {
+		Super.Init(parent);
+		Alpha = 1;
+	}
+	
 	override double PreferredWidth(double height = -1.) {
 		double width;
 		
@@ -45,7 +51,7 @@ class GUIText : GUIWidget {
 		else if (Text)
 			width = TextFont.StringWidth(Text);
 		
-		return width + Insets.X(Scale.X);
+		return width + Insets.X();
 	}
 	
 	override double PreferredHeight(double width = -1.) {
@@ -61,7 +67,7 @@ class GUIText : GUIWidget {
 		else if (Text)
 			height = fontHeight;
 		
-		return height - GetFontDescent() + Insets.Y(Scale.Y);
+		return height - GetFontDescent() + Insets.Y();
 	}
 	
 	override EResizeBias ResizeBias() {
@@ -78,15 +84,15 @@ class GUIText : GUIWidget {
 		let lineHeight = TextFont.GetHeight();
 		let descent = GetFontDescent();
 		
+		Rectangle ca;
+		GetContentArea(ca);
+		
 		if (Text == "") {
 			Lines = null;
 			LineOriginsX.Clear();
 			LineOriginsY.Clear();
 		}
 		else if (TextWrap) {
-			Rectangle ca;
-			ca.Size = DC.Bounds;
-			
 			Lines = TextFont.BreakLines(Text, int(ca.Size.X));
 			let nLines = Lines.Count();
 			LineOriginsX.Resize(nLines);
@@ -111,7 +117,7 @@ class GUIText : GUIWidget {
 			}
 			
 			// Pretend that the bounds are large enough to fit the font's descent.
-			textBounds.Size.Y += descent / 2.;
+			textBounds.Size.Y += descent;
 			
 			if (textBounds.Size.Y < 0.)
 				Console.Printf(
@@ -122,9 +128,6 @@ class GUIText : GUIWidget {
 				);
 		}
 		else {
-			Rectangle ca;
-			ca.Size = DC.Bounds;
-			
 			Lines = null;
 			LineOriginsX.Resize(1);
 			LineOriginsY.Resize(1);
@@ -139,12 +142,12 @@ class GUIText : GUIWidget {
 			LineOriginsX[0] = lineRect.Origin.X;
 			LineOriginsY[0] = lineRect.Origin.Y;
 			
-			if (lineRect.Size.X > ca.Size.X || lineRect.Size.Y > ca.Size.Y)
+			if (lineRect.Size.X > ca.Size.X || lineRect.Size.Y > ca.Size.Y + descent)
 				Console.Printf(
 					"\cr%s does not have enough room to draw its text. Line wrapping is disabled (the PrefLineLength field is zero or negative), and the required unwrapped space is (%f,%f), but the available space is (%f,%f). Text will be drawn out of bounds!",
 					ToString(),
-					ca.Size.X, ca.Size.Y,
-					lineRect.Size.X, lineRect.Size.Y
+					lineRect.Size.X, lineRect.Size.Y,
+					ca.Size.X, ca.Size.Y
 				);
 		}
 	}
@@ -152,23 +155,17 @@ class GUIText : GUIWidget {
 	override void Draw() {
 		Super.Draw();
 		
-		DC.TextFont = TextFont;
-		DC.TextColor = TextColor;
-		
 		for (let line = 0, nLines = LineOriginsX.Size(); line < nLines; line++) {
 			let lineText = Lines? Lines.StringAt(line) : Text;
-			DC.DrawText(
-				(LineOriginsX[line], LineOriginsY[line]),
-				lineText
+			Screen.DrawText(
+				TextFont, TextColor,
+				LineOriginsX[line], LineOriginsY[line],
+				lineText,
+				DTA_Alpha, Alpha
 			);
 			
-			if (zsgui_debug_show_box_textlines) {
-				Rectangle frameRect;
-				frameRect.Origin = (LineOriginsX[line], LineOriginsY[line]);
-				frameRect.Size.X = TextFont.StringWidth(lineText);
-				frameRect.Size.Y = TextFont.GetHeight();
-				DC.DrawFrame(frameRect);
-			}
+			if (zsgui_debug_show_box_textlines)
+				Screen.DrawFrame(LineOriginsX[line], LineOriginsY[line], TextFont.StringWidth(lineText), TextFont.GetHeight());
 		}
 	}
 	

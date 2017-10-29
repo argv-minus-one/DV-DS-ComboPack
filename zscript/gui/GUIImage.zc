@@ -4,7 +4,13 @@
 class GUIImage : GUIWidget {
 	TextureID Image;
 	bool PreserveAspectRatio;
+	float Opacity;
 	Rectangle ImageDrawArea;
+	
+	/**
+	 * Factor by which the preferred size of this GUIImage will be multiplied. Defaults to 1. Negative values are treated as 0.
+	 */
+	double PreferredSizeFactor;
 	
 	/**
 	 * If set to true, the image is not drawn directly. Instead, it is used as an alpha channel, and AlphaBlendColor is filled into the draw area.
@@ -17,6 +23,7 @@ class GUIImage : GUIWidget {
 	override void Init(GUIWidget parent = null) {
 		Super.Init(parent);
 		PreserveAspectRatio = true;
+		Opacity = PreferredSizeFactor = 1;
 	}
 	
 	double ImageAspectRatio() {
@@ -50,8 +57,8 @@ class GUIImage : GUIWidget {
 			if (height > 0. && ResizeBias() == RBIAS_VERTICAL)
 				return height * ImageAspectRatio();
 			else {
-				let sts = ImageSize();
-				return sts.X * Scale.X;
+				let s = ImageSize();
+				return s.X * max(PreferredSizeFactor, 0.);
 			}
 		}
 		else
@@ -63,8 +70,8 @@ class GUIImage : GUIWidget {
 			if (width > 0. && ResizeBias() == RBIAS_HORIZONTAL)
 				return width / ImageAspectRatio();
 			else {
-				let sts = ImageSize();
-				return sts.Y * Scale.Y;
+				let s = ImageSize();
+				return s.Y * max(PreferredSizeFactor, 0.);
 			}
 		}
 		else
@@ -75,27 +82,29 @@ class GUIImage : GUIWidget {
 		Super.Layout();
 		
 		Rectangle ca;
-		ca.Size = DC.Bounds;
+		GetContentArea(ca);
 		
 		ImageDrawArea.Size = PreserveAspectRatio? PreferredSize(ca.Size) : ca.Size;
 		ImageDrawArea.PositionIn(ca, Align.X, Align.Y);
 		
-		if (zsgui_debug_imagewidget_layout) {
-			Rectangle cas;
-			cas.Copy(ca);
-			DC.ToScreenRect(cas);
-			Console.Printf("%s will draw its image in %s (screen coordinates: %s).", ToString(), ImageDrawArea.ToString(), cas.ToString());
-		}
+		if (zsgui_debug_imagewidget_layout)
+			Console.Printf("%s will draw its image in %s.", ToString(), ImageDrawArea.ToString());
 	}
 	
 	override void Draw() {
 		Super.Draw();
 		
-		if (Image.IsValid()) {
-			if (AlphaBlend)
-				DC.DrawAlphaFill(ImageDrawArea, AlphaBlendColor, Image);
-			else
-				DC.DrawTexture(ImageDrawArea, Image);
-		}
+		if (Image.IsValid())
+			Screen.DrawTexture(
+				Image,
+				false,
+				ImageDrawArea.Origin.X,
+				ImageDrawArea.Origin.Y,
+				DTA_DestWidthF, ImageDrawArea.Size.X,
+				DTA_DestHeightF, ImageDrawArea.Size.Y,
+				DTA_FillColor, AlphaBlendColor.DTAColor,
+				DTA_AlphaChannel, AlphaBlend,
+				DTA_Alpha, Opacity
+			);
 	}
 }

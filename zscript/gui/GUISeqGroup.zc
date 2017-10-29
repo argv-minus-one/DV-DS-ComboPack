@@ -19,9 +19,9 @@ class GUISeqGroup : GUIArrayGroup {
 				cw = ChildrenMaxPreferredWidth(height) * cc;
 			else
 				cw = ChildrenSumPreferredWidth(height);
-			cw += SpaceBetween * Scale.X * cc;
+			cw += SpaceBetween * cc;
 		}
-		return cw + Insets.X(Scale.X);
+		return cw + Insets.X();
 	}
 	
 	override double PreferredHeight(double width = -1.) {
@@ -34,9 +34,9 @@ class GUISeqGroup : GUIArrayGroup {
 				ch = ChildrenMaxPreferredHeight(width) * cc;
 			else
 				ch = ChildrenSumPreferredHeight(width);
-			ch += SpaceBetween * Scale.Y * cc;
+			ch += SpaceBetween * cc;
 		}
-		return ch + Insets.Y(Scale.Y);
+		return ch + Insets.Y();
 	}
 	
 	override void Layout() {
@@ -49,10 +49,11 @@ class GUISeqGroup : GUIArrayGroup {
 		
 		bool vert = Orientation == ORIENT_VERTICAL;
 		
+		Rectangle childRect;
+		GetContentArea(childRect);
+		
 		if (SameLength) {
-			let eachLength = (vert? DC.Bounds.Y : DC.Bounds.X) / double(cc);
-			Rectangle childRect;
-			childRect.Size = DC.Bounds;
+			let eachLength = (vert? childRect.Size.Y : childRect.Size.X) / double(cc);
 			
 			if (vert)
 				childRect.Size.Y = eachLength;
@@ -75,8 +76,8 @@ class GUISeqGroup : GUIArrayGroup {
 			
 			for (let i = 0; i < cc; i++) {
 				childLengths[i] = vert?
-					Children[i].PreferredHeight(DC.Bounds.X) :
-					Children[i].PreferredWidth(DC.Bounds.Y);
+					Children[i].PreferredHeight(childRect.Size.X) :
+					Children[i].PreferredWidth(childRect.Size.Y);
 				
 				if (childLengths[i] < 0.)
 					childLengths[i] = 0.;
@@ -86,10 +87,7 @@ class GUISeqGroup : GUIArrayGroup {
 			
 			double lengthRatio = totalChildLength <= 0.?
 				1. :
-				(vert? DC.Bounds.Y : DC.Bounds.X) / totalChildLength;
-			
-			Rectangle childRect;
-			childRect.Size = DC.Bounds;
+				(vert? childRect.Size.Y : childRect.Size.X) / totalChildLength;
 			
 			for (let i = ReverseOrder? cc - 1 : 0; ReverseOrder? i >= 0 : i < cc; ReverseOrder? i-- : i++) {
 				if (vert)

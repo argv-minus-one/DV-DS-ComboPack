@@ -15,16 +15,12 @@ class GUIColorRibbon : GUIWidget {
 	Array<Color> Colors;
 	
 	/**
-	 * How far to skew the fill area, in virtual unscaled pixels. Negative skew moves the top leftward; positive skew moves the top rightward.
-	 *
-	 * The actual amount of skew is affected by the effective scaling factor of this widget. This skew is only applied directly if EffScale() returns (1,1).
+	 * How far to skew the fill area, in pixels. Negative skew moves the top leftward; positive skew moves the top rightward.
 	 */
 	double Skew;
 	
 	/**
 	 * Preferred size of this GUIColorRibbon on its long axis. This is reported through the PreferredWidth or PreferredHeight methods.
-	 *
-	 * This is applied before EffScale.
 	 */
 	// MAYBE: Note that not all of this area is necessarily drawn into. See the DrawFraction field for details.
 	double PreferredLength;
@@ -54,41 +50,63 @@ class GUIColorRibbon : GUIWidget {
 	}
 	
 	override double PreferredWidth(double height = -1.) {
-		return (Insets.X() + PreferredLength) * Scale.X;
+		return Insets.X() + PreferredLength;
 	}
 	
 	override double PreferredHeight(double width = -1.) {
-		return (Insets.Y() + Colors.Size()) * Scale.Y;
+		return Insets.Y() + Colors.Size();
 	}
+	
+	protected double MaxSkew;
+	protected Rectangle RowRect;
 	
 	override void Layout() {
 		Super.Layout();
-		DC.Scale((1., DC.Bounds.Y / double(Colors.Size())));
+		
+		let nColors = Colors.Size();
+		
+		GetContentArea(RowRect);
+		
+		if (Colors.Size() > 0)
+			RowRect.Size.Y /= Colors.Size();
+		else
+			RowRect.Size.Y = 0;
+		
+		MaxSkew = Skew * double(nColors);
+		RowRect.Origin.X += max(0., MaxSkew); // Compensate for positive skew.
+		RowRect.Size.X -= abs(MaxSkew); // Compensate for all skew.
 	}
 	
 	override void Draw() {
 		let nColors = Colors.Size();
-		if (nColors < 1 || DrawFraction <= 0.)
+		if (RowRect.Size.X <= 0. || RowRect.Size.Y <= 0. || nColors < 1 || DrawFraction <= 0.)
 			return;
 		
-		Rectangle ca;
-		ca.Size = DC.Bounds;
-		if (ca.Size.X <= 0. || ca.Size.Y <= 0.)
-			return;
+		Rectangle nextRowRect;
+		nextRowRect.Copy(RowRect);
 		
-		let maxSkew = Skew * double(nColors);
-		ca.Origin.X += max(0., maxSkew); // Compensate for skew
-		
-		Rectangle rowRect;
-		rowRect.Size.X = (ca.Size.X - abs(maxSkew)) * clamp(DrawFraction, 0., 1.);
-		rowRect.Size.Y = 1;
-		rowRect.PositionIn(ca, Align.X, YALIGN_TOP);
+		if (DrawFraction < 1.) {
+			let adjWidth = nextRowRect.Size.X * DrawFraction;
+			switch (Align.X) {
+				case XALIGN_LEFT:
+					// nextRowRect.Origin.X is already at the left edge.
+					break;
+				
+				case XALIGN_RIGHT:
+					nextRowRect.Origin.X = nextRowRect.Origin.X + nextRowRect.Size.X - adjWidth;
+					break;
+				
+				default:
+					nextRowRect.Origin.X = nextRowRect.Origin.X + (nextRowRect.Size.X / 2.) - (adjWidth / 2.);
+			}
+			nextRowRect.Size.X = adjWidth;
+		}
 		
 		for (let i = 0; i < nColors; i++) {
-			DC.Fill(rowRect, Colors[i]);
+			Screen.Clear(nextRowRect.Left(), nextRowRect.Top(), nextRowRect.Right(), nextRowRect.Bottom(), Colors[i]);
 			
-			rowRect.Origin.X -= Skew;
-			rowRect.Origin.Y += rowRect.Size.Y;
+			nextRowRect.Origin.X -= Skew;
+			nextRowRect.Origin.Y += rowRect.Size.Y;
 		}
 	}
 }
