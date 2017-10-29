@@ -14,6 +14,11 @@ class GUIText : GUIWidget {
 	protected Array<double> LineOriginsX, LineOriginsY;
 	
 	/**
+	 * Baseline of the TextFont, in pixels from the top. If this field has a non-zero value, text layout will be adjusted.
+	 */
+	uint16 FontBaseline;
+	
+	/**
 	 * The preferred line length for text positioning and wrapping, in characters. If this value is not zero or negative, the preferred width is PrefLineLength * 1ch, where 1ch is (like CSS) the width of the ‘0’ (digit zero) character in the font used by this widget.
 	 *
 	 * Alternatively, you can set the preferred pixel width for this widget, by writing it to the PrefWidthDirect field.
@@ -44,26 +49,34 @@ class GUIText : GUIWidget {
 	}
 	
 	override double PreferredHeight(double width = -1.) {
+		let fontHeight = TextFont.GetHeight();
 		double height;
 		
 		// I would like to cache the result of BreakLines, in case Layout is called with exactly the same width, but ZScript has no weak map structure with which to do so.
 		if (TextWrap && Text) {
 			if (width <= 0.)
 				width = PreferredWidth(-1);
-			height = TextFont.BreakLines(Text, int(width)).Count() * TextFont.GetHeight();
+			height = TextFont.BreakLines(Text, int(width)).Count() * fontHeight;
 		}
 		else if (Text)
-			height = TextFont.GetHeight();
+			height = fontHeight;
 		
-		return height + Insets.Y(Scale.Y);
+		return height - GetFontDescent() + Insets.Y(Scale.Y);
 	}
 	
 	override EResizeBias ResizeBias() {
 		return TextWrap? RBIAS_HORIZONTAL : RBIAS_NONE;
 	}
 	
+	int GetFontDescent() {
+		return FontBaseline != 0? max(TextFont.GetHeight() - FontBaseline, 0) : 0;
+	}
+	
 	override void Layout() {
 		Super.Layout();
+		
+		let lineHeight = TextFont.GetHeight();
+		let descent = GetFontDescent();
 		
 		if (Text == "") {
 			Lines = null;
@@ -78,10 +91,9 @@ class GUIText : GUIWidget {
 			let nLines = Lines.Count();
 			LineOriginsX.Resize(nLines);
 			LineOriginsY.Resize(nLines);
-			let lineHeight = TextFont.GetHeight();
 			
 			Rectangle textBounds;
-			textBounds.Size.Y = nLines * lineHeight;
+			textBounds.Size.Y = (nLines * lineHeight) - descent;
 			for (let i = 0; i < nLines; i++)
 				textBounds.Size.X = max(textBounds.Size.X, Lines.StringWidth(i));
 			textBounds.PositionIn(ca, Align.X, Align.Y);
@@ -97,6 +109,9 @@ class GUIText : GUIWidget {
 				textBounds.Origin.Y += lineHeight;
 				textBounds.Size.Y -= lineHeight;
 			}
+			
+			// Pretend that the bounds are large enough to fit the font's descent.
+			textBounds.Size.Y += descent / 2.;
 			
 			if (textBounds.Size.Y < 0.)
 				Console.Printf(
@@ -117,7 +132,7 @@ class GUIText : GUIWidget {
 			Rectangle lineRect;
 			lineRect.Size = (
 				TextFont.StringWidth(Text),
-				TextFont.GetHeight()
+				lineHeight - descent
 			);
 			lineRect.PositionIn(ca, Align.X, Align.Y);
 			
