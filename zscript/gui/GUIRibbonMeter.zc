@@ -9,6 +9,7 @@ class GUIRibbonMeter : GUIWidget {
 	bool DrawValue, DrawMaxValue;
 	GUIInsets FillInsets;
 	GUIWidget DrawUnder, DrawOver;
+	double LabelSpacing;
 	
 	/** If LengthScale is set to a positive value, then the length of the meter is MaxValue * LengthScale + LengthAdd, and the LengthBase field is the maximum length instead. */
 	double LengthScale;
@@ -39,7 +40,7 @@ class GUIRibbonMeter : GUIWidget {
 		
 		DrawMaxValue = DrawValue = true;
 		ValueInterp = DynamicValueInterpolator.Create(0, 0.25, 1, 8);
-		MaxValueInterp = DynamicValueInterpolator.Create(0, 0.15, 1, 6);
+		MaxValueInterp = DynamicValueInterpolator.Create(0, 0.25, 1, 8);
 		LengthBase = 200;
 		
 		WStack = new("GUIStackGroup");
@@ -69,13 +70,22 @@ class GUIRibbonMeter : GUIWidget {
 	
 	void Tick() {
 		ValueInterp.Update(Value);
-		
-		let oldMaxValueInterp = MaxValueInterp.GetValue();
 		MaxValueInterp.Update(MaxValue);
 		
-		// If the whole meter needs to grow/shrink, then we need to recompute layout.
-		if (oldMaxValueInterp != MaxValueInterp.GetValue() && LengthScale > 0.)
+		double fillPrefLength;
+		if (LengthScale > 0.)
+			fillPrefLength = min(LengthAdd + (LengthScale * MaxValueInterp.GetValue()), LengthBase);
+		else
+			fillPrefLength = LengthBase;
+		
+		if (MainFill && MainFill.PreferredLength != fillPrefLength) {
+			MainFill.PreferredLength = fillPrefLength;
 			RequestLayout();
+		}
+		if (OverFill && OverFill.PreferredLength != fillPrefLength) {
+			OverFill.PreferredLength = fillPrefLength;
+			RequestLayout();
+		}
 	}
 	
 	override double PreferredWidth(double height = -1.) {
@@ -144,7 +154,7 @@ class GUIRibbonMeter : GUIWidget {
 		
 		if (LabelText) {
 			WSeq.Children.Push(LabelText);
-			WSeq.SpaceBetween = LabelText.TextFont.GetCharWidth(48);
+			WSeq.SpaceBetween = LabelSpacing;
 			LabelText.ConsoleLabel = ConsoleLabel..".LabelText";
 		}
 		else

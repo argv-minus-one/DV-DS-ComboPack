@@ -11,8 +11,8 @@ class AetheriusHUD : BaseStatusBar {
 		HPMeter.Init(null);
 		HPMeter.MainFill.DecodeColorString(HPMeterFill);
 		HPMeter.OverFill.DecodeColorString(HPMeterOverfill);
-		HPMeter.LengthBase = 500;
-		HPMeter.LengthScale = 1;
+		HPMeter.LengthBase = Screen.GetWidth() / 2.;
+		HPMeter.LengthScale = 2;
 		HPMeter.LabelText.Text = "HP";
 		HPMeter.Align.X = XALIGN_LEFT;
 		// TODO: Coordinates relative to screen edges/corners/size
