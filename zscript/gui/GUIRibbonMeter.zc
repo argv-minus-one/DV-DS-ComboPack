@@ -26,7 +26,6 @@ class GUIRibbonMeter : GUIWidget {
 		NumberText = new("GUIText");
 		NumberText.ConsoleLabel = ConsoleLabel..".NumberText";
 		NumberText.Init(self);
-		NumberText.PrefLineLength = 7;
 		
 		MainFill = new("GUIColorRibbon");
 		MainFill.ConsoleLabel = ConsoleLabel..".MainFill";

@@ -4,3 +4,4 @@ server bool zsgui_debug_layout = false;
 server bool zsgui_debug_imagewidget_layout = false;
 server bool zsgui_debug_show_box = false;
 server bool zsgui_debug_show_box_textlines = false;
+server bool zsgui_debug_text_overflow = false;

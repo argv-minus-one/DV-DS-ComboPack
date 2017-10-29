@@ -78,6 +78,8 @@ class GUIText : GUIWidget {
 		return FontBaseline != 0? max(TextFont.GetHeight() - FontBaseline, 0) : 0;
 	}
 	
+	private bool LastLayoutOverflowed;
+	
 	override void Layout() {
 		Super.Layout();
 		
@@ -119,13 +121,29 @@ class GUIText : GUIWidget {
 			// Pretend that the bounds are large enough to fit the font's descent.
 			textBounds.Size.Y += descent;
 			
-			if (textBounds.Size.Y < 0.)
-				Console.Printf(
-					"\cr%s does not have enough room to draw its text. The available space is (%f,%f), but the text at this width is %d pixels high. Text will be drawn out of bounds!",
-					ToString(),
-					ca.Size.X, ca.Size.Y,
-					nLines * lineHeight
-				);
+			if (textBounds.Size.Y < 0.) {
+				if (LastLayoutOverflowed)
+					Console.Printf(
+						"\cr%s does not have enough room to draw its text. The available space is (%f,%f), but the text at this width is %d pixels high. Text will be drawn out of bounds!",
+						ToString(),
+						ca.Size.X, ca.Size.Y,
+						nLines * lineHeight
+					);
+				else {
+					LastLayoutOverflowed = true;
+					RequestLayout();
+					
+					if (zsgui_debug_text_overflow)
+					Console.Printf(
+						"%s: Text overflow. The available space is (%f,%f), but the text at this width is %d pixels high. Requesting full layout pass.",
+						ToString(),
+						ca.Size.X, ca.Size.Y,
+						nLines * lineHeight
+					);
+				}
+			}
+			else
+				LastLayoutOverflowed = false;
 		}
 		else {
 			Lines = null;
@@ -142,13 +160,27 @@ class GUIText : GUIWidget {
 			LineOriginsX[0] = lineRect.Origin.X;
 			LineOriginsY[0] = lineRect.Origin.Y;
 			
-			if (lineRect.Size.X > ca.Size.X || lineRect.Size.Y > ca.Size.Y + descent)
-				Console.Printf(
-					"\cr%s does not have enough room to draw its text. Line wrapping is disabled (the PrefLineLength field is zero or negative), and the required unwrapped space is (%f,%f), but the available space is (%f,%f). Text will be drawn out of bounds!",
-					ToString(),
-					lineRect.Size.X, lineRect.Size.Y,
-					ca.Size.X, ca.Size.Y
-				);
+			if (lineRect.Size.X > ca.Size.X || lineRect.Size.Y > ca.Size.Y + descent) {
+				if (LastLayoutOverflowed)
+					Console.Printf(
+						"\cr%s does not have enough room to draw its text. Line wrapping is disabled, and the required unwrapped space is (%f,%f), but the available space is (%f,%f). Text will be drawn out of bounds!",
+						ToString(),
+						lineRect.Size.X, lineRect.Size.Y,
+						ca.Size.X, ca.Size.Y
+					);
+				else {
+					LastLayoutOverflowed = true;
+					RequestLayout();
+					
+					if (zsgui_debug_text_overflow)
+						Console.Printf(
+							"%s: Text overflow. Line wrapping is disabled, and the required unwrapped space is (%f,%f), but the available space is (%f,%f). Requesting full layout pass.",
+							ToString(),
+							lineRect.Size.X, lineRect.Size.Y,
+							ca.Size.X, ca.Size.Y
+						);
+				}
+			}
 		}
 	}
 	
