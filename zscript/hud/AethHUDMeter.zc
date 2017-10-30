@@ -1,8 +1,7 @@
 class AethHUDMeter : GUIRibbonMeter {
 	GUIEdgeGroup NormalFrame, CriticalFrame, BackgroundGlass;
-	double CriticalThreshold;
-	bool CriticalIsHigh;
-	private GUISwitchGroup DrawOverSwitcher;
+	bool ShowCriticalFrame;
+	GUISwitchGroup DrawOverSwitcher;
 	
 	override void Init(GUIWidget parent) {
 		Super.Init(parent);
@@ -12,7 +11,6 @@ class AethHUDMeter : GUIRibbonMeter {
 		LabelText.TextFont = hudFont;
 		NumberText.FontBaseline = LabelText.FontBaseline = 22;
 		
-		CriticalThreshold = .25;
 		NormalFrame = new("GUIEdgeGroup");
 		NormalFrame.ConsoleLabel = ConsoleLabel..".NormalFrame";
 		NormalFrame.Init(self);
@@ -64,12 +62,7 @@ class AethHUDMeter : GUIRibbonMeter {
 	}
 	
 	override void Draw() {
-		let vp = double(ValueInterp.GetValue()) / double(MaxValueInterp.GetValue());
-		
-		DrawOverSwitcher.CurrentWidget =
-			(CriticalIsHigh && vp > CriticalThreshold) || (!CriticalIsHigh && vp < CriticalThreshold)?
-			CriticalFrame : NormalFrame;
-		
+		DrawOverSwitcher.CurrentWidget = ShowCriticalFrame? CriticalFrame : NormalFrame;
 		Super.Draw();
 	}
 }
