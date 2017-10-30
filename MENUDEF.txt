@@ -115,6 +115,12 @@ OptionValue "StaminaAffectsSpeed"
 	1, "Yes [DEFAULT]"
 }
 
+OptionValue "LevelAffectsSpeed"
+{
+	0, "No"
+	1, "Yes [DEFAULT]"
+}
+
 OptionValue "KillsForAeonPts"
 {
 	48, "48 [Easiest]"
@@ -490,181 +496,187 @@ OptionValue "OTHER_DeathMusic"
 
 OptionValue "DEBUG_AttackDefenseDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_PoisonDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_HealItemDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_AccuracyDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_HellcoreHeatDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_InGameMenuDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_PlayerPosDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_SpellPosDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_ExpDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_MeleeAtkDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_PlayerAtkDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_MiscAtkDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_TensionDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_DashDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_MoveDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_HPRegenDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_ManaRegenDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_StaminaRegenDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_EnemySpeedDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_EnemyStatsDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_PlayerCritDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_SpellCostDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_SurviveRateDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_EvadeRateDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_StaminaUseDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_SeedGrabDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
-OptionValue "DEBUG_EvolveDisplay"
+OptionValue "DEBUG_EvolveStealthDisplay"
 {
-	0, "No [DEFAULT]"
-	1, "Yes"
-}
-
-OptionValue "DEBUG_StealthDisplay"
-{
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_InfiniteAmmoDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
 	1, "Yes"
 }
 
 OptionValue "DEBUG_LifebarDisplay"
 {
-	0, "No [DEFAULT]"
+	0, "No"
+	1, "Yes"
+}
+
+OptionValue "DEBUG_PlayerDMGDisplay"
+{
+	0, "No"
+	1, "Yes"
+}
+
+OptionValue "DEBUG_ActorDMGDisplay"
+{
+	0, "No"
 	1, "Yes"
 }
 
@@ -926,11 +938,14 @@ OptionMenu "DVDS-SubMenu1"
 	Option "Actor Crisis Attacks?", 				"dvds_monstercrisisattacks", 			"CrisisAttacks"
 	TextField "Crisis Attack Multiplier",			"dvds_monstercrisismulti"
 	Option "BFG2704 Alt-Fire?", 				"dvds_BFG2704", 					"BFG2704"
-	Option "Stamina Affects Movement Speed",			"dvds_staminaaffectsspeed", 			"StaminaAffectsSpeed"
 	Option "Can Dash/Air-Dash?",	 			"dvds_allowdashing", 				"DashOption"
 	Option "Can use Tension?",					"dvds_allowtension", 				"TensionOption"
 	Option "Tension OverPsyche Slowly Hurts?",		"dvds_allowtensionocdmg", 				"TensionOverdriveDmg"
 	Option "Tension Spd (affects Stam. use)",			"dvds_tensionspeed", 				"TensionSpeed"
+	StaticText " "
+	Slider "Adjust Movement Speed",				"dvds_speedmult", 					0.01, 2.0, 0.01, 2
+	Option "Stamina Affects Movement Speed",			"dvds_staminaaffectsspeed", 			"StaminaAffectsSpeed"
+	Option "Level Affects Movement Speed",			"dvds_levelaffectsspeed", 				"LevelAffectsSpeed"
 	StaticText " "
 	Option "Monsters Behavior Based on Level?",		"dvds_monsterlevelbehavior", 			"MonsterLevelBehavior"
 	Option "'Improved' Icon of Sin",				"dvds_improvediconofsin", 				"ImprovedIconOfSin"
@@ -993,7 +1008,7 @@ OptionMenu "DVDS-SubMenu3"
 	TextField "Deggaris/Illucia Lvl Cap [0-200]", 		"dvds_marines_maxlevel"
 	TextField "Flora Lvl Cap [0-200]", 			"dvds_flora_maxlevel"
 //	TextField "Ailish Lvl Cap [0-200]",			"dvds_ailish_maxlevel"
-//	TextField "Petra Lvl Cap [0-200]",			"dvds_petra_maxlevel"
+//	TextField "Petra Lvl Cap [0-200]",				"dvds_petra_maxlevel"
 	Option "Flora's Lvl Cap Ignores Her Armor", 		"dvds_flora_ignorearmormadelevelcap", 		"Flora_LevelCapIgnoresArmor"
 	StaticText " "
 	Option "'Power Fantasy' Mode?",				"dvds_musou_powertripmode",				"MusouOption"
@@ -1005,17 +1020,17 @@ OptionMenu "DVDS-SubMenu4"
 {
 	Title "AETHERIUS - Forced-Pistol-Start Options"
 
-	Option "Keep Sauron Items", 				"dvds_pistolrestart_allkeepsauronequip",	 	"PistolRestart_AllSauronItems"
-	Option "Keep Inventory Items", 				"dvds_pistolrestart_allkeepinventoryitems",	"PistolRestart_AllInventoryItems"
-	Option "Flora Keeps Sceptre", 				"dvds_pistolrestart_florakeepsceptre", 		"PistolRestart_FloraSceptre"
-	Option "Flora Keeps Armor", 				"dvds_pistolrestart_florakeeparmor", 		"PistolRestart_FloraArmor"
-	Option "Flora Keeps Hellcore Weapons", 			"dvds_pistolrestart_florakeephellcore", 		"PistolRestart_FloraHellcore"
-	Option "Flora Keeps Diaris Longbow", 			"dvds_pistolrestart_florakeepdiarisbow", 		"PistolRestart_FloraDiarisBow"
+	Option "Keep Sauron Items", 				"dvds_pistolrestart_allkeepsauronequip",	 		"PistolRestart_AllSauronItems"
+	Option "Keep Inventory Items", 				"dvds_pistolrestart_allkeepinventoryitems",		"PistolRestart_AllInventoryItems"
+	Option "Flora Keeps Sceptre", 				"dvds_pistolrestart_florakeepsceptre", 			"PistolRestart_FloraSceptre"
+	Option "Flora Keeps Armor", 				"dvds_pistolrestart_florakeeparmor", 			"PistolRestart_FloraArmor"
+	Option "Flora Keeps Hellcore Weapons", 			"dvds_pistolrestart_florakeephellcore", 			"PistolRestart_FloraHellcore"
+	Option "Flora Keeps Diaris Longbow", 			"dvds_pistolrestart_florakeepdiarisbow", 			"PistolRestart_FloraDiarisBow"
 //	Option "Ailish Keeps Staffs",				"dvds_pistolrestart_ailishkeepsstaffs",			"PistolRestart_AilishStaffs"
-//	Option "Petra Keeps Addons",			"dvds_pistolrestart_petrakeepschristinaaddons",		"PistolRestart_PetraChristinaAddons"
-//	Option "Petra Keeps Boss-type Addons",			"dvds_pistolrestart_petrakeepschristinabossaddons",		"PistolRestart_PetraChristinaBossAddons"
-	Option "Deggaris/Illucia Keeps Weapons", 			"dvds_pistolrestart_marineskeepweapons", 		"PistolRestart_MarineWeapons"
-	Option "Deggaris/Illucia Keeps Ammo", 			"dvds_pistolrestart_marineskeepammo", 		"PistolRestart_MarineAmmo"
+//	Option "Petra Keeps Addons",				"dvds_pistolrestart_petrakeepschristinaaddons",		"PistolRestart_PetraChristinaAddons"
+//	Option "Petra Keeps Boss-type Addons",			"dvds_pistolrestart_petrakeepschristinabossaddons",	"PistolRestart_PetraChristinaBossAddons"
+	Option "Deggaris/Illucia Keeps Weapons", 			"dvds_pistolrestart_marineskeepweapons", 			"PistolRestart_MarineWeapons"
+	Option "Deggaris/Illucia Keeps Ammo", 			"dvds_pistolrestart_marineskeepammo", 			"PistolRestart_MarineAmmo"
 	StaticText " "
 	StaticText " "
 	Command "Restore Default Settings", 			"dvds_defaults4"
@@ -1097,6 +1112,21 @@ OptionMenu "DVDS-Other1"
 	Title "AETHERIUS - Misc Options"
 
 	Option "Death Music", 					"dvds_deathmusic", 					"OTHER_DeathMusic"
+	Option "Rapid casting", 					"dvds_rapidcast", 					"OnOff"
+	StaticText ""
+	Option "Double-click dashing", 				"dvds_doubledash", 					"OnOff"
+/*
+	StaticText "If this is on, you can dash by double-clicking"
+	StaticText "a movement button (forward, strafe left, strafe"
+	StaticText "right, backward; usually these are bound to"
+	StaticText "WASD)."
+	StaticText ""
+	StaticText "If you've set a dedicated dash button under"
+	StaticText "\"Customize Controls\", you can also dash by"
+	StaticText "holding that button and pressing a movement"
+	StaticText "button. Dashing that way works even if this"
+	StaticText "option is turned off."
+*/
 }
 
 OptionMenu "DVDS-DebugMenu1"
@@ -1122,8 +1152,7 @@ OptionMenu "DVDS-DebugMenu1"
 	Option "Evade Rate Displays",				"dvdsdebug_showevadestuff",				"DEBUG_EvadeRateDisplay"
 	Option "Stamina Consumption Displays",			"dvdsdebug_showstaminausestuff",			"DEBUG_StaminaUseDisplay"
 	Option "Max HP Bonus/Seed/Fygg Displays",			"dvdsdebug_showseedstuff",				"DEBUG_SeedGrabDisplay"
-	Option "Monster Evolve Chance Displays",			"dvdsdebug_evolvestuff",				"DEBUG_EvolveDisplay"
-	Option "Monster Stealth Chance Displays",			"dvdsdebug_stealthstuff",				"DEBUG_StealthDisplay"
+	Option "Monster Evol/Stel Chance Displays",		"dvdsdebug_evolvestealthstuff",			"DEBUG_EvolveStealthDisplay"
 	Option "Infinite Ammo Chance Displays",			"dvdsdebug_infiniteammostuff",			"DEBUG_InfiniteAmmoDisplay"
 	Option "Lifebar Displays",					"dvdsdebug_lifebardisplaystuff",			"DEBUG_LifebarDisplay"
 	Option "In-Game Menu Displays",				"dvdsdebug_ingamemenudisplay",			"DEBUG_InGameMenuDisplay"
@@ -1131,7 +1160,8 @@ OptionMenu "DVDS-DebugMenu1"
 	Option "Accuracy/Spread Displays",				"dvdsdebug_accuracyspreadisplay",			"DEBUG_AccuracyDisplay"
 	Option "Healing Item Displays",				"dvdsdebug_healitemdisplays",			"DEBUG_HealItemDisplay"
 	Option "Poison Ailment Displays",				"dvdsdebug_poisonailmentdisplays",			"DEBUG_PoisonDisplay"
-	//Option "Attack/Defense Displays",				"dvdsdebug_attackdefensedisplays",			"DEBUG_AttackDefenseDisplay"
+	Option "Player's Damage Displays",				"dvdsdebug_playerdmgdisplays",			"DEBUG_PlayerDMGDisplay"
+	Option "Actor's Damage Displays",				"dvdsdebug_actordmgdisplays",			"DEBUG_ActorDMGDisplay"
 }
 
 OptionMenu "DVDS-MiscModCompat1"
@@ -1141,19 +1171,41 @@ OptionMenu "DVDS-MiscModCompat1"
 	Textfield "10XU Multiplier (Requires '10xu.pk3)'",	"sv_10xu_mul"
 }
 
+	OptionMenu "DVDS-FloraSpecficHeretic"
+	{
+		Title "AETHERIUS - FLORA SPECFIC OPTIONS (HERETIC)"
+		Option "Starts w/ Elven Wand?", 				"dvds_florastartelvenwands", 			"NumberOfElvenWands"
+//		Option "Heretic Weapons use MP instead of Ammo", 	"dvds_florausesmagicheretic", 			"HereticWeaponsMagic"
+		StaticText " "
+		Textfield "Tomed Attack MP cost ratio [%]",		"dvds_floratomedmpcostratio"
+		StaticText " "
+		Textfield "Tomed Attack MP cost [Elven Wand]",		"dvds_floratomedmpcostwand"
+		Textfield "Tomed Attack MP cost [Crossbow]",		"dvds_floratomedmpcostcrossbow"
+		Textfield "Tomed Attack MP cost [S. Crossbow]",		"dvds_floratomedmpcostscrossbow"
+		Textfield "Tomed Attack MP cost [Dragon Claw]",		"dvds_floratomedmpcostdragonclaw"
+		Textfield "Tomed Attack MP cost [Hellstaff]",		"dvds_floratomedmpcosthellstaff"
+		Textfield "Tomed Attack MP cost [Phoenix Rod]",		"dvds_floratomedmpcostphoenixrod"
+		Textfield "Tomed Attack MP cost [Firemace]",		"dvds_floratomedmpcostfiremace"
+		Textfield "Tomed Attack MP cost [D. Staff]",		"dvds_floratomedmpcostdsparilstaff"
+		StaticText " "
+		Command "Restore Default Settings", 			"dvds_defaultsfloraheretic"
+	}
+
 OptionMenu "DVDS-FloraSpecfic"
 {
 	Title "AETHERIUS - FLORA SPECFIC OPTIONS"
 
-	Option "Starts w/ Sceptre? [all]", 			"dvds_florastartsceptre", 				"StartSceptre"
-	Option "Starts w/ Sapphire Wand? [all]", 			"dvds_florastartsapphirewand", 			"SapphireWandFlora"
-	Option "Starts w/ Diaris Longbow? [all]", 		"dvds_florastartdiarislongbow", 			"StartDiarisLongBow"
-	Option "Starts w/ Elven Wand? [Heretic]", 		"dvds_florastartelvenwands", 			"NumberOfElvenWands"
-	Option "Sceptre Can Be Dropped? [all]", 			"dvds_florasceptrecandrop", 			"SceptreCanDrop"
-//	Option "Heretic Weapons use MP instead of Ammo", 	"dvds_florausesmagicheretic", 			"HereticWeaponsMagic"
-	StaticText " "
-	Option "Armor Randomized in DVII?", 			"dvds_dviiarmorspawn", 				"RandomizeDVIIArmor"
-	Option "Can Gain Sceptre EXP?", 				"dvds_noscexpgains", 				"SceptreEXPGains"
+	Option "Starts w/ Sceptre?",			"dvds_florastartsceptre", 				"StartSceptre"
+	Option "Starts w/ Sapphire Wand?",			"dvds_florastartsapphirewand", 			"SapphireWandFlora"
+	Option "Starts w/ Diaris Longbow?", 		"dvds_florastartdiarislongbow", 			"StartDiarisLongBow"
+	Option "Sceptre Can Be Dropped?", 			"dvds_florasceptrecandrop", 			"SceptreCanDrop"
+	Option "Armor Randomized in DVII?", 		"dvds_dviiarmorspawn", 				"RandomizeDVIIArmor"
+	Option "Can Gain Sceptre EXP?", 			"dvds_noscexpgains", 				"SceptreEXPGains"
+      IfGame(Heretic)
+      { 
+		StaticText " "
+		SubMenu "FLORA SPECFIC OPTIONS (Heretic)",			"DVDS-FloraSpecficHeretic"
+      }
 	StaticText " "
 	Command "Restore Default Settings", 			"dvds_defaultsflora"
 }

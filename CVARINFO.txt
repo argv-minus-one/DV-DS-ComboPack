@@ -21,6 +21,16 @@ server int dvds_florastartsapphirewand = 0;
 server int dvds_florausesmagicheretic = 0;
 server int dvds_florahokutolol = 0;
 
+server int dvds_floratomedmpcostratio = 100;
+server int dvds_floratomedmpcostwand = 2;
+server int dvds_floratomedmpcostcrossbow = 4;
+server int dvds_floratomedmpcostscrossbow = 9;
+server int dvds_floratomedmpcostdragonclaw = 3;
+server int dvds_floratomedmpcosthellstaff = 8;
+server int dvds_floratomedmpcostphoenixrod = 2;
+server int dvds_floratomedmpcostfiremace = 50;
+server int dvds_floratomedmpcostdsparilstaff = 20;
+
 server int dvds_allowdashing = 1;
 server int dvds_allowtension = 1;
 server int dvds_allowtensionocdmg = 1;
@@ -36,7 +46,9 @@ server int dvds_secretsforaeonpts = 8;
 server int dvds_itemsforaeonpts = 256;
 server int dvds_skilllevelcalctype = 1;
 server int dvds_monsterspeedcalcs = 1;
+server float dvds_speedmult = 1;
 server int dvds_staminaaffectsspeed = 1;
+server bool dvds_levelaffectsspeed = true;
 server int dvds_monsterlevelbehavior = 1;
 server int dvds_advancedvileres = 1;
 server int dvds_allowexperiessence = 1;
@@ -152,6 +164,8 @@ server int dvds_flora_maxlevel = 200;
 // Other vars
 
 server int dvds_deathmusic = 0;
+user bool dvds_doubledash = true;
+user bool dvds_rapidcast = false;
 
 // Special vars
 
@@ -176,8 +190,7 @@ server int dvdsdebug_showevadestuff = 0;
 server int dvdsdebug_showsurvivalstuff = 0;
 server int dvdsdebug_showstaminausestuff = 0;
 server int dvdsdebug_showseedstuff = 0;
-server int dvdsdebug_evolvestuff = 0;
-server int dvdsdebug_stealthstuff = 0;
+server int dvdsdebug_evolvestealthstuff = 0;
 server int dvdsdebug_infiniteammostuff = 0;
 server int dvdsdebug_lifebardisplaystuff = 0;
 server int dvdsdebug_ingamemenudisplay = 0;
@@ -186,6 +199,8 @@ server int dvdsdebug_accuracyspreadisplay = 0;
 server int dvdsdebug_healitemdisplays = 0;
 server int dvdsdebug_poisonailmentdisplays = 0;
 server int dvdsdebug_attackdefensedisplays = 0;
+server int dvdsdebug_playerdmgdisplays = 0;
+server int dvdsdebug_actordmgdisplays = 0;
 
 // HUD Vars [old/new HUD]
 

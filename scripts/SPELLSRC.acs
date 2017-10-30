@@ -1810,6 +1810,8 @@ function int SpellCostCheck(int checktype)
   else if (GameSkill() == SKILL_HARD) DivineAvatarPercentCost = 95;
   else if (GameSkill() == SKILL_VERY_HARD) DivineAvatarPercentCost = 100;
 
+  if (PowerupTimer[7] > 0) DivineAvatarPercentCost *= 2;
+
   FinalSpellCost = MaxMana * DivineAvatarPercentCost / 100;
   OriginalSpellCost = MaxMana * DivineAvatarPercentCost / 100;
  }
@@ -1847,7 +1849,7 @@ function int SpellCostCheck(int checktype)
   OriginalSpellCost = SpellCosts[SpellIsSelected];
  }
  if (GetCVar("dvdsdebug_showspellcoststuff") == 1) PrintBold(s:"FinalSpellCost: ",d:FinalSpellCost,s:" [Original Base]");
-
+ 
   // SpellCostDeclineLevelsNeeded = Number of Levels needed to be gained before the spell begins to decline in cost at every level up
   if (SpellIsSelected == 0) SpellCostDeclineLevelsNeeded = 12; // (Minor Magic Missile) Level 0
   if (SpellIsSelected == 1) SpellCostDeclineLevelsNeeded = 12; // (Minor Healing) Level 0
@@ -1905,6 +1907,12 @@ function int SpellCostCheck(int checktype)
   if (SpellIsSelected == 53) SpellCostDeclineLevelsNeeded = 43; // (Divine Avatar) Level 31
   if (SpellIsSelected == 54) SpellCostDeclineLevelsNeeded = 43; // (Summon Cyberdemon) Level 31
   if (SpellIsSelected == 55) SpellCostDeclineLevelsNeeded = 68; // (Spreader Aura Lv. 2) Level 56 [Flora Only]
+
+  if (GameSkill() == SKILL_VERY_EASY) SpellCostDeclineLevelsNeeded = (SpellCostDeclineLevelsNeeded * 100) / 100;
+  else if (GameSkill() == SKILL_EASY) SpellCostDeclineLevelsNeeded = (SpellCostDeclineLevelsNeeded * 125) / 100;
+  else if (GameSkill() == SKILL_NORMAL) SpellCostDeclineLevelsNeeded = (SpellCostDeclineLevelsNeeded * 150) / 100;
+  else if (GameSkill() == SKILL_HARD) SpellCostDeclineLevelsNeeded = (SpellCostDeclineLevelsNeeded * 175) / 100;
+  else if (GameSkill() == SKILL_VERY_HARD) SpellCostDeclineLevelsNeeded = (SpellCostDeclineLevelsNeeded * 200) / 100;
 
   // Base Spell Cost Reduction Factor [level-based] 
   LevelSpellCostReductionFactor = PlayerLevel - SpellCostDeclineLevelsNeeded;
@@ -1981,14 +1989,22 @@ function int SpellCostCheck(int checktype)
   if (GetCVar("dvdsdebug_showspellcoststuff") == 1) PrintBold(s:"FinalSpellCost: ",d:FinalSpellCost,s:" [FloraArmors]");
  }
 
- if (FinalSpellCost > MaxMana) FinalSpellCost = MaxMana;
+ int MaxManaDouble = MaxMana * 2;
+ if (SpellIsSelected == 53 && PowerupTimer[7] > 0)
+ {
+  if (FinalSpellCost > MaxManaDouble) FinalSpellCost = MaxManaDouble;
+ }
+ else
+ {
+  if (FinalSpellCost > MaxMana) FinalSpellCost = MaxMana;
+ }
  if (GetCVar("dvdsdebug_showspellcoststuff") == 1) PrintBold(s:"FinalSpellCost: ",d:FinalSpellCost,s:" [MaxManaClamp]");
 
- if (GameSkill() == SKILL_VERY_EASY) SpellCostMinimum = OriginalSpellCost * 33 / 100;
- if (GameSkill() == SKILL_EASY) SpellCostMinimum =  OriginalSpellCost * 38 / 100;
- if (GameSkill() == SKILL_NORMAL) SpellCostMinimum =  OriginalSpellCost * 43 / 100;
- if (GameSkill() == SKILL_HARD) SpellCostMinimum =  OriginalSpellCost * 49 / 100;
- if (GameSkill() == SKILL_VERY_HARD) SpellCostMinimum = OriginalSpellCost * 55 / 100;
+ if (GameSkill() == SKILL_VERY_EASY) SpellCostMinimum = OriginalSpellCost * 42 / 100;
+ if (GameSkill() == SKILL_EASY) SpellCostMinimum =  OriginalSpellCost * 49 / 100;
+ if (GameSkill() == SKILL_NORMAL) SpellCostMinimum =  OriginalSpellCost * 56 / 100;
+ if (GameSkill() == SKILL_HARD) SpellCostMinimum =  OriginalSpellCost * 63 / 100;
+ if (GameSkill() == SKILL_VERY_HARD) SpellCostMinimum = OriginalSpellCost * 70 / 100;
 
  // Clamp Minimum Mana Cost
  if (FinalSpellCost < SpellCostMinimum) FinalSpellCost = SpellCostMinimum;
@@ -2017,7 +2033,14 @@ function int SpellCostCheck(int checktype)
  if (GetCVar("dvdsdebug_showspellcoststuff") == 1) PrintBold(s:"FinalSpellCost: ",d:FinalSpellCost,s:" [CostRateOption]");
 
  if (FinalSpellCost < 1) FinalSpellCost = 1;
- if (FinalSpellCost > MaxMana) FinalSpellCost = MaxMana;
+ if (SpellIsSelected == 53 && PowerupTimer[7] > 0)
+ {
+  if (FinalSpellCost > MaxManaDouble) FinalSpellCost = MaxManaDouble;
+ }
+ else
+ {
+  if (FinalSpellCost > MaxMana) FinalSpellCost = MaxMana;
+ }
  if (GetCVar("dvdsdebug_showspellcoststuff") == 1) PrintBold(s:"FinalSpellCost: ",d:FinalSpellCost,s:" [FinalClamps]");
 
  return FinalSpellCost;
@@ -6526,7 +6549,7 @@ script "HUDDisplay" ENTER
      // Spell "Use" Button
      xpos = ScreenXOffset + 585.0; // 585.0
      ypos = 820.0; // 820.0
-     Keyname = "pukename SpellCasting 0";
+     Keyname = "+dvds_castspell";
      msgalpha = 0.875; msgalpha = FixedMul(msgalpha,overallhudalpha);
      HudMessage(k:Keyname;HUDMSG_ALPHA,7996,cr_white,xpos,ypos,HUDMsgDelayFixed,msgalpha); // 2222 to overlap, or 7777 or underlap
 
@@ -11045,7 +11068,30 @@ script "HUDDisplay" ENTER
       msgalpha = 0.75; msgalpha = FixedMul(msgalpha,overallhudalpha);
       HudMessage(s:"A";HUDMSG_ALPHA,6206,cr_untranslated,xpos,ypos,HUDMsgDelayFixed,msgalpha); // 6206
 
-
+     // Tome of Power Spell Cost [Heretic] (5899)
+     Z2 = 0;
+	 int TomeCost;
+     If(StrIcmp(weapon, "GoldWandNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostwand"); Z2 += 1; }
+     If(StrIcmp(weapon, "DualGoldWandNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostwand") * 2; Z2 += 1; }
+     If(StrIcmp(weapon, "CrossbowNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostcrossbow"); Z2 += 1; }
+     If(StrIcmp(weapon, "DualCrossbowNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostcrossbow") * 2; Z2 += 1; }
+     If(StrIcmp(weapon, "SuperCrossbowNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostscrossbow"); Z2 += 1; }
+     If(StrIcmp(weapon, "DualSuperCrossbowNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostscrossbow") * 2; Z2 += 1; }
+     If(StrIcmp(weapon, "DragonClawNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostdragonclaw"); Z2 += 1; }
+     If(StrIcmp(weapon, "DualDragonClawNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostdragonclaw") * 2; Z2 += 1; }
+     If(StrIcmp(weapon, "HellStaffNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcosthellstaff"); Z2 += 1; }
+     If(StrIcmp(weapon, "DualHellStaffNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcosthellstaff") * 2; Z2 += 1; }
+     If(StrIcmp(weapon, "PhoenixRodNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostphoenixrod"); Z2 += 1; }
+     If(StrIcmp(weapon, "DualPhoenixRodNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostphoenixrod") * 2; Z2 += 1; }
+     If(StrIcmp(weapon, "FiremaceNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostfiremace"); Z2 += 1; }
+     If(StrIcmp(weapon, "DualFiremaceNew") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostfiremace") * 2; Z2 += 1; }
+     If(StrIcmp(weapon, "DSparilStaff") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostdsparilstaff"); Z2 += 1; }
+     If(StrIcmp(weapon, "DualDSparilStaff") == 0) { TomeCost = GetCVar("dvds_floratomedmpcostdsparilstaff") * 2; Z2 += 1; }
+	 TomeCost = TomeCost * GetCVar("dvds_floratomedmpcostratio") / 100;
+     xpos = ScreenXOffset + 1332.0;
+     ypos = 924.0;
+     SetFont("DQHUDFONTSML");
+     if (Z2 > 0) { HudMessage(d:TomeCost;HUDMSG_ALPHA,5899,cr_lightblue,xpos,ypos,HUDMsgDelayFixed,msgalpha); }
 
      // Ammo [1] / SceptreLevel Label
      int HellcoreLevel;
@@ -11137,7 +11183,7 @@ script "HUDDisplay" ENTER
        If(StrIcmp(weapon, "DiabloistHand") == 0) { HellcoreLevel = MiscellaneousVars[109]; Z2 += 1; }
        If(StrIcmp(weapon, "BalrogFist") == 0) { HellcoreLevel = MiscellaneousVars[110]; Z2 += 1; }
        msgalpha = 0.875; msgalpha = FixedMul(msgalpha,overallhudalpha);
-       if (Z2 > 0) HudMessage(s:"LVL \cg",d:HellcoreLevel;HUDMSG_ALPHA,5901,cr_white,xpos,ypos,HUDMsgDelayFixed,msgalpha);
+       if (Z2 > 0) { HudMessage(s:"LVL \cg",d:HellcoreLevel;HUDMSG_ALPHA,5901,cr_white,xpos,ypos,HUDMsgDelayFixed,msgalpha); }
       }
      }
 
@@ -13748,7 +13794,7 @@ script "SpellQuickAssign" (int Slot, int Type)
 
 // {-7-} Spell Casting
 
-script "SpellCasting" (void)
+script "SpellCasting" (int enableRapidCasting)
 {
  if (MiscellaneousVars[2500] != 0) terminate; 
  if (PowerupTimer[20] > 0 || PowerupTimer[21] > 0) // cannot cast spells while put to sleep :V
@@ -13914,6 +13960,22 @@ script "SpellCasting" (void)
    }
   }
  }
+
+ int rapidcastdelay = 10;
+ if (CharacterClass == 0 || CharacterClass == 9) rapidcastdelay = 11;
+ if (CharacterClass == 1) rapidcastdelay = 10;
+ if (CharacterClass == 2 || CharacterClass == 8) rapidcastdelay = 9;
+ if (enableRapidCasting && GetCVar("dvds_rapidcast"))
+ {
+  rapidcastdelay = rapidcastdelay - (MiscellaneousVars[10003] * 2 / 3) - (MiscellaneousVars[10053] * 3 / 5);
+  Delay(rapidcastdelay);
+  restart;
+ }
+}
+
+script "StopSpellCasting" (void) net
+{
+	ACS_NamedTerminate("SpellCasting", 0);
 }
 
 // {-8-} Spell Effects
@@ -27373,7 +27435,7 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
    MaxMana = (43 + random(-8,18) * (random(132,164) / 100) + random(6,10)); //
 
    // Mortal Hit Survivality Rate [x.x% format] (Ailish's survivability rate is the lowest of the playables at this point)
-   MiscellaneousVars[0] = 18 + random(-16,16); // [2.3%-5.5%]
+   MiscellaneousVars[0] = 18 + random(-16,16); // [0.2%-3.4%]
 
    // Seed Stat Ranomization
    MiscellaneousVars[31] = random(5,7); // Agility
@@ -27461,7 +27523,7 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
    MaxMana = (25 + random(-12,12) * (random(114,130) / 100) + random(3,7)); // 18-55 MP [25 Base]
 
    // Mortal Hit Survivality Rate [x.x% format] (Petra's is the highest of the playables at this point)
-   MiscellaneousVars[0] = 64 + random(-8,32); // [2.3%-5.5%]
+   MiscellaneousVars[0] = 64 + random(0,32); // [6.4%-9.6%]
 
    // Seed Stat Ranomization
    MiscellaneousVars[31] = random(3,5); // Agility
@@ -28950,6 +29012,7 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
  if (SceptreJumpDmgMulti < 100) SceptreJumpDmgMulti = 100;
  // PrintBold(d:GetActorVelZ(Player1TID),s:"\n",d:SceptreJumpDmgMulti,s:"%");
 
+
  //*************************
  //*Blast Resistance Checks*
  //*************************
@@ -29496,6 +29559,9 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
  //*Calculate Speed for some Abilities*
  //************************************
  int TotalSpeed = 1.00;
+ 
+ int CVarAdjustSpeed = GetCVar("dvds_speedmult");
+ TotalSpeed = FixedMul(TotalSpeed,CVarAdjustSpeed);
 
  int StaminaSpeed = 1.00;
  int StaminaPercentFull = MiscellaneousVars[21] * 10000 / MiscellaneousVars[22];
@@ -29548,11 +29614,14 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
  
  int LVLSpeed = 1.0;
  // Level
- if (CharacterClass == 0) LVLSpeed = 1.0 + (PlayerLevel * 0.000669);
- if (CharacterClass == 1) LVLSpeed = 1.0 + (PlayerLevel * 0.00117533333333); 
- if (CharacterClass == 2) LVLSpeed = 1.0 + (PlayerLevel * 0.001389);
- if (CharacterClass == 8) LVLSpeed = 1.0 + (PlayerLevel * 0.00128255555555);
- if (CharacterClass == 9) LVLSpeed = 1.0 + (PlayerLevel * 0.00117533333333); 
+ if (GetCVar("dvds_levelaffectsspeed"))
+ {
+  if (CharacterClass == 0) LVLSpeed = 1.0 + (PlayerLevel * 0.000669);
+  if (CharacterClass == 1) LVLSpeed = 1.0 + (PlayerLevel * 0.00117533333333); 
+  if (CharacterClass == 2) LVLSpeed = 1.0 + (PlayerLevel * 0.001389);
+  if (CharacterClass == 8) LVLSpeed = 1.0 + (PlayerLevel * 0.00128255555555);
+  if (CharacterClass == 9) LVLSpeed = 1.0 + (PlayerLevel * 0.00117533333333); 
+ }
  TotalSpeed = FixedMul(TotalSpeed,LVLSpeed);
 
  int AGLSpeed = 1.0;
@@ -30348,18 +30417,40 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
   if (CheckActorInventory(Player1TID,"DeggarisDoomspellBonus") == 0) GiveActorInventory(Player1TID,"DeggarisDoomspellBonus", 1);
   if (CheckActorInventory(Player1TID,"IlluciaDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"IlluciaDoomspellBonus", 1);
   if (CheckActorInventory(Player1TID,"FloraDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"FloraDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"AilishDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"AilishDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"PetraDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"PetraDoomspellBonus", 1);
  }
  if (CharacterClass == 1)
  {
   if (CheckActorInventory(Player1TID,"DeggarisDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"DeggarisDoomspellBonus", 1);
   if (CheckActorInventory(Player1TID,"IlluciaDoomspellBonus") == 0) GiveActorInventory(Player1TID,"IlluciaDoomspellBonus", 1);
   if (CheckActorInventory(Player1TID,"FloraDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"FloraDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"AilishDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"AilishDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"PetraDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"PetraDoomspellBonus", 1);
  }
  if (CharacterClass == 2)
  {
   if (CheckActorInventory(Player1TID,"DeggarisDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"DeggarisDoomspellBonus", 1);
   if (CheckActorInventory(Player1TID,"IlluciaDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"IlluciaDoomspellBonus", 1);
   if (CheckActorInventory(Player1TID,"FloraDoomspellBonus") == 0) GiveActorInventory(Player1TID,"FloraDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"AilishDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"AilishDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"PetraDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"PetraDoomspellBonus", 1);
+ }
+ if (CharacterClass == 8)
+ {
+  if (CheckActorInventory(Player1TID,"DeggarisDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"DeggarisDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"IlluciaDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"IlluciaDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"FloraDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"FloraDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"AilishDoomspellBonus") == 0) GiveActorInventory(Player1TID,"AilishDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"PetraDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"PetraDoomspellBonus", 1);
+ }
+ if (CharacterClass == 9)
+ {
+  if (CheckActorInventory(Player1TID,"DeggarisDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"DeggarisDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"IlluciaDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"IlluciaDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"FloraDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"FloraDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"AilishDoomspellBonus") >= 0) TakeActorInventory(Player1TID,"AilishDoomspellBonus", 1);
+  if (CheckActorInventory(Player1TID,"PetraDoomspellBonus") == 0) GiveActorInventory(Player1TID,"PetraDoomspellBonus", 1);
  }
 //Add Bonuses for Ailish and Petra in the future here
 //
@@ -30865,119 +30956,125 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
  //*Dealing Critical Hits*
  //***********************
  MiscellaneousVars[235] = MiscellaneousVars[0];
- if (GameSkill() < SKILL_NORMAL) MiscellaneousVars[235] /= 3;
- if (GameSkill() == SKILL_NORMAL) MiscellaneousVars[235] /= 4; 
- if (GameSkill() > SKILL_NORMAL) MiscellaneousVars[235] /= 5;
+ if (GameSkill() <= SKILL_VERY_EASY) MiscellaneousVars[235] /= 3;
+ if (GameSkill() == SKILL_EASY) MiscellaneousVars[235] /= 4;
+ if (GameSkill() == SKILL_NORMAL) MiscellaneousVars[235] /= 5; 
+ if (GameSkill() == SKILL_HARD) MiscellaneousVars[235] /= 6; 
+ if (GameSkill() >= SKILL_VERY_HARD) MiscellaneousVars[235] /= 7;
  if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" [Base]");
 
- DivineAvatarBuffValue = ((PlayerLevel * 5) / 4); // Each level is +0.125% crit rate
- MiscellaneousVars[235] += DivineAvatarBuffValue;
- if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DivineAvatarBuffValue,s:") [LvlCheck]");
+ int LevelCritValue = ((PlayerLevel * 5) / 8); // Each level is +0.0625% crit rate
+ MiscellaneousVars[235] += LevelCritValue;
 
- DivineAvatarBuffValue = ((MiscellaneousVars[31] * 3) / 4); // 1 pt of Agility is +0.075% crit rate
- MiscellaneousVars[235] += DivineAvatarBuffValue;
- if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DivineAvatarBuffValue,s:") [AglCheck]");
+ int AGLCritValue = ((MiscellaneousVars[31] * 3) / 8); // 1 pt of Agility is +0.0375% crit rate
+ MiscellaneousVars[235] += AGLCritValue;
 
- DivineAvatarBuffValue = ((MiscellaneousVars[32] * 3) / 8); // 1 pt of Defense is +0.0375% crit rate
- MiscellaneousVars[235] += DivineAvatarBuffValue;
- if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DivineAvatarBuffValue,s:") [DefCheck]");
+ int DEFCritValue = ((MiscellaneousVars[32] * 3) / 16); // 1 pt of Defense is +0.01875% crit rate
+ MiscellaneousVars[235] += DEFCritValue;
 
- DivineAvatarBuffValue = ((MiscellaneousVars[33] * 7) / 4); // 1 pt of Deftness is +0.175% crit rate
- MiscellaneousVars[235] += DivineAvatarBuffValue;
- if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DivineAvatarBuffValue,s:") [DeftCheck]");
+ int DFTCritValue = ((MiscellaneousVars[33] * 7) / 8); // 1 pt of Deftness is +0.0875% crit rate
+ MiscellaneousVars[235] += DFTCritValue;
 
- DivineAvatarBuffValue = ((MiscellaneousVars[34] * 1) / 8); // 1 pt of Sorcery is +0.0125% crit rate
- MiscellaneousVars[235] += DivineAvatarBuffValue;
- if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DivineAvatarBuffValue,s:") [SorcCheck]");
+ int SORCritValue = ((MiscellaneousVars[34] * 1) / 16); // 1 pt of Sorcery is +0.00625% crit rate
+ MiscellaneousVars[235] += SORCritValue;
 
- DivineAvatarBuffValue = ((MiscellaneousVars[35] * 1) / 2); // 1 pt of Strength is +0.05% crit rate
- MiscellaneousVars[235] += DivineAvatarBuffValue;
- if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DivineAvatarBuffValue,s:") [StrCheck]");
+ int STRCritValue = ((MiscellaneousVars[35] * 1) / 4); // 1 pt of Strength is +0.025% crit rate
+ MiscellaneousVars[235] += STRCritValue;
 
- DivineAvatarBuffValue = ((MiscellaneousVars[36] * 1) / 8); // 1 pt of Therapeusis is +0.0125% crit rate
- MiscellaneousVars[235] += DivineAvatarBuffValue;
- if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DivineAvatarBuffValue,s:") [TherCheck]");
+ int THECritValue = ((MiscellaneousVars[36] * 1) / 16); // 1 pt of Therapeusis is +0.00625% crit rate
+ MiscellaneousVars[235] += THECritValue;
+
+ if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0)
+ {
+  PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:LevelCritValue,s:") [LvlCheck]",
+          s:"\nCrit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:AGLCritValue,s:") [AglCheck]",
+          s:"\nCrit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DEFCritValue,s:") [DefCheck]",
+          s:"\nCrit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DFTCritValue,s:") [DeftCheck]",
+          s:"\nCrit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:SORCritValue,s:") [SorcCheck]",
+          s:"\nCrit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:STRCritValue,s:") [StrCheck]",
+          s:"\nCrit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:THECritValue,s:") [TherCheck]");
+ }
 
 
- // Oomph = (8.33% of remaining amount uncovered)
+ // Oomph = (6.25% of remaining amount uncovered)
  if (PowerupTimer[10] > 0)
  {
-  DivineAvatarBuffValue = (1000 - MiscellaneousVars[235]) / 12;
+  DivineAvatarBuffValue = (1000 - MiscellaneousVars[235]) / 16;
   MiscellaneousVars[235] += DivineAvatarBuffValue;
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DivineAvatarBuffValue,s:") [OomphCheck]");
  }
 
- // Blunt = (-8.33% of remaining amount uncovered)
+ // Blunt = (-6.25% of remaining amount uncovered)
  if (PowerupTimer[13] > 0)
  {
-  DivineAvatarBuffValue = (1000 - MiscellaneousVars[235]) / 12;
+  DivineAvatarBuffValue = (1000 - MiscellaneousVars[235]) / 16;
   MiscellaneousVars[235] -= DivineAvatarBuffValue;
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (-",d:DivineAvatarBuffValue,s:") [BluntCheck]");
  }
 
- // Acceleratle (16.67% of remaining amount uncovered)
+ // Acceleratle (12.5% of remaining amount uncovered)
  if (PowerupTimer[12] > 0)
  {
-  DivineAvatarBuffValue = (1000 - MiscellaneousVars[235]) / 6;
+  DivineAvatarBuffValue = (1000 - MiscellaneousVars[235]) / 8;
   MiscellaneousVars[235] += DivineAvatarBuffValue;
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DivineAvatarBuffValue,s:") [AccelCheck]");
  }
- // Deceleratle (-16.67% of remaining amount uncovered)
+ // Deceleratle (-12.5% of remaining amount uncovered)
  if (PowerupTimer[15] > 0)
  {
-  DivineAvatarBuffValue = (1000 - MiscellaneousVars[235]) / 6;
+  DivineAvatarBuffValue = (1000 - MiscellaneousVars[235]) / 8;
   MiscellaneousVars[235] -= DivineAvatarBuffValue;
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (-",d:DivineAvatarBuffValue,s:") [DecelCheck]");
  }
 
- // Divine Avatar (25% of remaining amount uncovered)
+ // Divine Avatar (12.5% of remaining amount uncovered)
  if (PowerupTimer[7] > 0)
  {
-  DivineAvatarBuffValue = (1000 - MiscellaneousVars[235]) / 4;
+  DivineAvatarBuffValue = (1000 - MiscellaneousVars[235]) / 8;
   MiscellaneousVars[235] += DivineAvatarBuffValue;
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DivineAvatarBuffValue,s:") [DivAvaCheck]");
  }
  
- // [STRIFE-Compatibility] Stamina Upgrades [up to 8.25% more Crit]
+ // [STRIFE-Compatibility] Stamina Upgrades [up to 6.25% more Crit]
  if (MiscellaneousVars[317] > 0)
  {
-  PerkFactor = (MiscellaneousVars[317] * 33) / 4;
+  PerkFactor = (MiscellaneousVars[317] * 25) / 4;
   MiscellaneousVars[235] += PerkFactor; // [STRIFE-Compatibility] Stamina Upgrades
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:PerkFactor,s:") [STRIFEStamCheck]");
  }
 
- // [STRIFE-Compatibility] Accuracy Upgrades [up to 5.25% more Crit]
+ // [STRIFE-Compatibility] Accuracy Upgrades [up to 3.75% more Crit]
  if (MiscellaneousVars[318] > 0)
  {
-  PerkFactor = (MiscellaneousVars[318] * 21) / 4;
+  PerkFactor = (MiscellaneousVars[318] * 15) / 4;
   MiscellaneousVars[235] += PerkFactor; // [STRIFE-Compatibility] Accuracy Upgrades
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:PerkFactor,s:") [STRIFEAccuCheck]");
  }
 
  int UppercutBonusAdd;
- if (CheckActorInventory(Player1TID,"UppercutCritBonus1") > 0) // up to +7.14% more Crit
+ if (CheckActorInventory(Player1TID,"UppercutCritBonus1") > 0) // up to +5% more Crit
  {
-  UppercutBonusAdd = (1000 - MiscellaneousVars[235]) / 14;
+  UppercutBonusAdd = (1000 - MiscellaneousVars[235]) / 20;
   MiscellaneousVars[235] += UppercutBonusAdd;
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:UppercutBonusAdd,s:") [UppercutBonus]");
  }
- if (CheckActorInventory(Player1TID,"UppercutCritBonus2") > 0) // up to +16.67% more Crit
+ if (CheckActorInventory(Player1TID,"UppercutCritBonus2") > 0) // up to +10% more Crit
  {
-  UppercutBonusAdd = (1000 - MiscellaneousVars[235]) / 6;
+  UppercutBonusAdd = (1000 - MiscellaneousVars[235]) / 10;
   MiscellaneousVars[235] += UppercutBonusAdd;
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:UppercutBonusAdd,s:") [UppercutBonus]");
  }
 
  // Kick Bonus
- if (CheckActorInventory(Player1TID,"KickCritBonus1") > 0) // up to +8.33% more Crit
+ if (CheckActorInventory(Player1TID,"KickCritBonus1") > 0) // up to +4% more Crit
  {
-  UppercutBonusAdd = (1000 - MiscellaneousVars[235]) / 12;
+  UppercutBonusAdd = (1000 - MiscellaneousVars[235]) / 25;
   MiscellaneousVars[235] += UppercutBonusAdd;
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:UppercutBonusAdd,s:") [KickBonus]");
  }
- if (CheckActorInventory(Player1TID,"KickCritBonus2") > 0) // up to +20% more Crit
+ if (CheckActorInventory(Player1TID,"KickCritBonus2") > 0) // up to +10% more Crit
  {
-  UppercutBonusAdd = (1000 - MiscellaneousVars[235]) * 1 / 5;
+  UppercutBonusAdd = (1000 - MiscellaneousVars[235]) * 1 / 10;
   MiscellaneousVars[235] += UppercutBonusAdd;
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:UppercutBonusAdd,s:") [KickBonus]");
  }
@@ -30986,27 +31083,27 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
  If (StrIcmp(weapon, "FistDeggaris") == 0 || StrIcmp(weapon, "FistIllucia") == 0 || StrIcmp(weapon, "FistAilish") == 0 || StrIcmp(weapon, "FistPetra") == 0 || StrIcmp(weapon, "FistFlora") == 0 || StrIcmp(weapon, "SauronGauntlets") == 0 || StrIcmp(weapon, "SauronGauntletsIllucia") == 0 || StrIcmp(weapon, "SauronGauntletsFlora") == 0 || StrIcmp(weapon, "SauronGauntletsAilish") == 0 || StrIcmp(weapon, "SauronGauntletsPetra") == 0 || StrIcmp(weapon, "Chainsaw2") == 0 || StrIcmp(weapon, "DoubleBladedChainsaw") == 0) MeleeWeaponCritCheck = 1;
 
  int DashBonusAdd;
- if (CheckActorInventory(Player1TID,"PlayerDashing") > 0) // +6.25% more Crit [with most melee weapons], +1.5625% with other weapons
+ if (CheckActorInventory(Player1TID,"PlayerDashing") > 0) // +4% more Crit [with most melee weapons], +1% with other weapons
  {
   If (MeleeWeaponCritCheck == 1)
   {
-   DashBonusAdd = (1000 - MiscellaneousVars[235]) / 16;
+   DashBonusAdd = (1000 - MiscellaneousVars[235]) / 25;
   }
   else
   {
-   DashBonusAdd = (1000 - MiscellaneousVars[235]) / 64;
+   DashBonusAdd = (1000 - MiscellaneousVars[235]) / 100;
   }
   MiscellaneousVars[235] += DashBonusAdd;
   if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:DashBonusAdd,s:") [DashBonus]");
  }
  
- // Berserker Fit [+4.0% per level]
+ // Berserker Fit [+2.0% per level]
  int BerserkBonusAdd;
  if (MiscellaneousVars[10051] > 0)
  {
   If (MeleeWeaponCritCheck == 1)
   {
-   BerserkBonusAdd = MiscellaneousVars[10051] * 40;
+   BerserkBonusAdd = MiscellaneousVars[10051] * 20;
    MiscellaneousVars[235] += BerserkBonusAdd;
    if (GetCVar("dvdsdebug_showcriticalhitstuff") > 0) PrintBold(s:"Crit Rate %: ",d:MiscellaneousVars[235],s:" (+",d:BerserkBonusAdd,s:") [BerserkerFit]");
   }
@@ -31739,9 +31836,10 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
    TakeActorInventory(Player1TID,"CursedShieldBonusDEF", 1); 
   }
 
+  str ArmorBitsItem;
+/*
   if (GetActorProperty(Player1TID,APROP_Health) > 0)
   {
-   str ArmorBitsItem;
    // REVISED: Changed If statements info a for block for the Armor Bitfield (7/3/12)
    if (ArmorBits != MiscellaneousVars[1]) // [1] is for checking Flora's Armor Bitfield so it doesn't have to run EVERY tic and lag the game too badly.
    {
@@ -31761,6 +31859,7 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
   {
    MiscellaneousVars[1] = 0; // Resets to 0 on Death [because of Resurge.wad style pistol-resets :P]
   }
+*/
 
   // Safe Tea Boots [25% chance of damagefloor/ironfeet guard during normal incursion of damage]
   // Cloak of Evasion [12.5% chance of damagefloor/ironfeet guard during normal incursion of damage]
@@ -31777,7 +31876,7 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
   if (CheckActorInventory(Player1TID,"AnubisCufflinksFear") > 0) TakeActorInventory(Player1TID,"AnubisCufflinksFear", 1);   
   if (CheckActorInventory(Player1TID,"AnubisCufflinks") > 0 && random(1,1000) <= FearChance && CheckActorInventory(Player1TID,"AnubisCufflinksFear") < 1) GiveActorInventory(Player1TID,"AnubisCufflinksFear", 1);
 
-  // Damage Boosts from DVII-DS Armors
+  // Damage Boosts from Flora-Specfic Armors
   Armor2Bits = 0;
   if (CheckActorInventory(Player1TID,"EvenstarNecklace") > 0) Armor2Bits += 1;
   if (CheckActorInventory(Player1TID,"DoveRibbon") > 0) Armor2Bits += 2;
@@ -35063,7 +35162,9 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
             s:"\nFriction: ",f:MiscellaneousVars[399],
             s:"\nAirControl: ",f:MiscellaneousVars[400],
 			s:"\n",
-            s:"\nStaminaSpeed x: ",f:StaminaSpeed,
+            s:"\nCVarAdjustSpeed x: ",f:CVarAdjustSpeed,
+			s:"\n",
+            s:"\nStaminaSpeed x: ",f:StaminaSpeed, s:" \cy(Stam:\c- ", d:StaminaPercentFull, s:"\cy)\c-",
             s:"\nDodgeMoreSpeed x: ",f:DodgeMoreSpeed,
             s:"\nJumpMoreSpeed x: ",f:JumpMoreSpeed,
             s:"\nOnTheMoveSpeed x: ",f:OnTheMoveSpeed,
@@ -35436,9 +35537,10 @@ script "SceptreTwirlFrameCheck" (int FrameNo)
 }
 
 // Increases the number of points towards uncursing a Ruinous Shield into a Divine Shield
-script "CursedShieldPain" (int UncursePts)
+script "CursedShieldPain" (int UncursePts, int uncursemulti)
 {
  int C1;
+ if (uncursemulti < 1) uncursemulti = 1;
 
  if (CheckActorInventory(Player1TID,"PearlyCorset") > 0) UncursePts += UncursePts;
  if (CheckActorInventory(Player1TID,"DoveRibbon") > 0) UncursePts += UncursePts;
@@ -35466,6 +35568,7 @@ script "CursedShieldPain" (int UncursePts)
    if (C1 == 14) UncursePts = UncursePts * 2;
    if (C1 == 15) UncursePts = UncursePts * 2;
    UncursePts *= 2;
+   UncursePts *= uncursemulti;
    if (UncursePts < 2) UncursePts = 2;
    if (UncursePts > 1024) UncursePts = 1024;
    MiscellaneousVars[202] += UncursePts;
@@ -35497,37 +35600,40 @@ script "SauronGauntletsHit" (int Amount, int HitType)
  {
   if (GetUserVariable(0,"user_MaxHP") > 0) Amount = GetUserVariable(0,"user_MaxHP");
   else Amount = GetActorProperty(0,APROP_SpawnHealth);
-  Amount = Amount / 500;
-  Amount = Amount + 1;
+  Amount = (Amount / 500) + 1;
  }
  else
- if (HitType == 2) // Give some life when killing a monster [3+(HP/100)]
+ if (HitType == 2) // Give more life when killing a monster [3+(HP/100)]
  {
   if (GetUserVariable(0,"user_MaxHP") > 0) Amount = GetUserVariable(0,"user_MaxHP");
   else Amount = GetActorProperty(0,APROP_SpawnHealth);
-  Amount = Amount / 100;
-  Amount = Amount + 3;
+  Amount = (Amount / 100) + 3;
  }
  If (Amount <= 0) Amount = 1;
-// if (CharacterClass == 2) PlaySound(Player1TID,"healing_dq",CHAN_BODY,1.0,0,ATTN_NORM);
-// else PlaySound(Player1TID,"HealSpell1",CHAN_BODY,1.0,0,ATTN_NORM);
+
  if (CharacterClass == 2) ActivatorSound("healing_dq",127);
  else ActivatorSound("HealSpell1",127); 
 
  MiscellaneousVars[49] = 1; // Screen Flash
- ACS_NamedExecuteAlways("EmulateGiveHealthBonus",0,Amount,0,0); // Restore Health
- if (CharacterClass != 2) ACS_NamedExecuteAlways("EmulateGiveArmorBonus",0,Amount,0,0);  // Restore Armor [Flora Cannot Gain Armor from it though]
+ // Restore Health
+ ACS_NamedExecuteAlways("EmulateGiveHealthBonus",0,Amount,0,0);
+
+ // Restore Armor
+ int ArmorAmount = (Amount * random(2,3)) / 5;
+ If (ArmorAmount <= 0) ArmorAmount = 1;
+ if (CharacterClass != 2) ACS_NamedExecuteAlways("EmulateGiveArmorBonus",0,ArmorAmount,0,0);  // Restore Armor [Flora Cannot Gain Armor from it though]
 
  // Restore Mana
+ int ManaAmount = (Amount * random(2,3)) / 3;
  C1 = (PlayerLevel * 4) + 100;
- C2 = Amount;
- C2 = C2 * C1 / 100;
- if (CharacterClass == 2) C2 = C2 * 3 / 2; // Flora will gain Extra Mana from a Gauntlet punch to make up for not being able to get armor.
- CurrentMana += C2;
+ ManaAmount = Amount;
+ ManaAmount = ManaAmount * C1 / 100;
+ if (CharacterClass == 2) ManaAmount = ManaAmount * random(5,7) / 4; // Flora will gain Extra Mana from a Gauntlet punch to make up for not being able to get armor.
+ else if (CharacterClass == 8) ManaAmount = ManaAmount * random(4,6) / 4; // Ailish will gain Extra Mana from a Gauntlet punch as well.
+ else ManaAmount = ManaAmount * random(3,5) / 4;
+ If (ManaAmount <= 0) ManaAmount = 1;
+ CurrentMana += ManaAmount;
  if (CurrentMana > MaxManaLimit) CurrentMana = MaxManaLimit;
- SetHudSize(640,480,0);
- SetFont("DVDSSMLFONT");
- //if (MiscellaneousVars[2000] == 0) HudMessage(s:"+",d:C2,s:" Mana";HUDMSG_ALPHA,3419,cr_blue,0.036,0.081,0.75);
 }
 
 // Makes Monsters in MAP04 [DVI-DS] or MAP12 [DVII-DS] have a TID of 666 [this makes them suspectible to the Sauravatar's activation script]
@@ -37692,31 +37798,31 @@ script "MonsterStatsHP_ATK_DEF_SPD" (int type, int extraflags)
    }
 
    SpeedFactor = FixedMul(SpeedFactor, GetCVar("dvds_monsterspeedratio_skill"));
-   if (SpeedFactor < -2.00) SpeedFactor = -2.00;
-   if (SpeedFactor > 2.00) SpeedFactor = 2.00;
+   if (SpeedFactor < -4.00) SpeedFactor = -4.00;
+   if (SpeedFactor > 4.00) SpeedFactor = 4.00;
    Speed = FixedMul(Speed, (1.0+SpeedFactor));
    SetActorProperty(0,APROP_Speed,Speed); 
 
    AttackFactor = FixedMul(AttackFactor, GetCVar("dvds_monsterattackratio_skill"));
-   if (AttackFactor < -2.00) AttackFactor = -2.00;
-   if (AttackFactor > 2.00) AttackFactor = 2.00;
+   if (AttackFactor < -4.00) AttackFactor = -4.00;
+   if (AttackFactor > 4.00) AttackFactor = 4.00;
    Attack = FixedMul(Attack, (1.0+AttackFactor));
    SetActorProperty(0,APROP_DamageMultiplier,Attack); 
 
    DefenseFactor = FixedMul(DefenseFactor, GetCVar("dvds_monsterdefenseratio_skill"));
-   if (DefenseFactor < -2.00) DefenseFactor = -2.00;
-   if (DefenseFactor > 2.00) DefenseFactor = 2.00;
+   if (DefenseFactor < -4.00) DefenseFactor = -4.00;
+   if (DefenseFactor > 4.00) DefenseFactor = 4.00;
    Defense = FixedMul(Defense, (1.0+DefenseFactor));
    SetActorProperty(0,APROP_DamageFactor,Defense); 
 
    MaxHPFactor = FixedMul(MaxHPFactor, GetCVar("dvds_monstermaxhpratio_skill"));
-   if (MaxHPFactor < -2.00) MaxHPFactor = -2.00;
-   if (MaxHPFactor > 2.00) MaxHPFactor = 2.00;
+   if (MaxHPFactor < -4.00) MaxHPFactor = -4.00;
+   if (MaxHPFactor > 4.00) MaxHPFactor = 4.00;
    MaxHP = FixedMul(MaxHP, (1.0+MaxHPFactor));
 
    BalanceFactor = FixedMul(BalanceFactor, GetCVar("dvds_monsterbalanceratio_skill"));
-   if (BalanceFactor < -2.00) BalanceFactor = -2.00;
-   if (BalanceFactor > 2.00) BalanceFactor = 2.00;
+   if (BalanceFactor < -4.00) BalanceFactor = -4.00;
+   if (BalanceFactor > 4.00) BalanceFactor = 4.00;
    Balance = FixedMul(Balance, (1.0+BalanceFactor));
    SetActorProperty(0,APROP_Mass,Balance); 
 
@@ -38001,38 +38107,38 @@ script "MonsterStatsHP_ATK_DEF_SPD" (int type, int extraflags)
    }
 
    SpeedFactor = FixedMul(SpeedFactor, GetCVar("dvds_monsterspeedratio_maps"));
-   if (SpeedFactor < -2.00) SpeedFactor = -2.00;
-   if (SpeedFactor > 2.00) SpeedFactor = 2.00;
+   if (SpeedFactor < -4.00) SpeedFactor = -4.00;
+   if (SpeedFactor > 4.00) SpeedFactor = 4.00;
    Speed = FixedMul(Speed, (1.0+SpeedFactor));
    SetActorProperty(0,APROP_Speed,Speed); 
 
    AttackFactor = FixedMul(AttackFactor, GetCVar("dvds_monsterattackratio_maps"));
-   if (AttackFactor < -2.00) AttackFactor = -2.00;
-   if (AttackFactor > 2.00) AttackFactor = 2.00;
+   if (AttackFactor < -4.00) AttackFactor = -4.00;
+   if (AttackFactor > 4.00) AttackFactor = 4.00;
    Attack = FixedMul(Attack, (1.0+AttackFactor));
    SetActorProperty(0,APROP_DamageMultiplier,Attack); 
 
    DefenseFactor = FixedMul(DefenseFactor, GetCVar("dvds_monsterdefenseratio_maps"));
-   if (DefenseFactor < -2.00) DefenseFactor = -2.00;
-   if (DefenseFactor > 2.00) DefenseFactor = 2.00;
+   if (DefenseFactor < -4.00) DefenseFactor = -4.00;
+   if (DefenseFactor > 4.00) DefenseFactor = 4.00;
    Defense = FixedMul(Defense, (1.0+DefenseFactor));
    SetActorProperty(0,APROP_DamageFactor,Defense); 
 
    MaxHPFactor = FixedMul(MaxHPFactor, GetCVar("dvds_monstermaxhpratio_maps"));
-   if (MaxHPFactor < -2.00) MaxHPFactor = -2.00;
-   if (MaxHPFactor > 2.00) MaxHPFactor = 2.00;
+   if (MaxHPFactor < -4.00) MaxHPFactor = -4.00;
+   if (MaxHPFactor > 4.00) MaxHPFactor = 4.00;
    MaxHP = FixedMul(MaxHP, (1.0+MaxHPFactor));
 
    BalanceFactor = FixedMul(BalanceFactor, GetCVar("dvds_monsterbalanceratio_skill"));
-   if (BalanceFactor < -2.00) BalanceFactor = -2.00;
-   if (BalanceFactor > 2.00) BalanceFactor = 2.00;
+   if (BalanceFactor < -4.00) BalanceFactor = -4.00;
+   if (BalanceFactor > 4.00) BalanceFactor = 4.00;
    Balance = FixedMul(Balance, (1.0+BalanceFactor));
    SetActorProperty(0,APROP_Mass,Balance); 
 
-   if (Attack < 0.005) Attack = 0.005;
-   if (Attack > 20.00) Attack = 20.00;
-   if (Defense < 0.005) Defense = 0.005;
-   if (Defense > 20.00) Defense = 20.00;
+   if (Attack < 0.0025) Attack = 0.0025;
+   if (Attack > 40.00) Attack = 40.00;
+   if (Defense < 0.0025) Defense = 0.0025;
+   if (Defense > 40.00) Defense = 40.00;
    if (MaxHP < 1) MaxHP = 1;
    if (MaxHP > 2147483647) MaxHP = 2147483647;
 
@@ -38287,31 +38393,31 @@ script "MonsterStatsHP_ATK_DEF_SPD" (int type, int extraflags)
 	 }
 
     SpeedFactor = FixedMul(SpeedFactor, GetCVar("dvds_monsterspeedratio_levels"));
-    if (SpeedFactor < -2.00) SpeedFactor = -2.00;
-    if (SpeedFactor > 2.00) SpeedFactor = 2.00;
+    if (SpeedFactor < -4.00) SpeedFactor = -4.00;
+    if (SpeedFactor > 4.00) SpeedFactor = 4.00;
     Speed = FixedMul(Speed, (1.0+SpeedFactor));
     SetActorProperty(0,APROP_Speed,Speed); 
 
     AttackFactor = FixedMul(AttackFactor, GetCVar("dvds_monsterattackratio_levels"));
-    if (AttackFactor < -2.00) AttackFactor = -2.00;
-    if (AttackFactor > 2.00) AttackFactor = 2.00;
+    if (AttackFactor < -4.00) AttackFactor = -4.00;
+    if (AttackFactor > 4.00) AttackFactor = 4.00;
     Attack = FixedMul(Attack, (1.0+AttackFactor));
     SetActorProperty(0,APROP_DamageMultiplier,Attack); 
 
     DefenseFactor = FixedMul(DefenseFactor, GetCVar("dvds_monsterdefenseratio_levels"));
-    if (DefenseFactor < -2.00) DefenseFactor = -2.00;
-    if (DefenseFactor > 2.00) DefenseFactor = 2.00;
+    if (DefenseFactor < -4.00) DefenseFactor = -4.00;
+    if (DefenseFactor > 4.00) DefenseFactor = 4.00;
     Defense = FixedMul(Defense, (1.0+DefenseFactor));
     SetActorProperty(0,APROP_DamageFactor,Defense); 
 
     MaxHPFactor = FixedMul(MaxHPFactor, GetCVar("dvds_monstermaxhpratio_levels"));
-    if (MaxHPFactor < -2.00) MaxHPFactor = -2.00;
-    if (MaxHPFactor > 2.00) MaxHPFactor = 2.00;
+    if (MaxHPFactor < -4.00) MaxHPFactor = -4.00;
+    if (MaxHPFactor > 4.00) MaxHPFactor = 4.00;
     MaxHP = FixedMul(MaxHP, (1.0+MaxHPFactor));
 
     BalanceFactor = FixedMul(BalanceFactor, GetCVar("dvds_monsterbalanceratio_skill"));
-    if (BalanceFactor < -2.00) BalanceFactor = -2.00;
-    if (BalanceFactor > 2.00) BalanceFactor = 2.00;
+    if (BalanceFactor < -4.00) BalanceFactor = -4.00;
+    if (BalanceFactor > 4.00) BalanceFactor = 4.00;
     Balance = FixedMul(Balance, (1.0+BalanceFactor));
     SetActorProperty(0,APROP_Mass,Balance); 
 
@@ -38811,7 +38917,7 @@ script "GetEvolveChance" (void)
 
  if (GetCVar("dvds_rnd_evolve") == 0) { SpawnChance = 0; SetResultValue(SpawnChance); terminate; }
  else SpawnChance = GetCVar("dvds_rnd_evolvechance");
- if (GetCVar("dvdsdebug_evolvestuff") == 1) PrintBold(s:"Evolve Chance [Base]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
+ if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Evolve Chance [Base]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
 
  if (SpawnChance < 0) SpawnChance = 0;
  if (SpawnChance > 512) SpawnChance = 512;
@@ -38819,7 +38925,7 @@ script "GetEvolveChance" (void)
  if (GetCVar("dvds_rnd_evolve_levels") == 1) 
  { 
   SpawnChance = SpawnChance + (SceptreActualLevel * 2 / 10) + (PlayerLevel / 15); 
-  if (GetCVar("dvdsdebug_evolvestuff") == 1) PrintBold(s:"Evolve Chance [Level]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
+  if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Evolve Chance [Level]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
  }
 
  if (GetCVar("dvds_rnd_evolve_chars") == 1) 
@@ -38828,7 +38934,7 @@ script "GetEvolveChance" (void)
   else if (CharacterClass == 1) SpawnChance = SpawnChance * 975 / 1000;
   else if (CharacterClass == 2) SpawnChance = SpawnChance * 1050 / 1000;
   else SpawnChance = SpawnChance * 1000 / 1000;
-  if (GetCVar("dvdsdebug_evolvestuff") == 1) PrintBold(s:"Evolve Chance [Character]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
+  if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Evolve Chance [Character]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
  }
 
  if (GetCVar("dvds_rnd_evolve_skill") == 1) 
@@ -38839,14 +38945,14 @@ script "GetEvolveChance" (void)
   else if (GameSkill() == SKILL_HARD) SpawnChance = SpawnChance * 110 / 100;
   else if (GameSkill() == SKILL_VERY_HARD) SpawnChance = SpawnChance * 125 / 100;
   else SpawnChance = SpawnChance * 100 / 100;
-  if (GetCVar("dvdsdebug_evolvestuff") == 1) PrintBold(s:"Evolve Chance [Skill]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
+  if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Evolve Chance [Skill]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
  }
   
  if (GetCVar("dvds_rnd_evolve_sauronequip") == 1) 
  { 
   if (CheckActorInventory(Player1TID,"SauronHelmet") > 0) SpawnChance = SpawnChance * 110 / 100; // Elevates Spawn Chances by 10%
   if (CheckActorInventory(Player1TID,"SauronGauntletsItem") > 0) SpawnChance = SpawnChance * 110 / 100; // Elevates Spawn Chances by 10%
-  if (GetCVar("dvdsdebug_evolvestuff") == 1) PrintBold(s:"Evolve Chance [SauronEquip]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
+  if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Evolve Chance [SauronEquip]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
  }
    
  if (GetCVar("dvds_rnd_evolve_maps") == 1) 
@@ -38968,7 +39074,7 @@ script "GetEvolveChance" (void)
    else SpawnChance = SpawnChance * 1000 / 1000; // All other Maps
   }
   else SpawnChance = SpawnChance * 1000 / 1000;
-  if (GetCVar("dvdsdebug_evolvestuff") == 1) PrintBold(s:"Evolve Chance [Maps]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
+  if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Evolve Chance [Maps]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
  }
 
  // Check if the actor is one of Strife's Peasents [and if so, sets Evolve Chance to 0]
@@ -39008,9 +39114,9 @@ script "GetEvolveChance" (void)
  If(CheckActorClass(0,"ArmorerNew") == 1) IsAPeasent ++;
  If(CheckActorClass(0,"MedicNew") == 1) IsAPeasent ++;
  If(IsAPeasent > 0) SpawnChance = 0;
- if (GetCVar("dvdsdebug_evolvestuff") == 1) PrintBold(s:"Evolve Chance [PeasentCheck]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
+ if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Evolve Chance [PeasentCheck]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
 
- if (GetCVar("dvdsdebug_evolvestuff") == 1) PrintBold(s:"Evolve Chance [Final]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
+ if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Evolve Chance [Final]: ",d:SpawnChance,s:" - ",s:GetActorClass(0));
  SetResultValue(SpawnChance);
 }
 
@@ -39021,7 +39127,7 @@ script "GetStealthChance" (void)
 
  if(GetCVar("dvds_rnd_stealth") == 0) { StealthChance = 0; SetResultValue(StealthChance); terminate; }
  else StealthChance = GetCVar("dvds_rnd_stealthchance");
- if (GetCVar("dvdsdebug_stealthstuff") == 1) PrintBold(s:"Stealth Chance [Base]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
+ if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Stealth Chance [Base]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
 
  if (StealthChance < 0) StealthChance = 0;
  if (StealthChance > 512) StealthChance = 512;
@@ -39029,7 +39135,7 @@ script "GetStealthChance" (void)
  if (GetCVar("dvds_rnd_stealth_levels") == 1) 
  { 
   StealthChance = StealthChance + (SceptreActualLevel * 2 / 50) + (PlayerLevel / 75); 
-  if (GetCVar("dvdsdebug_stealthstuff") == 1) PrintBold(s:"Stealth Chance [Level]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
+  if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Stealth Chance [Level]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
  }
 
  if (GetCVar("dvds_rnd_stealth_chars") == 1) 
@@ -39038,7 +39144,7 @@ script "GetStealthChance" (void)
   else if (CharacterClass == 1) StealthChance = StealthChance * 1000 / 1000;
   else if (CharacterClass == 2) StealthChance = StealthChance * 875 / 1000;
   else StealthChance = StealthChance * 1000 / 1000;
-  if (GetCVar("dvdsdebug_stealthstuff") == 1) PrintBold(s:"Stealth Chance [Character]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
+  if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Stealth Chance [Character]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
  }
   
  if (GetCVar("dvds_rnd_stealth_skill") == 1) 
@@ -39049,7 +39155,7 @@ script "GetStealthChance" (void)
   else if (GameSkill() == SKILL_HARD) StealthChance = StealthChance * 110 / 100;
   else if (GameSkill() == SKILL_VERY_HARD) StealthChance = StealthChance * 125 / 100;
   else StealthChance = StealthChance * 100 / 100;
-  if (GetCVar("dvdsdebug_stealthstuff") == 1) PrintBold(s:"Stealth Chance [Skill]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
+  if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Stealth Chance [Skill]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
  }
   
  if (GetCVar("dvds_rnd_stealth_maps") == 1) 
@@ -39173,7 +39279,7 @@ script "GetStealthChance" (void)
    else StealthChance = StealthChance * 1000 / 1000; // All other Maps
   }
   else StealthChance = StealthChance * 1000 / 1000;
-  if (GetCVar("dvdsdebug_stealthstuff") == 1) PrintBold(s:"Stealth Chance [Maps]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
+  if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Stealth Chance [Maps]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
  }
 
  // Check if the actor is one of Strife's Peasents [and if so, sets Stealth Chance to 0]
@@ -39213,9 +39319,9 @@ script "GetStealthChance" (void)
  If(CheckActorClass(0,"ArmorerNew") == 1) IsAPeasent ++;
  If(CheckActorClass(0,"MedicNew") == 1) IsAPeasent ++;
  If(IsAPeasent > 0) StealthChance = 0;
- if(GetCVar("dvdsdebug_stealthstuff") == 1) PrintBold(s:"Stealth Chance [PeasentCheck]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
+ if(GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Stealth Chance [PeasentCheck]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
 
- if (GetCVar("dvdsdebug_stealthstuff") == 1) PrintBold(s:"Stealth Chance [Final]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
+ if (GetCVar("dvdsdebug_evolvestealthstuff") == 1) PrintBold(s:"Stealth Chance [Final]: ",d:StealthChance,s:" - ",s:GetActorClass(0));
  SetResultValue( StealthChance );
 }
 
@@ -41119,19 +41225,31 @@ script "QuakeMeleeDuration" (int attacktype)
   duration = duration + (MiscellaneousVars[35] / 14);
  }
  int baseduration = duration;
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"Duration [Base]: ",d:duration);
+
  if (MiscellaneousVars[317] > 0) duration = (duration * (8 + (MiscellaneousVars[317] * 3)) / 8);
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"Duration [StaminaUpgrades]: ",d:duration);
+ int stamduration = duration;
  if (CharacterClass == 0) duration = duration * 3 / 2;
  if (CharacterClass == 1) duration = duration * 5 / 4;
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"Duration [CharacterCheck]: ",d:duration);
+ int charduration = duration;
 
  if (PowerupTimer[7] > 0) duration = duration * 3 / 2;
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"Duration [DivineAvatar]: ",d:duration);
- if (CheckActorInventory(Player1TID,"PowerStrength") > 0) duration *= 4;
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"Duration [Berserk]: ",d:duration);
+ int dvavduration = duration;
 
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"Duration [Final]: ",d:duration,s:" [Base: ",d:baseduration,s:"]");
+ if (CheckActorInventory(Player1TID,"PowerStrength") > 0) duration *= 4;
+ int bersduration = duration;
+
+ if (GetCVar("dvdsdebug_showmeleeinformation") > 0) 
+ {
+  PrintBold(s:"Duration [Base]: ",d:baseduration,
+          s:"\n",
+          s:"\nDuration [StaminaUpgrades]: ",d:stamduration,
+          s:"\nDuration [CharacterCheck]: ",d:charduration,
+          s:"\nDuration [DivineAvatar]: ",d:dvavduration,
+          s:"\nDuration [Berserk]: ",d:bersduration,
+          s:"\n",
+          s:"\nDuration [Final]: ",d:duration,s:" [Base: ",d:baseduration,s:"]");
+ }
+ 
  SetResultValue(duration);
 }
 script "QuakeMeleeTremrad" (int attacktype)
@@ -41221,19 +41339,31 @@ script "QuakeMeleeTremrad" (int attacktype)
   tremrad = tremrad + ((MiscellaneousVars[35] * 13) / 4);
  }
  int basetremrad = tremrad;
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"TremRad [Base]: ",d:tremrad);
+
  if (MiscellaneousVars[317] > 0) tremrad = (tremrad * (8 + (MiscellaneousVars[317] * 3)) / 8);
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"TremRad [StaminaUpgrades]: ",d:tremrad);
+ int stamtremrad = tremrad;
+
  if (CharacterClass == 0) tremrad = tremrad * 3 / 2;
  if (CharacterClass == 1) tremrad = tremrad * 5 / 4;
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"TremRad [CharacterCheck]: ",d:tremrad);
+ int chartremrad = tremrad;
 
  if (PowerupTimer[7] > 0) tremrad = tremrad * 3 / 2;
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"TremRad [DivineAvatar]: ",d:tremrad);
- if (CheckActorInventory(Player1TID,"PowerStrength") > 0) tremrad *= 8;
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"TremRad [Berserk]: ",d:tremrad);
+ int dvavtremrad = tremrad;
 
- if (GetCVar("dvdsdebug_showmeleeinformation") > 0) PrintBold(s:"TremRad [Final]: ",d:tremrad,s:" [Base: ",d:basetremrad,s:"]");
+ if (CheckActorInventory(Player1TID,"PowerStrength") > 0) tremrad *= 8;
+ int berstremrad = tremrad;
+
+ if (GetCVar("dvdsdebug_showmeleeinformation") > 0)
+ {
+  PrintBold(s:"TremRad [Base]: ",d:basetremrad,
+		  s:"\n",
+		  s:"\nTremRad [StaminaUpgrades]: ",d:stamtremrad,
+		  s:"\nTremRad [CharacterCheck]: ",d:chartremrad,
+		  s:"\nTremRad [DivineAvatar]: ",d:dvavtremrad,
+		  s:"\nTremRad [Berserk]: ",d:berstremrad,
+		  s:"\n",
+		  s:"\nTremRad [Final]: ",d:tremrad);
+ }
  SetResultValue(tremrad);
 }
 
@@ -42632,20 +42762,20 @@ script "GetMiscDMG" (int type)
 
  if (type == 2) // Magic Missile [particle]
  {
-  if (random(1,1000) > 667) damage = (4 + random(-1,2));
-                       else damage = (12 + random(-3,3));
+  if (random(1,1000) > 667) damage = (6 + random(-1,2));
+                       else damage = (10 + random(-3,3));
  }
 
  if (type == 3) // Major Magic Missile [particle]
  {
-  if (random(1,1000) > 667) damage = (18 + random(-3,4));
-                       else damage = (30 + random(-7,8));
+  if (random(1,1000) > 667) damage = (12 + random(-3,4));
+                       else damage = (20 + random(-7,8));
  }
 
  if (type == 4) // Ultra Magic Missile [particle]
  {
-  if (random(1,1000) > 667) damage = (54 + random(-13,14));
-                       else damage = (90 + random(-22,23));
+  if (random(1,1000) > 667) damage = (24 + random(-13,14));
+                       else damage = (40 + random(-22,23));
  }
 
  if (GetCVar("dvdsdebug_showmiscdmginformation") > 0) PrintBold(s:"MM Particle Dmg: (",s:actorname,s:") ",d:damage);
@@ -42770,10 +42900,11 @@ script "DamageDisplays" (void)
           z = GetActorZ(0) + GetActorProperty(0, APROP_HEIGHT) + Random(-4.0,4.0);
 
       int NumberID = Random(7000, 8000);
+      int NumberID2 = NumberID + 1;
       str DigitSpawn;
 
       //DmgIndDisplayType = 1;
-      if (DmgIndDisplayType == 1) 
+      if (DmgIndDisplayType == 1) // Healing
       {
        if (DmgIndDisplayValue >= 0) DigitSpawn = StrParam(s:"HealBurst1");
        if (DmgIndDisplayValue >= 10) DigitSpawn = StrParam(s:"HealBurst2");
@@ -42783,7 +42914,7 @@ script "DamageDisplays" (void)
        if (DmgIndDisplayValue >= 100000) DigitSpawn = StrParam(s:"HealBurst6");
        if (DmgIndDisplayValue >= 1000000) DigitSpawn = StrParam(s:"HealBurst7");
       }
-      else
+      else // Damage
       {
        if (PlayerCrit > 0)
        {
@@ -42809,109 +42940,47 @@ script "DamageDisplays" (void)
       Spawn(DigitSpawn, x, y, z, NumberID, 0);
 
 
-      if (DmgIndDisplayType == 1) 
-      {
-	   DigitSpawn = StrParam(s:"Digit1Num", d:Digit1);
-	  }
-	  else
-	  {
-       if (PlayerCrit > 0) DigitSpawn = StrParam(s:"DigitCritical1Num", d:Digit1); else DigitSpawn = StrParam(s:"Digit1Num", d:Digit1);
-	  }
-      if (DmgIndDisplayValue >= 0) Spawn(DigitSpawn, x, y, z, NumberID, 0);
+      if (DmgIndDisplayType == 1) DigitSpawn = StrParam(s:"HealDigit1Num", d:Digit1); // Healing
+	  else { if (PlayerCrit > 0)  DigitSpawn = StrParam(s:"DigitCritical1Num", d:Digit1); else DigitSpawn = StrParam(s:"DmgDigit1Num", d:Digit1); } // Damage
+      if (DmgIndDisplayValue >= 0) Spawn(DigitSpawn, x, y, z, NumberID2, 0);
 
-      if (DmgIndDisplayType == 1) 
-      {
-	   DigitSpawn = StrParam(s:"Digit2Num", d:Digit2);
-	  }
-	  else
-	  {
-       if (PlayerCrit > 0) DigitSpawn = StrParam(s:"DigitCritical2Num", d:Digit2); else DigitSpawn = StrParam(s:"Digit2Num", d:Digit2);
-	  }
-      if (DmgIndDisplayValue >= 10) Spawn(DigitSpawn, x, y, z, NumberID, 0);
+      if (DmgIndDisplayType == 1) DigitSpawn = StrParam(s:"HealDigit2Num", d:Digit2); // Healing
+	  else { if (PlayerCrit > 0)  DigitSpawn = StrParam(s:"DigitCritical2Num", d:Digit2); else DigitSpawn = StrParam(s:"DmgDigit2Num", d:Digit2); } // Damage
+      if (DmgIndDisplayValue >= 10) Spawn(DigitSpawn, x, y, z, NumberID2, 0);
 
-      if (DmgIndDisplayType == 1) 
-      {
-	   DigitSpawn = StrParam(s:"Digit3Num", d:Digit3);
-	  }
-	  else
-	  {
-       if (PlayerCrit > 0) DigitSpawn = StrParam(s:"DigitCritical3Num", d:Digit3); else DigitSpawn = StrParam(s:"Digit3Num", d:Digit3);
-	  }
-      if (DmgIndDisplayValue >= 100) Spawn(DigitSpawn, x, y, z, NumberID, 0);
+      if (DmgIndDisplayType == 1) DigitSpawn = StrParam(s:"HealDigit3Num", d:Digit3); // Healing
+	  else { if (PlayerCrit > 0)  DigitSpawn = StrParam(s:"DigitCritical3Num", d:Digit3); else DigitSpawn = StrParam(s:"DmgDigit3Num", d:Digit3); } // Damage
+      if (DmgIndDisplayValue >= 100) Spawn(DigitSpawn, x, y, z, NumberID2, 0);
 
-      if (DmgIndDisplayType == 1) 
-      {
-	   DigitSpawn = StrParam(s:"Digit4Num", d:Digit4);
-	  }
-	  else
-	  {
-       if (PlayerCrit > 0) DigitSpawn = StrParam(s:"DigitCritical4Num", d:Digit4); else DigitSpawn = StrParam(s:"Digit4Num", d:Digit4);
-	  }
-      if (DmgIndDisplayValue >= 1000) Spawn(DigitSpawn, x, y, z, NumberID, 0);
+      if (DmgIndDisplayType == 1) DigitSpawn = StrParam(s:"HealDigit4Num", d:Digit4); // Healing
+	  else { if (PlayerCrit > 0)  DigitSpawn = StrParam(s:"DigitCritical4Num", d:Digit4); else DigitSpawn = StrParam(s:"DmgDigit4Num", d:Digit4); } // Damage
+      if (DmgIndDisplayValue >= 1000) Spawn(DigitSpawn, x, y, z, NumberID2, 0);
 
-      if (DmgIndDisplayType == 1) 
-      {
-	   DigitSpawn = StrParam(s:"Digit5Num", d:Digit5);
-	  }
-	  else
-	  {
-       if (PlayerCrit > 0) DigitSpawn = StrParam(s:"DigitCritical5Num", d:Digit5); else DigitSpawn = StrParam(s:"Digit5Num", d:Digit5);
-	  }
-      if (DmgIndDisplayValue >= 10000) Spawn(DigitSpawn, x, y, z, NumberID, 0);
+      if (DmgIndDisplayType == 1) DigitSpawn = StrParam(s:"HealDigit5Num", d:Digit5); // Healing
+	  else { if (PlayerCrit > 0)  DigitSpawn = StrParam(s:"DigitCritical5Num", d:Digit5); else DigitSpawn = StrParam(s:"DmgDigit5Num", d:Digit5); } // Damage
+      if (DmgIndDisplayValue >= 10000) Spawn(DigitSpawn, x, y, z, NumberID2, 0);
 
-      if (DmgIndDisplayType == 1) 
-      {
-	   DigitSpawn = StrParam(s:"Digit6Num", d:Digit6);
-	  }
-	  else
-	  {
-       if (PlayerCrit > 0) DigitSpawn = StrParam(s:"DigitCritical6Num", d:Digit6); else DigitSpawn = StrParam(s:"Digit6Num", d:Digit6);
-	  }
-      if (DmgIndDisplayValue >= 100000) Spawn(DigitSpawn, x, y, z, NumberID, 0);
-
-      if (DmgIndDisplayType == 1) 
-      {
-	   DigitSpawn = StrParam(s:"Digit7Num", d:Digit7);
-	  }
-	  else
-	  {
-       if (PlayerCrit > 0) DigitSpawn = StrParam(s:"DigitCritical7Num", d:Digit7); else DigitSpawn = StrParam(s:"Digit7Num", d:Digit7);
-	  }
-      if (DmgIndDisplayValue >= 1000000) Spawn(DigitSpawn, x, y, z, NumberID, 0);
-
-      healpalused = 33; dmgpalused = 34; critdmgpalused = 35;
-      if (ModType == 0)
-	  {
-	   if (ClassicDoomType == 0) { healpalused = 33; dmgpalused = 34; critdmgpalused = 35; } // Doom 2
-   	   if (ClassicDoomType == 1) { healpalused = 33; dmgpalused = 34; critdmgpalused = 35; } // Doom 1
-	   if (ClassicDoomType == 2) { healpalused = 36; dmgpalused = 37; critdmgpalused = 38; } // Heretic
-   	   if (ClassicDoomType == 3) { healpalused = 39; dmgpalused = 40; critdmgpalused = 41; } // Hexen
- 	   if (ClassicDoomType == 4) { healpalused = 42; dmgpalused = 43; critdmgpalused = 44; } // Strife
-	   if (ClassicDoomType == 5) { healpalused = 33; dmgpalused = 34; critdmgpalused = 35; } // Doom 64
-	  }
-      if (DmgIndDisplayType == 1) Thing_SetTranslation(NumberID, healpalused); // Healing [30/33]
-      else // Damage
-      {
-       if (PlayerCrit > 0)
-       {
-        PlaySound(Player1TID,"player/criticalhit",CHAN_BODY,1.0,0,ATTN_NORM);
-        Thing_SetTranslation(NumberID, critdmgpalused); // CritDamage [32/35]
-       }
-       else
-       {
-        Thing_SetTranslation(NumberID, dmgpalused); // NormalDamage [31/34]
-       }
-      }      
-
+      if (DmgIndDisplayType == 1) DigitSpawn = StrParam(s:"HealDigit6Num", d:Digit6); // Healing
+	  else { if (PlayerCrit > 0)  DigitSpawn = StrParam(s:"DigitCritical6Num", d:Digit6); else DigitSpawn = StrParam(s:"DmgDigit6Num", d:Digit6); } // Damage
+      if (DmgIndDisplayValue >= 100000) Spawn(DigitSpawn, x, y, z, NumberID2, 0);
+	  
+      if (DmgIndDisplayType == 1) DigitSpawn = StrParam(s:"HealDigit7Num", d:Digit7); // Healing
+	  else { if (PlayerCrit > 0)  DigitSpawn = StrParam(s:"DigitCritical7Num", d:Digit7); else DigitSpawn = StrParam(s:"DmgDigit7Num", d:Digit7); } // Damage
+      if (DmgIndDisplayValue >= 1000000) Spawn(DigitSpawn, x, y, z, NumberID2, 0);
+	  
+	  int xvel, yvel, zvel;
       if (PlayerCrit > 0)
       {
-       if (DmgIndDisplayType == 1) SetActorVelocity(NumberID, random(-1.0,1.0), random(-1.0,1.0), random(0.25,0.5), 0, 0); // Healing cannot be critical'd
-       else SetActorVelocity(NumberID, random(-0.5,0.5), random(-0.5,0.5), random(-0.50,-0.25), 0, 0);
+       PlaySound(Player1TID,"player/criticalhit",CHAN_BODY,1.0,0,ATTN_NORM);
+       if (DmgIndDisplayType == 1) { xvel = random(-1.0,1.0); yvel = random(-1.0,1.0); zvel = random(0.25,0.5); } // Healing cannot be critical'd
+	   else { xvel = random(-0.5,0.5); yvel = random(-0.5,0.5); zvel = random(-0.50,-0.25); }
       }
       else
       {
-       SetActorVelocity(NumberID, random(-1.0,1.0), random(-1.0,1.0), random(0.25,0.5), 0, 0);
+	   xvel = random(-1.0,1.0); yvel = random(-1.0,1.0); zvel = random(0.25,0.5);
       }
+      SetActorVelocity(NumberID, xvel, yvel, zvel, 0, 0);
+      SetActorVelocity(NumberID2, xvel, yvel, zvel, 0, 0);
      }
   }
   else
@@ -48596,14 +48665,14 @@ script "CheckManaAmmoHeretic" (void)
 }
 
 // Consumes a set amount of MP/MANA when called or checks for that much for an A_JumpIf call (for Heretic's Tome-fire modes)
-script "UseManaAttack" (int amount, int check)
+script "UseManaAttack" (int amount, int check, int infammocheck)
 {
  // Check 0 = Takes MP without a return value.
  // Check 1 = Takes NO MP and gives a return value [for just checking]
  // Check 2 = Takes MP if applicable and gives a return value
  if (check > 0)
  {
-  if (CheckActorInventory(Player1TID,"RandomInfiniteAmmo") > 0 || CheckActorInventory(Player1TID,"PowerInfiniteAmmo") > 0)
+  if (infammocheck > 0 && (CheckActorInventory(Player1TID,"RandomInfiniteAmmo") > 0 || CheckActorInventory(Player1TID,"PowerInfiniteAmmo") > 0))
   {
    SetResultValue(1); 
   }
@@ -49475,7 +49544,7 @@ script "AddEXP" (int baseamount, int flags, int incrementcombo)
     if (CheckActorClass(0,"DSparilMountedNew") == 1 && random(1,32) == 1) DropItem(0,"SeedofSkillForced",1,256);
     if (CheckActorClass(0,"DSparilUnmountedNew") == 1 && random(1,16) == 1) DropItem(0,"SeedofSkillForced",1,256);
 
-    if (random(1,1024) == 1)
+    if (random(1,2048) == 1)
 	{
 	 random1 = random(1,7);
 	 if (random1 == 1) DropItem(0,"GoldWandNew",1,256);
@@ -50022,36 +50091,37 @@ script "GetRagingSpiritDMG" (void)
  int lowcaprand = 2;
  int damagedivider;
 
- int basedamage = (((5 + random(0,2)) * random(4,8))); // 5-7 * 4-8 + ? / 5 = 4-14
- int extradamage = (((MiscellaneousVars[34] + MiscellaneousVars[36]) / 4) * random(30,50) / 40);
+ int basedamage = (((5 + random(0,2)) * random(4,8))); // 5-7 * 4-8 + (0+) / 9-11 = 1.81~-2.22~ to 5.09~-6.22~
+ int extradamage = (((MiscellaneousVars[34] + MiscellaneousVars[36]) / 3) * random(25,55) / 40);
  int damage = basedamage + extradamage;
- if (PowerupTimer[7] > 0) 
+ if (PowerupTimer[7] > 0) // Divine Avatar reduces the damage divide [aka even more damage is dealt]
  {
   damagedivider = random(5,6);
-  lowcap = 3; 
-  lowcaprand = 6; 
+  lowcap = 6; 
+  lowcaprand = 9; 
  }
  else
  {
   damagedivider = random(9,11);
-  lowcap = 1; 
-  lowcaprand = 2; 
+  lowcap = 2; 
+  lowcaprand = 3; 
  }
+
+ int damagedivgain;
+ if (CharacterClass == 0) damagedivgain = (PlayerLevel/56);
+ if (CharacterClass == 1) damagedivgain = (PlayerLevel/48);
+ if (CharacterClass == 2) damagedivgain = (PlayerLevel/40);
+ if (CharacterClass == 8) damagedivgain = (PlayerLevel/52);
+ if (CharacterClass == 9) damagedivgain = (PlayerLevel/44);
+ if (damagedivgain > 5) damagedivgain = 5;
+ 
+ damagedivider -= damagedivgain;
+ if (damagedivider < 1) damagedivider = 1;
+
  damage /= damagedivider;
  if (damage < lowcap) { damage = random(lowcap,lowcaprand); }
  int postdamage1 = damage;
  
- if (CharacterClass == 0) damage = damage * 10 / 4; // Deggaris gives a 2.5x damage boost
- if (CharacterClass == 1) damage = damage * 3 / 4; // Illucia gets a -25% damage loss
- if (CharacterClass == 2) damage = damage * 16 / 4; // Flora gives a 4.0x damage boost
- if (CharacterClass == 8) damage = damage * 9 / 4; // Ailish gives a 3.25x damage boost
- if (CharacterClass == 9) damage = damage * 11 / 4; // Petra gives a 3.75x damage boost
- int postdamage2 = damage;
-
- if (CheckActorInventory(Player1TID,"EvenstarNecklace") > 0) damage = damage * 3 / 2; // Evenstar Necklace give 50% damage boost
- if (damage < lowcap) damage = random(lowcap,lowcaprand);
- int postdamage3 = damage;
-
  if (GetCVar("dvdsdebug_showplayeratkinformation") == 1)
  {
     PrintBold(s:"Raging Spirit Damage:",
@@ -50061,11 +50131,9 @@ script "GetRagingSpiritDMG" (void)
               s:"\nBaseDamage: ",d:basedamage,
               s:"\nExtraDamage: ",d:extradamage,
               s:"\n\n",
+              s:"\nDamageDivGain: ",d:damagedivgain,
               s:"\nDamageDivider: ",d:damagedivider,
               s:"\n\n",
-              s:"\nPostDamage1 [LowCapCheck]: ",d:postdamage1,
-              s:"\nPostDamage2 [CharCheck]: ",d:postdamage2,
-              s:"\nPostDamage3 [EvenNeck]: ",d:postdamage3,
               s:"\nLowCap: ",d:lowcap,
               s:"\nLowCapRand: ",d:lowcaprand,
               s:"\n\n");
@@ -50235,12 +50303,19 @@ script "KD-SideDodge" enter
   {
    if (candash > 0)
    {
-	   if (IsButtonPressed(input, oldInput, settings[i][0]) && MiscellaneousVars[21] >= dashstamina && GetCVar("dvds_allowdashing") > 0) // DV-DS version also requires a minimal amount of Stamina and the Dash option on to perform
+       // BTW, argv added in the option for using a dedicated dash button instead of double-tapping. 
+	   // Thank him if you're one of the ones who hates double-tapping and perfer the "Demonsteele" type of dashing. :V
+	   int chordDashing = (input & (settings[i][0] | BT_USER3)) == (settings[i][0] | BT_USER3);
+			
+	   if ((chordDashing || IsButtonPressed(input, oldInput, settings[i][0])) && MiscellaneousVars[21] >= dashstamina && GetCVar("dvds_allowdashing") > 0) // DV-DS version also requires a minimal amount of Stamina and the Dash option on to perform
 	   {
-		taps++;
-		tics = dashtapwindow;
+		if (GetCVar("dvds_doubledash"))
+		{
+			taps++;
+			tics = dashtapwindow;
+		}
 
-		if (taps == 2 && last == i)
+		if (chordDashing || (taps == 2 && last == i))
 		{
 		 taps = 0;
 		 angle = GetActorAngle(0) + settings[i][1];
