@@ -4,11 +4,17 @@ class AethHPMeter : AethHUDMeter {
 	override void Init(GUIWidget parent) {
 		Super.Init(parent);
 		
-		MainFill.DecodeColorString(HPMeterFill);
-		OverFill.DecodeColorString(HPMeterOverfill);
 		LengthBase = Screen.GetWidth() / 2.;
 		LengthScale = 2;
 		LabelText.Text = "HP";
+		
+		MainFill.Colors.Resize(HPMeterFillNum);
+		for (let i = 0; i < HPMeterFillNum; i++)
+			MainFill.Colors[i] = HPMeterFill[i];
+		
+		OverFill.Colors.Resize(HPMeterOverfillNum);
+		for (let i = 0; i < HPMeterOverfillNum; i++)
+			OverFill.Colors[i] = HPMeterOverfill[i];
 	}
 	
 	override void Tick() {
@@ -29,7 +35,19 @@ class AethHPMeter : AethHUDMeter {
 		Super.Draw();
 	}
 	
-	// Dear God, what a horrible hack. The bytes of this string are ARGB8888 colors.
-	const HPMeterFill = "\xFF\x54\x00\x00\xFF\x69\x00\x00\xFF\x85\x00\x00\xFF\xA2\x00\x00\xFF\xC4\x00\x00\xFF\xE9\x00\x00\xFF\xFF\x02\x03\xFF\xFF\x10\x11\xFF\xFF\x1D\x20\xFF\xFF\x2F\x32\xFF\xFF\x3B\x3D\xFF\xFF\x47\x49\xFF\xFF\x52\x54\xFF\xFF\x60\x63\xFF\xFF\x6C\x70\xFF\xFF\x7D\x80\xFF\xFF\x91\x94\xFF\xFF\xA5\xA7\xFF\xFF\xC1\xC1\xFF\xFF\xDC\xDC";
-	const HPMeterOverfill = "\xFF\xFF\xF9\xF9\xFF\xFF\xF3\xF3\xFF\xFF\xED\xED\xFF\xFF\xE8\xE9\xFF\xFF\xE2\xE4\xFF\xFF\xDD\xDE\xFF\xFF\xD9\xDA\xFF\xFF\xD3\xD4\xFF\xFF\xCE\xCF\xFF\xFF\xC8\xC9\xFF\xFF\xC0\xC2\xFF\xFF\xB2\xB4\xFF\xFF\xA0\xA3\xFF\xFF\x72\x7A\xFF\xFB\x00\x00\xFF\xF4\x00\x00\xFF\xEC\x00\x00\xFF\xE5\x00\x00\xFF\xDC\x00\x00\xFF\xD4\x00\x00";
+	static const Color HPMeterFill[] = {
+		0xFF540000, 0xFF690000, 0xFF850000, 0xFFA20000, 0xFFC40000,
+		0xFFE90000, 0xFFFF0203, 0xFFFF1011, 0xFFFF1D20, 0xFFFF2F32,
+		0xFFFF3B3D, 0xFFFF4749, 0xFFFF5254, 0xFFFF6063, 0xFFFF6C70,
+		0xFFFF7D80, 0xFFFF9194, 0xFFFFA5A7, 0xFFFFC1C1, 0xFFFFDCDC
+	};
+	const HPMeterFillNum = 20;
+	
+	static const Color HPMeterOverfill[] = {
+		0xFFFFF9F9, 0xFFFFF3F3, 0xFFFFEDED, 0xFFFFE8E9, 0xFFFFE2E4,
+		0xFFFFDDDE, 0xFFFFD9DA, 0xFFFFD3D4, 0xFFFFCECF, 0xFFFFC8C9,
+		0xFFFFC0C2, 0xFFFFB2B4, 0xFFFFA0A3, 0xFFFF727A, 0xFFFB0000,
+		0xFFF40000, 0xFFEC0000, 0xFFE50000, 0xFFDC0000, 0xFFD40000
+	};
+	const HPMeterOverfillNum = 20;
 }

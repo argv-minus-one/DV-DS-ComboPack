@@ -34,21 +34,6 @@ class GUIColorRibbon : GUIWidget {
 	 */
 	double DrawFraction;
 	
-	void DecodeColorString(String colorString) {
-		let size = colorString.Length() / 4;
-		Colors.Resize(size);
-		
-		for (let i = 0; i < size; i++) {
-			let index = i * 4;
-			Colors[i] = Color(
-				255,
-				colorString.CharCodeAt(index + 1) & 0xFF,
-				colorString.CharCodeAt(index + 2) & 0xFF,
-				colorString.CharCodeAt(index + 3) & 0xFF
-			);
-		}
-	}
-	
 	override double PreferredWidth(double height = -1.) {
 		return Insets.X() + PreferredLength;
 	}
