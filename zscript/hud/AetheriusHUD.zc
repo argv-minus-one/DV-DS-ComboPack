@@ -5,27 +5,31 @@ class AetheriusHUD : BaseStatusBar {
 		Super.Init();
 		SetSize(0, 1440, 1080);
 		
+		MainMeters = new("GUISeqGroup");
+		MainMeters.ConsoleLabel = "AetheriusHUD.MainMeters";
+		MainMeters.Init(null);
+		MainMeters.Align.X = XALIGN_LEFT;
+		MainMeters.Align.Y = YALIGN_TOP;
+		Widgets.Push(MainMeters);
+		
 		// HP meter
-		HPMeter = new("AethHUDMeter");
+		HPMeter = new("AethHPMeter");
 		HPMeter.ConsoleLabel = "AetheriusHUD.HPMeter";
-		HPMeter.Init(null);
-		HPMeter.MainFill.DecodeColorString(HPMeterFill);
-		HPMeter.OverFill.DecodeColorString(HPMeterOverfill);
-		HPMeter.LengthBase = Screen.GetWidth() / 2.;
-		HPMeter.LengthScale = 2;
-		HPMeter.LabelText.Text = "HP";
+		HPMeter.Init(MainMeters);
 		HPMeter.Align.X = XALIGN_LEFT;
+		MainMeters.Children.Push(HPMeter);
+		
 		// TODO: Coordinates relative to screen edges/corners/size
-		HPMeter.TopLayout((200, Screen.GetHeight() - 190));
-		Widgets.Push(HPMeter);
+		MainMeters.TopLayout((200, Screen.GetHeight() - 190));
 	}
 	
 	override void Tick() {
 		Super.Tick();
 		
-		HPMeter.Value = CPlayer.Health;
-		HPMeter.MaxValue = CPlayer.mo.GetMaxHealth(true);
-		HPMeter.Tick();
+		HPMeter.Subject = CPlayer.mo;
+		
+		for (let i = 0, l = Widgets.Size(); i < l; i++)
+			Widgets[i].Tick();
 	}
 	
 	override void Draw(int state, double ticFrac) {
@@ -131,9 +135,7 @@ class AetheriusHUD : BaseStatusBar {
 	
 	// Meters
 	
-	AethHUDMeter HPMeter;
+	GUISeqGroup MainMeters;
 	
-	// Dear God, what a horrible hack. The bytes of this string are ARGB8888 colors.
-	const HPMeterFill = "\xFF\x54\x00\x00\xFF\x69\x00\x00\xFF\x85\x00\x00\xFF\xA2\x00\x00\xFF\xC4\x00\x00\xFF\xE9\x00\x00\xFF\xFF\x02\x03\xFF\xFF\x10\x11\xFF\xFF\x1D\x20\xFF\xFF\x2F\x32\xFF\xFF\x3B\x3D\xFF\xFF\x47\x49\xFF\xFF\x52\x54\xFF\xFF\x60\x63\xFF\xFF\x6C\x70\xFF\xFF\x7D\x80\xFF\xFF\x91\x94\xFF\xFF\xA5\xA7\xFF\xFF\xC1\xC1\xFF\xFF\xDC\xDC";
-	const HPMeterOverfill = "\xFF\xFF\xF9\xF9\xFF\xFF\xF3\xF3\xFF\xFF\xED\xED\xFF\xFF\xE8\xE9\xFF\xFF\xE2\xE4\xFF\xFF\xDD\xDE\xFF\xFF\xD9\xDA\xFF\xFF\xD3\xD4\xFF\xFF\xCE\xCF\xFF\xFF\xC8\xC9\xFF\xFF\xC0\xC2\xFF\xFF\xB2\xB4\xFF\xFF\xA0\xA3\xFF\xFF\x72\x7A\xFF\xFB\x00\x00\xFF\xF4\x00\x00\xFF\xEC\x00\x00\xFF\xE5\x00\x00\xFF\xDC\x00\x00\xFF\xD4\x00\x00";
+	AethHPMeter HPMeter;
 }

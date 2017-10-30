@@ -1,2 +1,3 @@
 #include "zscript/hud/AethHUDMeter.zc"
+#include "zscript/hud/meters/AethHPMeter.zc"
 #include "zscript/hud/AetheriusHUD.zc"
