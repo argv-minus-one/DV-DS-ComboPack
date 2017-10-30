@@ -41,6 +41,18 @@ class GUIEdgeGroup : GUIWidget {
 		return bias;
 	}
 	
+	override bool NeedsLayout() {
+		if (Super.NeedsLayout())
+			return true;
+		
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++)
+			if (Children[col][row] && Children[col][row].NeedsLayout())
+				return true;
+		
+		return false;
+	}
+	
 	override void Layout() {
 		Super.Layout();
 		

@@ -62,6 +62,17 @@ class GUIArrayGroup : GUIWidget abstract {
 		return a + Insets.Y();
 	}
 	
+	override bool NeedsLayout() {
+		if (Super.NeedsLayout())
+			return true;
+		
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			if (Children[i] && Children[i].NeedsLayout())
+				return true;
+		
+		return false;
+	}
+	
 	/**
 	 * The default implementation of Draw for GUIArrayGroup simply draws all of the Children in order.
 	 *

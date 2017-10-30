@@ -191,7 +191,7 @@ class GUIWidget ui abstract {
 	}
 	
 	/**
-	 * Invalidates the layout of this widget and all ancestors. Layout will be recomputed during the next Draw call.
+	 * Invalidates the layout of this widget. Layout will be recomputed during the next Draw call on any top-level ancestor.
 	 *
 	 * This needs to be called whenever there is a change (other than by the Layout method) to this widget's size or position.
 	 *
@@ -199,22 +199,22 @@ class GUIWidget ui abstract {
 	 */
 	virtual void RequestLayout() {
 		LayoutDone = false;
-		if (Parent != null)
-			Parent.RequestLayout();
 	}
 	
 	/**
-	 * Returns true if this widget needs to be laid out again (because RequestLayout has been called, or because Layout has never been called). Otherwise returns false.
+	 * Returns true if this widget, or any descendant, needs to be laid out again (because RequestLayout has been called, or because Layout has never been called). Otherwise returns false.
+	 *
+	 * Subclasses should override this method to also call it on their children.
 	 */
-	bool NeedsLayout() {
+	virtual bool NeedsLayout() {
 		return !LayoutDone;
 	}
 	
 	/**
-	 * Calls Layout() only if NeedsLayout() would return true. Otherwise, does nothing.
+	 * Calls Layout() only if NeedsLayout() returns true. Otherwise, does nothing.
 	 */
 	void LayoutIfNeeded() {
-		if (!LayoutDone)
+		if (NeedsLayout())
 			Layout();
 	}
 	
@@ -226,8 +226,8 @@ class GUIWidget ui abstract {
 	}
 	
 	virtual void Draw() {
-		if (!LayoutDone)
-			Layout();
+		if (!Parent)
+			LayoutIfNeeded();
 		
 		if (zsgui_debug_show_box) {
 			Rectangle ca;
