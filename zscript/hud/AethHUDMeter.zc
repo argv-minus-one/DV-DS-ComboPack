@@ -2,6 +2,7 @@ class AethHUDMeter : GUIRibbonMeter {
 	GUIEdgeGroup NormalFrame, CriticalFrame, BackgroundGlass;
 	double CriticalThreshold;
 	bool CriticalIsHigh;
+	private GUISwitchGroup DrawOverSwitcher;
 	
 	override void Init(GUIWidget parent) {
 		Super.Init(parent);
@@ -23,6 +24,15 @@ class AethHUDMeter : GUIRibbonMeter {
 		CriticalFrame.UseTextureSet("SLAMFRC");
 		
 		SetFrameColors();
+		
+		DrawOverSwitcher = new("GUISwitchGroup");
+		DrawOverSwitcher.ConsoleLabel = ConsoleLabel..".DrawOverSwitcher";
+		DrawOverSwitcher.Init(self);
+		DrawOverSwitcher.Children.Resize(2);
+		DrawOverSwitcher.Children[0] = NormalFrame;
+		DrawOverSwitcher.Children[1] = CriticalFrame;
+		DrawOverSwitcher.CurrentWidget = NormalFrame;
+		DrawOver = DrawOverSwitcher;
 		
 		BackgroundGlass = new("GUIEdgeGroup");
 		BackgroundGlass.ConsoleLabel = ConsoleLabel..".BackgroundGlass";
@@ -56,10 +66,9 @@ class AethHUDMeter : GUIRibbonMeter {
 	override void Draw() {
 		let vp = double(ValueInterp.GetValue()) / double(MaxValueInterp.GetValue());
 		
-		if ((CriticalIsHigh && vp > CriticalThreshold) || (!CriticalIsHigh && vp < CriticalThreshold))
-			DrawOver = CriticalFrame;
-		else
-			DrawOver = NormalFrame;
+		DrawOverSwitcher.CurrentWidget =
+			(CriticalIsHigh && vp > CriticalThreshold) || (!CriticalIsHigh && vp < CriticalThreshold)?
+			CriticalFrame : NormalFrame;
 		
 		Super.Draw();
 	}

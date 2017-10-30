@@ -1,0 +1,37 @@
+/**
+ * A group that holds any number of child widgets, but only shows one at a time. Write to the CurrentWidget field to change which one is showing.
+ *
+ * This widget lays out its children in the same way as GUIStackGroup. Its preferred size is that of the largest child, and all children's layouts are maintained at all times.
+ *
+ * Because layout is maintained at all times, it is safe to switch widgets immediately before drawing, such as in the Draw routine of the parent widget.
+ */
+class GUISwitchGroup : GUIArrayGroup {
+	GUIWidget CurrentWidget;
+	
+	override double PreferredWidth(double height = -1.) {
+		return ChildrenMaxPreferredWidth(height) + Insets.X();
+	}
+	
+	override double PreferredHeight(double width = -1.) {
+		return ChildrenMaxPreferredHeight(width) + Insets.Y();
+	}
+	
+	override void Layout() {
+		Super.Layout();
+		
+		Rectangle ca;
+		GetContentArea(ca);
+		
+		for (let i = 0, l = Children.Size(); i < l; i++) {
+			Children[i].Bounds.Copy(ca);
+			Children[i].Layout();
+		}
+	}
+	
+	override void Draw() {
+		GUIWidget.Draw();
+		
+		if (CurrentWidget)
+			CurrentWidget.Draw();
+	}
+}

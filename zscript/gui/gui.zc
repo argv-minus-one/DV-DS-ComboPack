@@ -4,6 +4,7 @@
 #include "zscript/gui/GUISeqGroup.zc"
 #include "zscript/gui/GUIStackGroup.zc"
 #include "zscript/gui/GUIEdgeGroup.zc"
+#include "zscript/gui/GUISwitchGroup.zc"
 #include "zscript/gui/GUIImage.zc"
 #include "zscript/gui/GUIText.zc"
 #include "zscript/gui/GUIColorRibbon.zc"
