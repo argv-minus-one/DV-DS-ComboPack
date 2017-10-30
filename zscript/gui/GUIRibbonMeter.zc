@@ -67,7 +67,7 @@ class GUIRibbonMeter : GUIWidget {
 		RequestLayout();
 	}
 	
-	void Tick() {
+	override void Tick() {
 		ValueInterp.Update(Value);
 		MaxValueInterp.Update(MaxValue);
 		
@@ -85,6 +85,8 @@ class GUIRibbonMeter : GUIWidget {
 			OverFill.PreferredLength = fillPrefLength;
 			RequestLayout();
 		}
+		
+		WSeq.Tick();
 	}
 	
 	override double PreferredWidth(double height = -1.) {

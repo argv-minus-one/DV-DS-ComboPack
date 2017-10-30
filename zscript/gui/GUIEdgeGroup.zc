@@ -147,6 +147,13 @@ class GUIEdgeGroup : GUIWidget {
 		// Done!
 	}
 	
+	override void Tick() {
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++)
+		if (Children[col][row])
+			Children[col][row].Tick();
+	}
+	
 	override void Draw() {
 		Super.Draw();
 		

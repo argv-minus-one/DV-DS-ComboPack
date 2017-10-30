@@ -225,6 +225,13 @@ class GUIWidget ui abstract {
 		return String.Format("%s %s", GetClassName(), ConsoleLabel);
 	}
 	
+	/**
+	 * Informs this widget that a new game tic has happened.
+	 *
+	 * By default, this method does nothing. Subclasses may perform whatever action they need in response to this event. Subclasses that have child widgets should call their Tick methods as well.
+	 */
+	virtual void Tick() {}
+	
 	virtual void Draw() {
 		if (!Parent)
 			LayoutIfNeeded();

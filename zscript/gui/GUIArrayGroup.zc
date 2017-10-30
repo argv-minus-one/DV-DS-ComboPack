@@ -73,6 +73,11 @@ class GUIArrayGroup : GUIWidget abstract {
 		return false;
 	}
 	
+	override void Tick() {
+		for (let i = 0, l = Children.Size(); i < l; i++)
+			Children[i].Tick();
+	}
+	
 	/**
 	 * The default implementation of Draw for GUIArrayGroup simply draws all of the Children in order.
 	 *
