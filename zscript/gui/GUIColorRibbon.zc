@@ -6,10 +6,6 @@
  * Con: This requires n draw calls (where n = the number of colors), instead of just one.
  *
  * The main use-case for this widget is drawing the slanted meters in the HUD of the Aetherius mod.
- *
- * This widget treats its Insets field specially, in that the insets are *not* counted toward the widget's preferred size. Thus, the insets can be used to control how much of the widget's bounds are actually drawn into. This is used to draw the aforementioned slanted meters.
- *
- * Note that the Layout method still needs to be called whenever the insets are changed. In the meter use-case, this will likely happen on every frame.
  */
 class GUIColorRibbon : GUIWidget {
 	Array<Color> Colors;
@@ -21,8 +17,9 @@ class GUIColorRibbon : GUIWidget {
 	
 	/**
 	 * Preferred size of this GUIColorRibbon on its long axis. This is reported through the PreferredWidth or PreferredHeight methods.
+	 *
+	 * Note that not all of this area is necessarily drawn into. See the DrawFraction field for details.
 	 */
-	// MAYBE: Note that not all of this area is necessarily drawn into. See the DrawFraction field for details.
 	double PreferredLength;
 	
 	/*
