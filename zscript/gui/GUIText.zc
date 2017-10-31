@@ -36,6 +36,13 @@ class GUIText : GUIWidget {
 	
 	double PrefWidthDirect;
 	
+	/**
+	 * If true, this widget will not request a full layout pass if it isn't large enough to show all of its text.
+	 *
+	 * If combined with setting Align.X to XALIGN_LEFT and TextWrap to false, most layout calculations are skipped, making layout considerably less expensive. Use this for a GUIText that doesn't affect any other widget's size, and moves around the screen frequently.
+	 */
+	bool IgnoreOverflow;
+	
 	override void Init(GUIWidget parent) {
 		Super.Init(parent);
 		Alpha = 1;
@@ -121,7 +128,7 @@ class GUIText : GUIWidget {
 			// Pretend that the bounds are large enough to fit the font's descent.
 			textBounds.Size.Y += descent;
 			
-			if (textBounds.Size.Y < 0.) {
+			if (!IgnoreOverflow && textBounds.Size.Y < 0.) {
 				if (LastLayoutOverflowed)
 					Console.Printf(
 						"\cr%s does not have enough room to draw its text. The available space is (%f,%f), but the text at this width is %d pixels high. Text will be drawn out of bounds!",
@@ -152,7 +159,7 @@ class GUIText : GUIWidget {
 			
 			Rectangle lineRect;
 			lineRect.Size = (
-				TextFont.StringWidth(Text),
+				Align.X == XALIGN_LEFT && IgnoreOverflow? 1 : TextFont.StringWidth(Text),
 				lineHeight - descent
 			);
 			lineRect.PositionIn(ca, Align.X, Align.Y);
@@ -160,7 +167,7 @@ class GUIText : GUIWidget {
 			LineOriginsX[0] = lineRect.Origin.X;
 			LineOriginsY[0] = lineRect.Origin.Y;
 			
-			if (lineRect.Size.X > ca.Size.X || lineRect.Size.Y > ca.Size.Y + descent) {
+			if (!IgnoreOverflow && (lineRect.Size.X > ca.Size.X || lineRect.Size.Y > ca.Size.Y + descent)) {
 				if (LastLayoutOverflowed)
 					Console.Printf(
 						"\cr%s does not have enough room to draw its text. Line wrapping is disabled, and the required unwrapped space is (%f,%f), but the available space is (%f,%f). Text will be drawn out of bounds!",
