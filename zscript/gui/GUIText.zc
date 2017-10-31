@@ -205,6 +205,9 @@ class GUIText : GUIWidget {
 	override void Draw() {
 		Super.Draw();
 		
+		if (Alpha <= 0.)
+			return;
+		
 		for (let line = 0, nLines = LineOriginsX.Size(); line < nLines; line++) {
 			let lineText = Lines? Lines.StringAt(line) : Text;
 			Screen.DrawText(
