@@ -17,6 +17,23 @@ class AethHPMeter : AethHUDMeter {
 			OverFill.Colors[i] = OverfillColors[i];
 	}
 	
+	/* Computed by this Scala code:
+	 *
+	 * import scala.math._
+	 *
+	 * val ticRate = 35
+	 * val halfTicRate = ticRate / 2.0
+	 * val pulseMin = 0.495
+	 * val pulseMax = 0.75
+	 * val pulseDelta = pulseMax - pulseMin
+	 *
+	 * for (x <- 0 until ticRate)
+	 * yield (pulseMin + abs((x / halfTicRate) - 1) * pulseDelta).toFloat
+	 */
+	static const float PULSE_LUT[] = {
+		0.75, 0.7354286, 0.72085714, 0.7062857, 0.6917143, 0.67714286, 0.66257143, 0.648, 0.6334286, 0.61885715, 0.6042857, 0.5897143, 0.57514286, 0.56057143, 0.546, 0.5314286, 0.51685715, 0.5022857, 0.5022857, 0.51685715, 0.5314286, 0.546, 0.56057143, 0.57514286, 0.5897143, 0.6042857, 0.61885715, 0.6334286, 0.648, 0.66257143, 0.67714286, 0.6917143, 0.7062857, 0.72085714, 0.7354286
+	};
+	
 	override void Tick() {
 		Value = Subject.Health;
 		
@@ -25,14 +42,12 @@ class AethHPMeter : AethHUDMeter {
 			PlayerPawn(Subject).GetMaxHealth(true) :
 			Subject.SpawnHealth();
 		
-		Super.Tick();
-	}
-	
-	override void Draw() {
-		let vp = double(ValueInterp.GetValue()) / double(MaxValueInterp.GetValue());
-		ShowCriticalFrame = vp < .25;
+		FrameGlowOpacity =
+			Value * 10 <= MaxValue?
+			PULSE_LUT[gametic % Thinker.TICRATE] :
+			0;
 		
-		Super.Draw();
+		Super.Tick();
 	}
 	
 	static const Color FillColors[] = {

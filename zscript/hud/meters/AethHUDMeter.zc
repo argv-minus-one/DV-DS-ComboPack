@@ -1,7 +1,7 @@
 class AethHUDMeter : GUIRibbonMeter {
-	GUIEdgeGroup NormalFrame, CriticalFrame, BackgroundGlass;
-	bool ShowCriticalFrame;
+	GUIEdgeGroup Frame, FrameGlow, BackgroundGlass;
 	GUISwitchGroup DrawOverSwitcher;
+	float FrameGlowOpacity;
 	
 	override void Init(GUIWidget parent) {
 		Super.Init(parent);
@@ -11,26 +11,25 @@ class AethHUDMeter : GUIRibbonMeter {
 		LabelText.TextFont = hudFont;
 		NumberText.FontBaseline = LabelText.FontBaseline = 22;
 		
-		NormalFrame = new("GUIEdgeGroup");
-		NormalFrame.ConsoleLabel = ConsoleLabel..".NormalFrame";
-		NormalFrame.Init(self);
-		NormalFrame.UseTextureSet("SLAMFRM");
+		Frame = new("GUIEdgeGroup");
+		Frame.ConsoleLabel = ConsoleLabel..".Frame";
+		Frame.Init(self);
+		Frame.UseTextureSet("SLAMFRM");
 		
-		CriticalFrame = new("GUIEdgeGroup");
-		CriticalFrame.ConsoleLabel = ConsoleLabel..".CriticalFrame";
-		CriticalFrame.Init(self);
-		CriticalFrame.UseTextureSet("SLAMFRG");
+		FrameGlow = new("GUIEdgeGroup");
+		FrameGlow.ConsoleLabel = ConsoleLabel..".FrameGlow";
+		FrameGlow.Init(self);
+		FrameGlow.UseTextureSet("SLAMFRG");
 		
 		SetFrameColors();
 		
-		DrawOverSwitcher = new("GUISwitchGroup");
-		DrawOverSwitcher.ConsoleLabel = ConsoleLabel..".DrawOverSwitcher";
-		DrawOverSwitcher.Init(self);
-		DrawOverSwitcher.Children.Resize(2);
-		DrawOverSwitcher.Children[0] = NormalFrame;
-		DrawOverSwitcher.Children[1] = CriticalFrame;
-		DrawOverSwitcher.CurrentWidget = NormalFrame;
-		DrawOver = DrawOverSwitcher;
+		let DrawOverStack = new("GUIStackGroup");
+		DrawOverStack.ConsoleLabel = ConsoleLabel..".DrawOverStack";
+		DrawOverStack.Init(self);
+		DrawOverStack.Children.Resize(2);
+		DrawOverStack.Children[0] = Frame;
+		DrawOverStack.Children[1] = FrameGlow;
+		DrawOver = DrawOverStack;
 		
 		BackgroundGlass = new("GUIEdgeGroup");
 		BackgroundGlass.ConsoleLabel = ConsoleLabel..".BackgroundGlass";
@@ -47,7 +46,7 @@ class AethHUDMeter : GUIRibbonMeter {
 	void SetFrameColors(Color normalColor = 0xff000000, int normalPaletteColor = -1, Color criticalColor = 0xffff0000, int criticalPaletteColor = -1) {
 		for (let col = 0; col < 3; col++)
 		for (let row = 0; row < 3; row++) {
-			let nw = NormalFrame.Children[col][row], cw = CriticalFrame.Children[col][row];
+			let nw = Frame.Children[col][row], cw = FrameGlow.Children[col][row];
 			
 			if (nw is "GUIImage") {
 				GUIImage(nw).AlphaBlend = true;
@@ -61,8 +60,22 @@ class AethHUDMeter : GUIRibbonMeter {
 		}
 	}
 	
+	private Array<GUIImage> FrameGlowImages;
+	
+	override void Layout() {
+		Super.Layout();
+		
+		FrameGlowImages.Clear();
+		for (let col = 0; col < 3; col++)
+		for (let row = 0; row < 3; row++)
+		if (FrameGlow.Children[col][row] is "GUIImage")
+			FrameGlowImages.Push(GUIImage(FrameGlow.Children[col][row]));
+	}
+	
 	override void Draw() {
-		DrawOverSwitcher.CurrentWidget = ShowCriticalFrame? CriticalFrame : NormalFrame;
+		for (let i = 0, l = FrameGlowImages.Size(); i < l; i++)
+			FrameGlowImages[i].Opacity = FrameGlowOpacity;
+		
 		Super.Draw();
 	}
 }
