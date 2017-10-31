@@ -14,12 +14,12 @@ class AethHUDMeter : GUIRibbonMeter {
 		NormalFrame = new("GUIEdgeGroup");
 		NormalFrame.ConsoleLabel = ConsoleLabel..".NormalFrame";
 		NormalFrame.Init(self);
-		NormalFrame.UseTextureSet("SLAMFRN");
+		NormalFrame.UseTextureSet("SLAMFRM");
 		
 		CriticalFrame = new("GUIEdgeGroup");
 		CriticalFrame.ConsoleLabel = ConsoleLabel..".CriticalFrame";
 		CriticalFrame.Init(self);
-		CriticalFrame.UseTextureSet("SLAMFRC");
+		CriticalFrame.UseTextureSet("SLAMFRG");
 		
 		SetFrameColors();
 		
@@ -35,7 +35,7 @@ class AethHUDMeter : GUIRibbonMeter {
 		BackgroundGlass = new("GUIEdgeGroup");
 		BackgroundGlass.ConsoleLabel = ConsoleLabel..".BackgroundGlass";
 		BackgroundGlass.Init(self);
-		BackgroundGlass.UseTextureSet("SLAMBGN");
+		BackgroundGlass.UseTextureSet("SLAMBKG");
 		DrawUnder = BackgroundGlass;
 		
 		MainFill.Skew = 1;

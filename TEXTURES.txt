@@ -470,44 +470,44 @@ Flat "_BLACKF_", 64, 64
 //// Meter graphics ////
 
 // Slanted meter frame
-Graphic "SLAMFRND", 31, 32 {
-	Graphic "SLAMFRN", 0, 0
+Graphic "SLAMFRMD", 31, 32 {
+	Graphic "SLAMFRM", 0, 0
 }
 
-Graphic "SLAMFRNE", 1, 32 {
-	Graphic "SLAMFRN", -31, 0
+Graphic "SLAMFRME", 1, 32 {
+	Graphic "SLAMFRM", -31, 0
 }
 
-Graphic "SLAMFRNF", 31, 32 {
-	Graphic "SLAMFRN", -1, 0 {
+Graphic "SLAMFRMF", 31, 32 {
+	Graphic "SLAMFRM", -1, 0 {
 		Rotate 180
 	}
 }
 
-Graphic "SLAMFRCD", 31, 32 {
-	Graphic "SLAMFRC", 0, 0
+Graphic "SLAMFRGD", 31, 32 {
+	Graphic "SLAMFRG", 0, 0
 }
 
-Graphic "SLAMFRCE", 1, 32 {
-	Graphic "SLAMFRC", -31, 0
+Graphic "SLAMFRGE", 1, 32 {
+	Graphic "SLAMFRG", -31, 0
 }
 
-Graphic "SLAMFRCF", 31, 32 {
-	Graphic "SLAMFRC", -1, 0 {
+Graphic "SLAMFRGF", 31, 32 {
+	Graphic "SLAMFRG", -1, 0 {
 		Rotate 180
 	}
 }
 
-Graphic "SLAMBGND", 31, 32 {
-	Graphic "SLAMBGN", 0, 0
+Graphic "SLAMBKGD", 31, 32 {
+	Graphic "SLAMBKG", 0, 0
 }
 
-Graphic "SLAMBGNE", 1, 32 {
-	Graphic "SLAMBGN", -31, 0
+Graphic "SLAMBKGE", 1, 32 {
+	Graphic "SLAMBKG", -31, 0
 }
 
-Graphic "SLAMBGNF", 31, 32 {
-	Graphic "SLAMBGN", -1, 0 {
+Graphic "SLAMBKGF", 31, 32 {
+	Graphic "SLAMBKG", -1, 0 {
 		Rotate 180
 	}
 }
