@@ -43,6 +43,8 @@ class GUIText : GUIWidget {
 	 */
 	bool IgnoreOverflow;
 	
+	Rectangle CurrentTextBounds;
+	
 	override void Init(GUIWidget parent) {
 		Super.Init(parent);
 		Alpha = 1;
@@ -113,6 +115,9 @@ class GUIText : GUIWidget {
 				textBounds.Size.X = max(textBounds.Size.X, Lines.StringWidth(i));
 			textBounds.PositionIn(ca, Align.X, Align.Y);
 			
+			CurrentTextBounds.Copy(textBounds);
+			CurrentTextBounds.Size.Y += descent;
+			
 			for (let i = 0; i < nLines; i++) {
 				let text = Lines.StringAt(i);
 				Rectangle lineRect;
@@ -151,6 +156,9 @@ class GUIText : GUIWidget {
 			}
 			else
 				LastLayoutOverflowed = false;
+			
+			// Indicate to observers if we're using extra space, even if overflow is otherwise ignored.
+			CurrentTextBounds.Size.Y -= max(textBounds.Size.Y, 0.);
 		}
 		else {
 			Lines = null;
@@ -163,6 +171,9 @@ class GUIText : GUIWidget {
 				lineHeight - descent
 			);
 			lineRect.PositionIn(ca, Align.X, Align.Y);
+			
+			CurrentTextBounds.Copy(lineRect);
+			CurrentTextBounds.Size.Y += descent;
 			
 			LineOriginsX[0] = lineRect.Origin.X;
 			LineOriginsY[0] = lineRect.Origin.Y;
