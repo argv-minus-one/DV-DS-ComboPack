@@ -92,6 +92,8 @@ class GUIImage : GUIWidget {
 	}
 	
 	override void Draw() {
+		if (Opacity <= 0.) return;
+		
 		Super.Draw();
 		
 		if (Image.IsValid())
