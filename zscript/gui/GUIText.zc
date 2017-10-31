@@ -229,4 +229,8 @@ class GUIText : GUIWidget {
 		
 		return Super.ToString().." \""..textBeginning.."\"";
 	}
+	
+	static int OneChWidth(Font font) {
+		return font.GetCharWidth(48);
+	}
 }
