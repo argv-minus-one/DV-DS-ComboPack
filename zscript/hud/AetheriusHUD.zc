@@ -21,6 +21,14 @@ class AetheriusHUD : BaseStatusBar {
 		
 		// TODO: Coordinates relative to screen edges/corners/size
 		MainMeters.TopLayout((200, Screen.GetHeight() - 190));
+		
+		{
+			let stressTest = new("AethHUDMeterStressTest");
+			stressTest.ConsoleLabel = "AetheriusHUD.StressTest";
+			stressTest.Init(null);
+			stressTest.TopLayout((0, 0));
+			Widgets.Push(stressTest);
+		}
 	}
 	
 	override void Tick() {

@@ -1,3 +1,4 @@
 #include "zscript/hud/meters/AethHUDMeter.zc"
 #include "zscript/hud/meters/AethHPMeter.zc"
+#include "zscript/hud/meters/AethHUDMeterStressTest.zc"
 #include "zscript/hud/AetheriusHUD.zc"

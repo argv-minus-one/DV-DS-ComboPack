@@ -1,0 +1,76 @@
+class AethHUDMeterStressTest : GUIWidget {
+	override double PreferredWidth(double height = -1) {
+		return Screen.GetWidth();
+	}
+	
+	override double PreferredHeight(double width = -1) {
+		return Screen.GetHeight() * .75;
+	}
+	
+	private GUISeqGroup Rows;
+	
+	override void Tick() {
+		if (dvdsdebug_hud_meterstresstest != !!Rows)
+			RequestLayout();
+		
+		if (Rows)
+			Rows.Tick();
+	}
+	
+	override void Layout() {
+		Super.Layout();
+		
+		let ps = PreferredSize();
+		
+		if (dvdsdebug_hud_meterstresstest && !Rows) {
+			if (!statusBar || !statusBar.CPlayer || !statusBar.CPlayer.mo)
+				return;
+			
+			Rows = new("GUISeqGroup");
+			Rows.ConsoleLabel = ConsoleLabel..".Rows";
+			Rows.Init(self);
+			Rows.Orientation = GUISeqGroup.ORIENT_VERTICAL;
+			Rows.SpaceBetween = 2;
+			
+			Vector2 ms = (225, 30);
+			
+			int rowIndex = 0;
+			for (double rowPos = 0; rowPos + ms.Y < ps.Y; rowPos += ms.Y, rowIndex++) {
+				let cols = new("GUISeqGroup");
+				cols.ConsoleLabel = String.Format("%s.Cols[%d]", ConsoleLabel, rowIndex);
+				cols.Init(Rows);
+				cols.SpaceBetween = 10;
+				
+				int colIndex = 0;
+				for (double colPos = 0; colPos + ms.X < ps.X; colPos += ms.X, colIndex++) {
+					let m = new("AethHPMeter");
+					m.ConsoleLabel = String.Format("%s.Meter[%d][%d]", ConsoleLabel, rowIndex, colIndex);
+					m.Init(cols);
+					m.Subject = statusBar.CPlayer.mo;
+					m.LengthScale = -1;
+					m.LengthBase = ms.X;
+					cols.Children.Push(m);
+				}
+				
+				Rows.Children.Push(cols);
+			}
+		}
+		else if (Rows && !dvdsdebug_hud_meterstresstest)
+			Rows = null;
+		
+		if (Rows) {
+			Super.Layout();
+			
+			Rectangle rowsRect;
+			rowsRect.Origin = (0, 0);
+			rowsRect.Size = ps;
+			LayoutChild(Rows, rowsRect);
+		}
+	}
+	
+	override void Draw() {
+		Super.Draw();
+		if (Rows)
+			Rows.Draw();
+	}
+}
