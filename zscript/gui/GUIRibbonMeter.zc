@@ -1,11 +1,11 @@
 /**
- * An all-in-one meter widget that uses GUIColorRibbon for fill, GUIText for labeling, and arbitrary widgets drawn under/over the fill part.
+ * An all-in-one meter widget that uses GUITextureSkewer for fill, GUIText for labeling, and arbitrary widgets drawn under/over the fill part.
  */
 class GUIRibbonMeter : GUIWidget {
 	DynamicValueInterpolator ValueInterp, MaxValueInterp;
 	int Value, MaxValue;
 	GUIText LabelText, NumberText;
-	GUIColorRibbon MainFill, OverFill;
+	GUITextureSkewer MainFill, OverFill;
 	bool DrawValue, DrawMaxValue;
 	GUIInsets FillInsets;
 	GUIWidget DrawUnder, DrawOver;
@@ -27,12 +27,12 @@ class GUIRibbonMeter : GUIWidget {
 		NumberText.ConsoleLabel = ConsoleLabel..".NumberText";
 		NumberText.Init(self);
 		
-		MainFill = new("GUIColorRibbon");
+		MainFill = new("GUITextureSkewer");
 		MainFill.ConsoleLabel = ConsoleLabel..".MainFill";
 		MainFill.Init(self);
 		MainFill.Align.X = XALIGN_LEFT;
 		
-		OverFill = new("GUIColorRibbon");
+		OverFill = new("GUITextureSkewer");
 		OverFill.ConsoleLabel = ConsoleLabel..".OverFill";
 		OverFill.Init(self);
 		OverFill.Align.X = XALIGN_LEFT;

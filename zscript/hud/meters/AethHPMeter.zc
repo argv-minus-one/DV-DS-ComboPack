@@ -7,14 +7,8 @@ class AethHPMeter : AethHUDMeter {
 		LengthBase = Screen.GetWidth() / 2.;
 		LengthScale = 2;
 		LabelText.Text = "HP";
-		
-		MainFill.Colors.Resize(FillColorsNum);
-		for (let i = 0; i < FillColorsNum; i++)
-			MainFill.Colors[i] = FillColors[i];
-		
-		OverFill.Colors.Resize(OverfillColorsNum);
-		for (let i = 0; i < OverfillColorsNum; i++)
-			OverFill.Colors[i] = OverfillColors[i];
+		MainFill.Texture = TexMan.CheckForTexture("HPBFILN", TexMan.Type_Any);
+		OverFill.Texture = TexMan.CheckForTexture("HPBFILO", TexMan.Type_Any);
 	}
 	
 	/* Computed by this Scala code:
@@ -49,20 +43,4 @@ class AethHPMeter : AethHUDMeter {
 		
 		Super.Tick();
 	}
-	
-	static const Color FillColors[] = {
-		0xFF540000, 0xFF690000, 0xFF850000, 0xFFA20000, 0xFFC40000,
-		0xFFE90000, 0xFFFF0203, 0xFFFF1011, 0xFFFF1D20, 0xFFFF2F32,
-		0xFFFF3B3D, 0xFFFF4749, 0xFFFF5254, 0xFFFF6063, 0xFFFF6C70,
-		0xFFFF7D80, 0xFFFF9194, 0xFFFFA5A7, 0xFFFFC1C1, 0xFFFFDCDC
-	};
-	const FillColorsNum = 20;
-	
-	static const Color OverfillColors[] = {
-		0xFFFFF9F9, 0xFFFFF3F3, 0xFFFFEDED, 0xFFFFE8E9, 0xFFFFE2E4,
-		0xFFFFDDDE, 0xFFFFD9DA, 0xFFFFD3D4, 0xFFFFCECF, 0xFFFFC8C9,
-		0xFFFFC0C2, 0xFFFFB2B4, 0xFFFFA0A3, 0xFFFF727A, 0xFFFB0000,
-		0xFFF40000, 0xFFEC0000, 0xFFE50000, 0xFFDC0000, 0xFFD40000
-	};
-	const OverfillColorsNum = 20;
 }

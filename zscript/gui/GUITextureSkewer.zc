@@ -1,14 +1,10 @@
 /**
- * Draws a gradient (or other array of colors), in narrow strips of one color at a time, with Screen.Clear.
- *
- * Normally, one accomplishes this by drawing a 1×n texture, stretched out over the draw area. GUIColorRibbon's approach has some pros and cons:
- * Pro: The draw area can be cleanly skewed, even in the software renderer.
- * Con: This requires n draw calls (where n = the number of colors), instead of just one.
+ * Draws a texture, one row at a time. This allows the texture to be cleanly skewed, even in the software renderer.
  *
  * The main use-case for this widget is drawing the slanted meters in the HUD of the Aetherius mod.
  */
-class GUIColorRibbon : GUIWidget {
-	Array<Color> Colors;
+class GUITextureSkewer : GUIWidget {
+	TextureID Texture;
 	
 	/**
 	 * How far to skew the fill area, in pixels. Negative skew moves the top leftward; positive skew moves the top rightward.
@@ -16,7 +12,7 @@ class GUIColorRibbon : GUIWidget {
 	double Skew;
 	
 	/**
-	 * Preferred size of this GUIColorRibbon on its long axis. This is reported through the PreferredWidth or PreferredHeight methods.
+	 * Preferred size of this GUITextureSkewer on its long axis. This is reported through the PreferredWidth or PreferredHeight methods.
 	 *
 	 * Note that not all of this area is necessarily drawn into. See the DrawFraction field for details.
 	 */
@@ -36,32 +32,40 @@ class GUIColorRibbon : GUIWidget {
 	}
 	
 	override double PreferredHeight(double width = -1.) {
-		return Insets.Y() + Colors.Size();
+		return Insets.Y() + TextureHeight();
 	}
 	
-	protected double MaxSkew;
+	protected int TextureHeight() {
+		if (Texture.IsValid())
+			return TexMan.CheckRealHeight(Texture);
+		else
+			return 0;
+	}
+	
+	protected double MaxSkew, FillHeight;
 	protected Rectangle RowRect;
 	
 	override void Layout() {
 		Super.Layout();
 		
-		let nColors = Colors.Size();
+		let height = double(TextureHeight());
 		
 		GetContentArea(RowRect);
+		FillHeight = RowRect.Size.Y;
 		
-		if (Colors.Size() > 0)
-			RowRect.Size.Y /= Colors.Size();
+		if (height > 0.)
+			RowRect.Size.Y /= height;
 		else
 			RowRect.Size.Y = 0;
 		
-		MaxSkew = Skew * double(nColors);
+		MaxSkew = Skew * height;
 		RowRect.Origin.X += max(0., MaxSkew); // Compensate for positive skew.
 		RowRect.Size.X -= abs(MaxSkew); // Compensate for all skew.
 	}
 	
 	override void Draw() {
-		let nColors = Colors.Size();
-		if (RowRect.Size.X <= 0. || RowRect.Size.Y <= 0. || nColors < 1 || DrawFraction <= 0.)
+		let height = TextureHeight();
+		if (RowRect.Size.X <= 0. || RowRect.Size.Y <= 0. || height < 1 || DrawFraction <= 0.)
 			return;
 		
 		Rectangle nextRowRect;
@@ -84,8 +88,16 @@ class GUIColorRibbon : GUIWidget {
 			nextRowRect.Size.X = adjWidth;
 		}
 		
-		for (let i = 0; i < nColors; i++) {
-			Screen.Clear(nextRowRect.Left(), nextRowRect.Top(), nextRowRect.Right(), nextRowRect.Bottom(), Colors[i]);
+		for (let i = 0; i < height; i++) {
+			Screen.DrawTexture(
+				Texture,
+				false,
+				nextRowRect.Origin.X, RowRect.Origin.Y,
+				DTA_DestWidthF, nextRowRect.Size.X,
+				DTA_DestHeightF, FillHeight,
+				DTA_ClipTop, int(nextRowRect.Origin.Y),
+				DTA_ClipBottom, int(nextRowRect.Origin.Y + nextRowRect.Size.Y + .5)
+			);
 			
 			nextRowRect.Origin.X -= Skew;
 			nextRowRect.Origin.Y += rowRect.Size.Y;

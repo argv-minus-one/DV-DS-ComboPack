@@ -7,5 +7,5 @@
 #include "zscript/gui/GUISwitchGroup.zc"
 #include "zscript/gui/GUIImage.zc"
 #include "zscript/gui/GUIText.zc"
-#include "zscript/gui/GUIColorRibbon.zc"
+#include "zscript/gui/GUITextureSkewer.zc"
 #include "zscript/gui/GUIRibbonMeter.zc"
