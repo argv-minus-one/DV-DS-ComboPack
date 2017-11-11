@@ -226,7 +226,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 	states
 	{
 		Spawn:
-			SERP C 1 nodelay
+			SERP C -1 nodelay
 			{
 				if (
 					!multiplayer &&
@@ -235,11 +235,10 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 						!(players[0].mo is "FloraBriscoletti") ||
 						players[0].mo.CountInv("SceptreOfEmpyrea")
 					)
-				) {
-					A_FadeOut(1, 1);
-				}
+				)
+					Destroy();
 			}
-			loop;
+			stop;
 		
 		Select:
 			TNT1 A 0
