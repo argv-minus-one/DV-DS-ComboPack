@@ -4353,3 +4353,114 @@ class FireFloorAdjuster : StaticEventHandler
 			}
 		}
 }
+
+class AetheriusMeleePuff : BulletPuff
+{
+	default
+	{
+		+PUFFGETSOWNER;
+	}
+	
+	action void A_PuffQuake(int baseIntensity, int baseDuration, int baseRadius)
+	{
+		let intensity = baseIntensity, duration = baseDuration, radius = baseRadius;
+		
+		int debugIntensityStaminaUpgrade, debugIntensityCharacter, debugIntensityBerserk,
+			debugDurationStaminaUpgrade, debugDurationCharacter, debugDurationDivineAvatar, debugDurationBerserk,
+			debugRadiusStaminaUpgrade, debugRadiusCharacter, debugRadiusDivineAvatar, debugRadiusBerserk;
+		
+		let strifeStaminaUpgrades = CallACS("GetMiscellaneousVar", 317);
+		if (strifeStaminaUpgrades)
+		{
+			intensity += strifeStaminaUpgrades / 4;
+			duration = duration * (8 + (strifeStaminaUpgrades * 3)) / 8;
+			radius = radius * (8 + (strifeStaminaUpgrades * 3)) / 8;
+			
+			if (dvdsdebug_showmeleeinformation)
+			{
+				debugIntensityStaminaUpgrade = intensity;
+				debugDurationStaminaUpgrade = duration;
+				debugRadiusStaminaUpgrade = radius;
+			}
+		}
+		
+		if (target is "DeggarisMontegger")
+		{
+			intensity = intensity * 3 / 2;
+			duration = duration * 3 / 2;
+			radius = radius * 3 / 2;
+		}
+		else if (target is "IlluciaHendershot")
+		{
+			intensity = intensity * 5 / 4;
+			duration = duration * 5 / 4;
+			radius = radius * 5 / 4;
+		}
+		
+		if (dvdsdebug_showmeleeinformation)
+		{
+			debugIntensityCharacter = intensity;
+			debugDurationCharacter = duration;
+			debugRadiusCharacter = radius;
+		}
+		
+		if (CallACS("GetBuffTimer", 7)) // Divine Avatar
+		{
+			duration = duration * 3 / 2;
+			radius = radius * 3 / 2;
+			
+			if (dvdsdebug_showmeleeinformation)
+			{
+				debugDurationDivineAvatar = duration;
+				debugRadiusDivineAvatar = radius;
+			}
+		}
+		
+		if (target.FindInventory("PowerStrength", subclass: true))
+		{
+			intensity = max(1, intensity * 3 / 2);
+			duration *= 4;
+			radius *= 8;
+			
+			if (dvdsdebug_showmeleeinformation)
+			{
+				debugIntensityBerserk = intensity;
+				debugDurationBerserk = duration;
+				debugRadiusBerserk = radius;
+			}
+		}
+		
+		if (dvdsdebug_showmeleeinformation) A_PrintBold(String.Format(
+			"\cfA_PuffQuake (melee hit impact) details:\n"
+			"\c+                  [Intensity] [Duration] [Radius]"
+			"\cvBase:              \cc%9d"   "   %8d"  "   %6d\n"
+			"\cvStamina upgrades:  \cc%+8d"   "   %+7d"  "   %+5d\n"
+			"\cvCharacter:         \cc%+8d"   "   %+7d"  "   %+5d\n"
+			"\cvDivine Avatar:     \cc%+8d"   "   %+7d"  "   %+5d\n"
+			"\cvBerserk:           \cc%+8d"   "   %+7d"  "   %+5d\n"
+			"\cfTotal:             %9d"       "   %8d"   "   %6d\n",
+			
+			baseIntensity, baseDuration, baseRadius,
+			
+			debugIntensityStaminaUpgrade - baseIntensity,
+			debugDurationStaminaUpgrade - baseDuration,
+			debugRadiusStaminaUpgrade - baseRadius,
+			
+			debugIntensityCharacter - debugIntensityStaminaUpgrade,
+			debugDurationCharacter - debugDurationStaminaUpgrade,
+			debugRadiusCharacter - debugRadiusStaminaUpgrade,
+			
+			0,
+			debugDurationDivineAvatar - debugDurationCharacter,
+			debugRadiusDivineAvatar - debugRadiusCharacter,
+			
+			debugIntensityBerserk - debugIntensityCharacter,
+			debugDurationBerserk - debugDurationDivineAvatar,
+			debugRadiusBerserk - debugRadiusDivineAvatar,
+			
+			intensity, duration, radius
+		));
+		
+		A_Quake(intensity, duration, 0, radius, 0);
+	}
+}
