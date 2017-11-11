@@ -4418,7 +4418,7 @@ class AetheriusMeleePuff : BulletPuff
 		
 		if (target && target.FindInventory("PowerStrength", subclass: true))
 		{
-			intensity = max(1, intensity * 3 / 2);
+			intensity = max(intensity + 1, intensity * 3 / 2);
 			duration *= 4;
 			radius *= 8;
 		}

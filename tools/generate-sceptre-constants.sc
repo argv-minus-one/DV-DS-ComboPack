@@ -53,7 +53,7 @@ print('\n' + generateConstantTable(
 print('\n' + generateConstantTable(
 	for {
 		lv <- 0 to 16
-		intensity = lv >> 3
+		intensity = 1 + (lv >> 3)
 	} yield intensity.toString,
 	6,
 	"int QuakeBaseIntensity"
