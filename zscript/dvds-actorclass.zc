@@ -4430,14 +4430,14 @@ class AetheriusMeleePuff : BulletPuff
 			}
 		}
 		
-		if (dvdsdebug_showmeleeinformation) A_PrintBold(String.Format(
+		if (dvdsdebug_showmeleeinformation) Console.Printf(
 			"\cfA_PuffQuake (melee hit impact) details:\n"
-			"\c+                  [Intensity] [Duration] [Radius]"
+			"\c+                  [Intensity] [Duration] [Radius]\n"
 			"\cvBase:              \cc%9d"   "   %8d"  "   %6d\n"
-			"\cvStamina upgrades:  \cc%+8d"   "   %+7d"  "   %+5d\n"
-			"\cvCharacter:         \cc%+8d"   "   %+7d"  "   %+5d\n"
-			"\cvDivine Avatar:     \cc%+8d"   "   %+7d"  "   %+5d\n"
-			"\cvBerserk:           \cc%+8d"   "   %+7d"  "   %+5d\n"
+			"\cvStamina upgrades:  \cc%+9d"   "   %+8d"  "   %+6d\n"
+			"\cvCharacter:         \cc%+9d"   "   %+8d"  "   %+6d\n"
+			"\cvDivine Avatar:     \cc%+9d"   "   %+8d"  "   %+6d\n"
+			"\cvBerserk:           \cc%+9d"   "   %+8d"  "   %+6d\n"
 			"\cfTotal:             %9d"       "   %8d"   "   %6d\n",
 			
 			baseIntensity, baseDuration, baseRadius,
@@ -4450,7 +4450,7 @@ class AetheriusMeleePuff : BulletPuff
 			debugDurationCharacter - debugDurationStaminaUpgrade,
 			debugRadiusCharacter - debugRadiusStaminaUpgrade,
 			
-			0,
+			0, // Divine Avatar doesn't affect intensity.
 			debugDurationDivineAvatar - debugDurationCharacter,
 			debugRadiusDivineAvatar - debugRadiusCharacter,
 			
@@ -4459,7 +4459,7 @@ class AetheriusMeleePuff : BulletPuff
 			debugRadiusBerserk - debugRadiusDivineAvatar,
 			
 			intensity, duration, radius
-		));
+		);
 		
 		A_Quake(intensity, duration, 0, radius, 0);
 	}

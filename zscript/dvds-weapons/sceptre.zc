@@ -457,6 +457,9 @@ class SceptrePuff : AetheriusMeleePuff
 	{
 		let sceptreLevel = CallACS("GetSceptreLevel");
 		
+		if (dvdsdebug_showmeleeinformation)
+			Console.Printf("Sceptre puff spawned. Sceptre level is %d.", sceptreLevel);
+		
 		A_PuffQuake(
 			QuakeBaseIntensity[sceptreLevel],
 			QuakeBaseDuration[sceptreLevel],
