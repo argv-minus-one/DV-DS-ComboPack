@@ -4,6 +4,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 	{
 		Tag "Sceptre of Empyrea";
 		Scale 0.5;
+		Weapon.SlotNumber 1;
 		Weapon.SlotPriority 1;
 		Weapon.KickBack 256;
 		+SPECTRAL;
