@@ -4152,6 +4152,9 @@ class AetheriusPlayerPawn : PlayerPawn
 {
 	int actortimer;
 	int pbuddha1, pbuddha2, pgod1, pgod2, pnoclip1, pnoclip2;
+	
+	Sound KiaiSound;
+	property KiaiSound: KiaiSound;
 
     override void PostBeginPlay()
     {

@@ -217,12 +217,6 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			(Owner.player.cmd.buttons & AerialAttackButtons) == AerialAttackButtons;
 	}
 	
-	action void A_Kiai(int chance)
-	{
-		if (random2() <= chance)
-			A_PlaySound("FloraKiaiFull", CHAN_VOICE);
-	}
-	
 	states
 	{
 		Spawn:

@@ -371,7 +371,21 @@ class AetheriusBaseWeaponZSC : Weapon
   A_PlaySound("crisisattack",6);
   A_PlaySound("crisisattack2",7);
  }
-
+	
+	action void A_Kiai(int chance = 255)
+	{
+		if
+		(
+			chance &&
+			self && self is "AetheriusPlayerPawn" &&
+			AetheriusPlayerPawn(self).KiaiSound &&
+			(
+				chance >= 255 ||
+				random2() >= chance
+			)
+		)
+			A_PlaySound(AetheriusPlayerPawn(self).KiaiSound, CHAN_VOICE);
+	}
 }
 
 class AetheriusBaseCustomInventoryZSC : CustomInventory 

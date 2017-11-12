@@ -112,6 +112,7 @@ actor FloraBriscoletti : AetheriusPlayerPawn // DoomPlayer // PlayerPawn
   Player.SoundClass "FloraSND"
   Player.SpawnClass Any
   Obituary "$OB_MPDEFAULT"
+	AetheriusPlayerPawn.KiaiSound "FloraKiaiFull"
 
   States
   {
