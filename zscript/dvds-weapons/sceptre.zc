@@ -175,6 +175,8 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			if (absangle(angle, self.Angle) > MaxHitAngle)
 				continue;
 			
+			// TODO: Check vertical angle (pitch)? Not needed for the Sceptre because its max angle is wider than 180° anyway, but…
+			
 			if (invoker.ActorsHitThisSwing.Find(mo) < invoker.ActorsHitThisSwing.Size())
 				continue;
 			else
