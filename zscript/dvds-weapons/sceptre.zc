@@ -204,7 +204,8 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 					puffPos,
 					puffAngle,
 					puffAngle,
-					PF_HITTHING | PF_MELEERANGE |
+					0,
+					flags: PF_HITTHING | PF_MELEERANGE |
 					(
 						!(mo.bNoBlood || mo.bInvulnerable || mo.bDormant)?
 						PF_HITTHINGBLEED : 0
