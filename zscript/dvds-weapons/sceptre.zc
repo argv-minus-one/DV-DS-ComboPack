@@ -484,12 +484,11 @@ class SceptrePuff : AetheriusMeleePuff
 	default
 	{
 		VSpeed 0;
-		Scale 0.375;
-		Alpha 1;
 		RenderStyle 'Translucent';
 		Species 'Players';
 		DamageType 'Sceptre';
 		+PUFFONACTORS;
+		+ALWAYSPUFF;
 		+FORCEPAIN;
 		+THRUSPECIES;
 		+MTHRUSPECIES;
@@ -551,7 +550,7 @@ class SceptrePuff : AetheriusMeleePuff
 		0.74999976, 0.7708331, 0.7916664, 0.8124997, 0.833333
 	};
 	
-	virtual void SceptrePuffStuff(bool hitThing)
+	action void A_SceptrePuffSpecial(bool hitThing)
 	{
 		let sceptreLevel = CallACS("GetSceptreLevel");
 		
@@ -559,20 +558,20 @@ class SceptrePuff : AetheriusMeleePuff
 			Console.Printf("Sceptre puff spawned. Sceptre level is %d.", sceptreLevel);
 		
 		A_PuffQuake(
-			QuakeBaseIntensity[sceptreLevel],
-			QuakeBaseDuration[sceptreLevel],
-			QuakeBaseRadius[sceptreLevel]
+			invoker.QuakeBaseIntensity[sceptreLevel],
+			invoker.QuakeBaseDuration[sceptreLevel],
+			invoker.QuakeBaseRadius[sceptreLevel]
 		);
 		
 		A_PlaySound(
 			hitThing?
-			HitThingSounds[sceptreLevel] :
-			HitWallSounds[sceptreLevel]
+			invoker.HitThingSounds[sceptreLevel] :
+			invoker.HitWallSounds[sceptreLevel]
 		);
 		
-		Scale.X = Scales[sceptreLevel];
-		Scale.Y = Scale.X;
-		Alpha = Opacities[sceptreLevel];
+		invoker.Scale.X = invoker.Scales[sceptreLevel];
+		invoker.Scale.Y = invoker.Scale.X;
+		invoker.Alpha = invoker.Opacities[sceptreLevel];
 	}
 	
 	states
@@ -580,28 +579,28 @@ class SceptrePuff : AetheriusMeleePuff
 		Spawn:
 		Melee:
 			TNT1 A 1;
-			TNT1 A 0
-			{
-				SceptrePuffStuff(true);
-				return ResolveState("Anim");
-			}
+			TNT1 A 0 A_SceptrePuffSpecial(true);
+			goto Anim;
 		
 		Crash:
 			TNT1 A 1;
-			TNT1 A 0
-			{
-				SceptrePuffStuff(false);
-				return ResolveState("Anim");
-			}
+			TNT1 A 0 A_SceptrePuffSpecial(false);
+			goto Anim;
 		
 		Anim:
+			TNT1 A 0 A_SpawnItemEx("SceptreShockwave", flags: SXF_NOCHECKPOSITION | SXF_TRANSFERSCALE | SXF_TRANSFERALPHA | SXF_TRANSFERPOINTERS);
 			SCPU CCDDDEEEFFFGGG 1 bright { Alpha -= Alpha / 5.; }
 			stop;
 	}
 }
 
-class SceptreShockwave : SceptrePuff
+class SceptreShockwave : Actor
 {
+	default
+	{
+		+NOINTERACTION;
+	}
+	
 	static const float Scales[] =
 	{
 		1.125, 1.21875, 1.3125, 1.40625, 1.5, 1.59375,
@@ -609,18 +608,15 @@ class SceptreShockwave : SceptrePuff
 		2.25, 2.34375, 2.4375, 2.53125, 2.625
 	};
 	
-	override void SceptrePuffStuff(bool hitThing)
-	{
-		Super.SceptrePuffStuff(hitThing);
-		
-		// Override the scale for shockwaves.
-		Scale.X = Scales[CallACS("GetSceptreLevel")];
-		Scale.Y = Scale.X;
-	}
-	
 	states
 	{
-		Anim:
+		Spawn:
+			TNT1 A 0 nodelay
+			{
+				invoker.Scale.X = invoker.Scales[CallACS("GetSceptreLevel")];
+				invoker.Scale.Y = invoker.Scale.X;
+			}
+			
 			SCSK GHIJK 1 bright { Alpha -= Alpha / 7.; }
 			stop;
 	}
