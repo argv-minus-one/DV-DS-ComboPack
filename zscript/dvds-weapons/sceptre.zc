@@ -135,12 +135,17 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 	}
 	
 	Array<Actor> ActorsHitThisSwing;
+	double SwingAngle;
+	
+	const SwingAngleStart = -120.;
+	const SwingAngleStep = (120. * 2. / 12.); // 240° over 12 tics.
 	
 	action void A_SceptreAttack(
 		int range = -1,
 		int damageMin = -1,
 		int damageMax = -1,
-		Class<Actor> puffType = "SceptrePuff"
+		Class<Actor> puffType = "SceptrePuff",
+		double hitWallAngle = 0
 	) {
 		if (range == -1)
 			range = invoker.SceptreRange[invoker.SceptreLevel];
@@ -151,6 +156,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		
 		class<Actor> replacedPuffType = GetReplacement(puffType);
 		let puffDefaults = GetDefaultByType(replacedPuffType);
+		bool actorsHit = false;
 		
 		let it = ThinkerIterator.Create("Actor");
 		for (let mo = Actor(it.Next()); mo; mo = Actor(it.Next()))
@@ -230,6 +236,22 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			
 			if (!shouldPuff)
 				puff.Destroy();
+			
+			actorsHit = true;
+		}
+		
+		if (!actorsHit)
+		{
+			let wallHitAngle = Normalize180(self.Angle + hitWallAngle);
+			
+			LineAttack(
+				Normalize180(self.Angle + hitWallAngle),
+				range,
+				AimLineAttack(wallHitAngle, range),
+				random(damageMin, damageMax),
+				puffDefaults.DamageType,
+				puffType
+			);
 		}
 	}
 	
@@ -427,20 +449,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 				CallACS("AddSceptreEXP", 0, 1, 1);
 				A_Kiai(63);
 				A_PlaySound(invoker.SceptreSwingSounds[invoker.SceptreLevel], CHAN_WEAPON);
-				
-				return state(null);
-			}
-			SCEM DEFG 1 A_SceptreDefend;
-			
-			SCEM H 1 bright
-			{
-				A_SceptreDefend();
-				A_SceptreAttack(
-					invoker.SceptreRange[invoker.SceptreLevel],
-					invoker.SceptreDamageMin[invoker.SceptreLevel],
-					invoker.SceptreDamageMax[invoker.SceptreLevel],
-					"SceptrePuff"
-				);
+				invoker.SwingAngle = SwingAngleStart;
 				
 				// Strife mode makes the punch work like the Punch Dagger where it NEVER makes sound
 				if (!(gameinfo.gametype & GAME_Strife) && (random() & 255) >= 252)
@@ -448,9 +457,20 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 					A_AlertMonsters();
 				
 				CallACS("StartTensionCountDown");
+				
+				return state(null);
 			}
 			
-			SCEM IJKLMNO 1 A_SceptreDefend;
+			SCEM DEFGHIJKLMNO 1 {
+				A_SceptreDefend();
+				A_SceptreAttack(
+					invoker.SceptreRange[invoker.SceptreLevel],
+					invoker.SceptreDamageMin[invoker.SceptreLevel],
+					invoker.SceptreDamageMax[invoker.SceptreLevel],
+					"SceptrePuff",
+					invoker.SwingAngle += invoker.SwingAngleStep
+				);
+			}
 			goto Select;
 		
 		SpinAttack:
