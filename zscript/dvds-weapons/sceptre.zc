@@ -172,7 +172,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 				continue;
 			
 			let angle = AngleTo(mo);
-			if (abs(angle) > MaxHitAngle)
+			if (absangle(angle, self.Angle) > MaxHitAngle)
 				continue;
 			
 			if (invoker.ActorsHitThisSwing.Find(mo) < invoker.ActorsHitThisSwing.Size())
@@ -180,18 +180,54 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			else
 				invoker.ActorsHitThisSwing.Push(mo);
 			
+			let shouldBleed = !(puffDefaults.bBloodlessImpact || mo.bNoBlood);
+			let shouldPuff = !shouldBleed || puffDefaults.bPuffOnActors;
+			
 			Actor puff;
 			{
-				let puffAngle = angle - 180.;
+				let puffAngle = Normalize180(angle - 180.);
 				let puffPos = mo.Vec3Offset(
 					(mo.radius + 1) * cos(puffAngle),
 					(mo.radius + 1) * sin(puffAngle),
 					(mo.Height / 2) - mo.Floorclip
 				);
-				puff = SpawnPuff(replacedPuffType, puffPos, puffAngle, puffAngle, 0, victim: mo);
+				puff = SpawnPuff(
+					replacedPuffType,
+					puffPos,
+					puffAngle,
+					puffAngle,
+					PF_HITTHING | PF_MELEERANGE |
+					(
+						!(mo.bNoBlood || mo.bInvulnerable || mo.bDormant)?
+						PF_HITTHINGBLEED : 0
+					) |
+					(shouldPuff? 0 : PF_TEMPORARY),
+					victim: mo
+				);
 			}
 			
-			mo.DamageMobj(puff, self, random(damageMin, damageMax), invoker.DamageType, angle: puff.Angle);
+			let actualDamage = mo.DamageMobj(
+				puff,
+				self,
+				random(damageMin, damageMax),
+				invoker.DamageType,
+				flags: DMG_INFLICTOR_IS_PUFF | (invoker.bPierceArmor? DMG_NO_ARMOR : 0),
+				angle: puff.Angle
+			);
+			
+			if (puffDefaults.PoisonDamage > 0)
+				mo.PoisonMobj(puff, self, puffDefaults.PoisonDamage, puffDefaults.PoisonDuration, puffDefaults.PoisonPeriod, puffDefaults.PoisonDamageType);
+			
+			if (shouldBleed)
+			{
+				if (invoker.bAxeBlood || invoker.bBloodSplatter)
+					mo.BloodSplatter(puff.Pos, puff.Angle, invoker.bAxeBlood);
+				else
+					mo.SpawnBlood(puff.Pos, puff.Angle, actualDamage);
+			}
+			
+			if (!shouldPuff)
+				puff.Destroy();
 		}
 	}
 	
