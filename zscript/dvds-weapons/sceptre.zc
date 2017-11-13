@@ -218,6 +218,78 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			(Owner.player.cmd.buttons & AerialAttackButtons) == AerialAttackButtons;
 	}
 	
+	// Starting offset (completely offscreen): 87, 112
+	// Ending offset (completely onscreen): 0, 32
+	// Number of frames: 10
+	// Interpolation step: -8.7, -8
+	static const double SceptreRaiseStartOffset[] = { 87, 80 + WEAPONTOP };
+	static const double SceptreRaiseEndOffset[] = { 0, WEAPONTOP };
+	static const double SceptreRaiseStep[] = { -8.7, -8 };
+	
+	/** This should be called on a TNT1 A 1 frame, before beginning the sceptre raise animation proper. */
+	action void A_SceptreBeginRaise()
+	{
+		A_WeaponOffset(invoker.SceptreRaiseStartOffset[0], invoker.SceptreRaiseStartOffset[1]);
+	}
+	
+	action state A_SceptreRaise(statelabel andThen = null, double speed = 1)
+	{
+		if (!player)
+			return null;
+		
+		let ps = player.FindPSprite(PSP_WEAPON);
+		if (!ps)
+			return null;
+		
+		if (andThen && ps.x <= invoker.SceptreRaiseEndOffset[0] && ps.y <= invoker.SceptreRaiseEndOffset[1])
+		{
+			if (andThen == "Ready")
+				A_Raise(0);
+			return ResolveState(andThen);
+		}
+		else
+		{
+			let nx = max(ps.x + (invoker.SceptreRaiseStep[0] * speed), invoker.SceptreRaiseEndOffset[0]);
+			let ny = max(ps.y + (invoker.SceptreRaiseStep[1] * speed), invoker.SceptreRaiseEndOffset[1]);
+			A_WeaponOffset(nx, ny, WOF_INTERPOLATE);
+			return null;
+		}
+	}
+	
+	action state A_SceptreLower(statelabel andThen = null, bool switchWeaponWhenDone = false, double speed = 1)
+	{
+		if (!player)
+			return null;
+		
+		let ps = player.FindPSprite(PSP_WEAPON);
+		if (!ps)
+			return null;
+		
+		if (ps.x >= invoker.SceptreRaiseStartOffset[0] && ps.y >= invoker.SceptreRaiseStartOffset[1])
+		{
+			if (switchWeaponWhenDone)
+			{
+				A_WeaponOffset(0, WEAPONBOTTOM);
+				A_Lower();
+				return null;
+			}
+			else
+				return ResolveState(andThen);
+		}
+		else
+		{
+			let nx = min(ps.x - (invoker.SceptreRaiseStep[0] * speed), invoker.SceptreRaiseStartOffset[0]);
+			let ny = min(ps.y - (invoker.SceptreRaiseStep[1] * speed), invoker.SceptreRaiseStartOffset[1]);
+			A_WeaponOffset(nx, ny, WOF_INTERPOLATE);
+			return null;
+		}
+	}
+	
+	action void A_SceptreRaiseReset()
+	{
+		A_WeaponOffset(invoker.SceptreRaiseEndOffset[0], invoker.SceptreRaiseEndOffset[1]);
+	}
+	
 	states
 	{
 		Spawn:
@@ -236,13 +308,15 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			stop;
 		
 		Select:
-			TNT1 A 0
+			TNT1 A 1
 			{
+				A_SceptreBeginRaise();
 				A_SetCrosshair(8);
 				SetInventory("DrawingDiarisBow", 0);
 				invoker.AnimSpeedsEnabled = true;
 			}
-			SCEM A 1 A_Raise(2);
+			
+			SCEM A 1 A_SceptreRaise("Ready");
 			wait;
 		
 		Deselect:
@@ -251,13 +325,15 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 				A_SetCrosshair(0);
 				CallACS("MiscVarSetDECORATE",397,0);
 			}
-			SCEM A 1 A_Lower(2);
+			
+			SCEM A 1 A_SceptreLower(switchWeaponWhenDone: true);
 			wait;
 		
 		Ready:
 			TNT1 A 0
 			{
 				invoker.ActorsHitThisSwing.Clear();
+				A_SceptreRaiseReset();
 			}
 			
 			SCEM A 1
@@ -268,27 +344,23 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			wait;
 		
 		Fire:
-			TNT1 A 0
+			SCEM A 1
 			{
 				if (!invoker.CanOwnerMove())
-					return ResolveState("Ready");
+					return state(null);
 				else if (invoker.CheckAerialAttack())
 					return ResolveState("AerialAttack");
 				else if (invoker.CheckSpinAttack())
 					return ResolveState("SpinAttack");
 				else
-					return ResolveState(null);
+					return A_SceptreLower("Hold", speed: 1.5);
 			}
-			// Fall through.
-		
-		SwingAttack:
-			SCL1 ABCDEFGHI 1;
-			// Fall through.
+			wait;
 		
 		Hold:
-			SCL1 J 1;
+			TNT1 A 0 A_SceptreRaiseReset;
 			
-			TNT1 A 0
+			TNT1 A 1
 			{
 				let inMenu = CallACS("GetMiscellaneousVar", 2500);
 				let asleep = CallACS("GetBuffTimer", 20);
@@ -300,25 +372,25 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 				else if (invoker.CheckSpinAttack())
 					return ResolveState("SpinAttack");
 				else if (player.cmd.buttons & BT_ALTATTACK)
-					return ResolveState("HoldCancel");
+					return ResolveState("Select");
 				else if (player.cmd.buttons & BT_ATTACK)
-					return ResolveState("Hold");
+					return state(null);
 				else
-					return ResolveState(null);
+					return ResolveState("Swing");
 			}
-			// Fall through.
+			wait;
 		
 		Swing:
 			TNT1 A 0
 			{
 				if (!CallACS("UseStaminaAttack", invoker.SceptreSwingStaminaCost[invoker.SceptreLevel]))
-					return ResolveState("HoldCancel");
+					return ResolveState("Select");
 				
 				CallACS("AddSceptreEXP", 0, 1, 1);
 				A_Kiai(63);
 				A_PlaySound(invoker.SceptreSwingSounds[invoker.SceptreLevel], CHAN_WEAPON);
 				
-				return ResolveState(null);
+				return state(null);
 			}
 			SCEM DEFG 1 A_SceptreDefend;
 			
@@ -341,11 +413,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			}
 			
 			SCEM IJKLMNO 1 A_SceptreDefend;
-			// Fall through.
-		
-		HoldCancel:
-			SCL1 JIHGFEDCB 1;
-			goto Ready;
+			goto Select;
 		
 		SpinAttack:
 			// TODO
@@ -363,10 +431,10 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 				A_Kiai(31);
 			}
 			*/
-			goto SwingAttack;
+			goto Hold;
 			
 		AerialAttack:
-			goto SwingAttack;
+			goto Hold;
 		
 		AltFire:
 			FLHS A 1;
