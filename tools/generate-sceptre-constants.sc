@@ -30,7 +30,7 @@ def generateConstantTable(
 print(generateConstantTable(
 	for {
 		lv <- 0 to 16
-		soundIndex = lv >> 3
+		soundIndex = 1 + (lv >> 3)
 		literal = s""""SceptreHitThing${soundIndex}""""
 	} yield literal,
 	4,
