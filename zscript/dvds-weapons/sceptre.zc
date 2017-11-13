@@ -166,7 +166,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 				(puffDefaults.bThruGhost && mo.bGhost) ||
 				(mo.bSpectral && !puffDefaults.bSpectral) ||
 				!mo.bShootable ||
-				Distance2D(mo) > range ||
+				Distance3D(mo) > range ||
 				(mo.CurSector.PortalGroup != CurSector.PortalGroup && !CheckSight(mo))
 			)
 				continue;
