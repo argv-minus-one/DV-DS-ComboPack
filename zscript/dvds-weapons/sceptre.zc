@@ -108,7 +108,6 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 	const AerialAttackMinSceptreLevel = 4;
 	const SpinAttackButtons = BT_MOVELEFT | BT_MOVERIGHT;
 	const SwingDefenseDuration = 12;
-	const MaxHitAngle = 120.;
 	
 	// Code //
 	
@@ -145,7 +144,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		int damageMin = -1,
 		int damageMax = -1,
 		Class<Actor> puffType = "SceptrePuff",
-		double hitWallAngle = 0
+		double swingAngle = 0
 	) {
 		if (range == -1)
 			range = invoker.SceptreRange[invoker.SceptreLevel];
@@ -178,7 +177,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 				continue;
 			
 			let angle = AngleTo(mo);
-			if (absangle(angle, self.Angle) > MaxHitAngle)
+			if (absangle(angle, self.Angle + swingAngle) > SwingAngleStep)
 				continue;
 			
 			// TODO: Check vertical angle (pitch)? Not needed for the Sceptre because its max angle is wider than 180° anyway, but…
@@ -243,12 +242,12 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		
 		if (!actorsHit)
 		{
-			let wallHitAngle = Normalize180(self.Angle + hitWallAngle);
+			let wallHitAngle = Normalize180(self.Angle + swingAngle);
 			
 			LineAttack(
-				Normalize180(self.Angle + hitWallAngle),
+				Normalize180(self.Angle + swingAngle),
 				range,
-				AimLineAttack(wallHitAngle, range),
+				AimLineAttack(swingAngle, range),
 				random(damageMin, damageMax),
 				puffDefaults.DamageType,
 				puffType
