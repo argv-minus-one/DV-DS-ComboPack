@@ -490,7 +490,6 @@ class SceptrePuff : AetheriusMeleePuff
 		Species 'Players';
 		DamageType 'Sceptre';
 		+PUFFONACTORS;
-		+ALWAYSPUFF;
 		+FORCEPAIN;
 		+THRUSPECIES;
 		+MTHRUSPECIES;
