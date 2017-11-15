@@ -170,7 +170,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 				) ||
 				(puffDefaults.bThruGhost && mo.bGhost) ||
 				(mo.bSpectral && !puffDefaults.bSpectral) ||
-				!mo.bShootable ||
+				!(mo.bShootable || mo.bMissile) ||
 				Distance3D(mo) > range ||
 				(mo.CurSector.PortalGroup != CurSector.PortalGroup && !CheckSight(mo))
 			)
@@ -187,8 +187,16 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			else
 				invoker.ActorsHitThisSwing.Push(mo);
 			
-			let shouldBleed = !(puffDefaults.bBloodlessImpact || mo.bNoBlood);
-			let shouldPuff = !shouldBleed || puffDefaults.bPuffOnActors;
+			let shouldBleed =
+				!mo.bMissile &&
+				!mo.bNoBlood &&
+				!mo.bInvulnerable &&
+				!mo.bDormant &&
+				!puffDefaults.bBloodlessImpact;
+			
+			let shouldPuff =
+				!shouldBleed ||
+				puffDefaults.bPuffOnActors;
 			
 			Actor puff;
 			{
@@ -205,26 +213,27 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 					puffAngle,
 					0,
 					flags: PF_HITTHING | PF_MELEERANGE |
-					(
-						!(mo.bNoBlood || mo.bInvulnerable || mo.bDormant)?
-						PF_HITTHINGBLEED : 0
-					) |
+					(shouldBleed? PF_HITTHINGBLEED : 0) |
 					(shouldPuff? 0 : PF_TEMPORARY),
 					victim: mo
 				);
 			}
 			
-			let actualDamage = mo.DamageMobj(
-				puff,
-				self,
-				random(damageMin, damageMax),
-				invoker.DamageType,
-				flags: DMG_INFLICTOR_IS_PUFF | (invoker.bPierceArmor? DMG_NO_ARMOR : 0),
-				angle: puff.Angle
-			);
-			
-			if (puffDefaults.PoisonDamage > 0)
-				mo.PoisonMobj(puff, self, puffDefaults.PoisonDamage, puffDefaults.PoisonDuration, puffDefaults.PoisonPeriod, puffDefaults.PoisonDamageType);
+			int actualDamage = 0;
+			if (mo.bShootable)
+			{
+				actualDamage = mo.DamageMobj(
+					puff,
+					self,
+					random(damageMin, damageMax),
+					invoker.DamageType,
+					flags: DMG_INFLICTOR_IS_PUFF | (invoker.bPierceArmor? DMG_NO_ARMOR : 0),
+					angle: puff.Angle
+				);
+				
+				if (puffDefaults.PoisonDamage > 0)
+					mo.PoisonMobj(puff, self, puffDefaults.PoisonDamage, puffDefaults.PoisonDuration, puffDefaults.PoisonPeriod, puffDefaults.PoisonDamageType);
+			}
 			
 			if (shouldBleed)
 			{
@@ -236,6 +245,28 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			
 			if (!shouldPuff)
 				puff.Destroy();
+			else if (puff is "SceptrePuff")
+			{
+				SceptrePuff(puff).SceptreLevel = invoker.SceptreLevel;
+				SceptrePuff(puff).WhatWasHit =
+					mo.bMissile? SceptrePuff.HIT_PROJECTILE : SceptrePuff.HIT_MONSTER;
+			}
+			
+			let deflectAngle = Normalize180(angle + frandom(-45., 45.));
+			
+			if (mo.bMissile)
+			{
+				mo.Vel.XY = AngleToVector(deflectAngle, mo.Speed * frandom(.6, 1.2));
+				
+				if (!mo.bFloorHugger && !mo.bCeilingHugger)
+					mo.Vel.Z = frandom(-8., 8.);
+			}
+			else if (!mo.bDontThrust)
+			{
+				let deflectForce = (800. + (30. * invoker.SceptreLevel) ** 2.) * frandom(.9, 1.1) / mo.Mass;
+				mo.Thrust(deflectForce, deflectAngle);
+				mo.Vel.Z += frandom(-8., 8.) * min(deflectForce, 1.);
+			}
 			
 			actorsHit = true;
 		}
@@ -244,7 +275,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		{
 			let wallHitAngle = Normalize180(self.Angle + swingAngle);
 			
-			LineAttack(
+			let puff = LineAttack(
 				Normalize180(self.Angle + swingAngle),
 				range,
 				AimLineAttack(swingAngle, range),
@@ -252,6 +283,12 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 				puffDefaults.DamageType,
 				puffType
 			);
+			
+			if (puff is "SceptrePuff")
+			{
+				SceptrePuff(puff).SceptreLevel = invoker.SceptreLevel;
+				SceptrePuff(puff).WhatWasHit = SceptrePuff.HIT_WALL;
+			}
 		}
 	}
 	
@@ -571,45 +608,55 @@ class SceptrePuff : AetheriusMeleePuff
 		0.74999976, 0.7708331, 0.7916664, 0.8124997, 0.833333
 	};
 	
-	action void A_SceptrePuffSpecial(bool hitThing)
+	enum EWhatWasHit
 	{
-		let sceptreLevel = CallACS("GetSceptreLevel");
-		
+		HIT_WALL = 0, HIT_MONSTER, HIT_PROJECTILE
+	};
+	
+	EWhatWasHit WhatWasHit;
+	int SceptreLevel;
+	
+	action void A_SceptrePuffSpecial()
+	{
 		if (dvdsdebug_showmeleeinformation)
-			Console.Printf("Sceptre puff spawned. Sceptre level is %d.", sceptreLevel);
+			Console.Printf("Sceptre puff spawned. Sceptre level is %d.", invoker.SceptreLevel);
 		
 		A_PuffQuake(
-			invoker.QuakeBaseIntensity[sceptreLevel],
-			invoker.QuakeBaseDuration[sceptreLevel],
-			invoker.QuakeBaseRadius[sceptreLevel]
+			invoker.QuakeBaseIntensity[invoker.SceptreLevel],
+			invoker.QuakeBaseDuration[invoker.SceptreLevel],
+			invoker.QuakeBaseRadius[invoker.SceptreLevel]
 		);
 		
-		A_PlaySound(
-			hitThing?
-			invoker.HitThingSounds[sceptreLevel] :
-			invoker.HitWallSounds[sceptreLevel]
-		);
+		Sound hitSound = "";
+		switch (invoker.WhatWasHit)
+		{
+			case HIT_WALL:
+				hitSound = SceptrePuff.HitWallSounds[invoker.SceptreLevel];
+				break;
+			
+			case HIT_MONSTER:
+				hitSound = SceptrePuff.HitThingSounds[invoker.SceptreLevel];
+				break;
+			
+			case HIT_PROJECTILE:
+				// TODO
+		}
+		A_PlaySound(hitSound);
 		
-		invoker.Scale.X = invoker.Scales[sceptreLevel];
+		invoker.Scale.X = invoker.Scales[invoker.SceptreLevel];
 		invoker.Scale.Y = invoker.Scale.X;
-		invoker.Alpha = invoker.Opacities[sceptreLevel];
+		invoker.Alpha = invoker.Opacities[invoker.SceptreLevel];
 	}
 	
 	states
 	{
 		Spawn:
-		Melee:
 			TNT1 A 1;
-			TNT1 A 0 A_SceptrePuffSpecial(true);
-			goto Anim;
-		
-		Crash:
-			TNT1 A 1;
-			TNT1 A 0 A_SceptrePuffSpecial(false);
-			goto Anim;
-		
-		Anim:
-			TNT1 A 0 A_SpawnItemEx("SceptreShockwave", flags: SXF_NOCHECKPOSITION | SXF_TRANSFERSCALE | SXF_TRANSFERALPHA | SXF_TRANSFERPOINTERS);
+			TNT1 A 0
+			{
+				A_SceptrePuffSpecial();
+				A_SpawnItemEx("SceptreShockwave", flags: SXF_NOCHECKPOSITION | SXF_TRANSFERSCALE | SXF_TRANSFERALPHA | SXF_TRANSFERPOINTERS);
+			}
 			SCPU CCDDDEEEFFFGGG 1 bright { Alpha -= Alpha / 5.; }
 			stop;
 	}
