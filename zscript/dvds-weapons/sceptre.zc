@@ -296,6 +296,19 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 				mo.Vel.Z += frandom(-8., 8.) * min(deflectForce, 1.);
 			}
 			
+			if (dvdsdebug_showmeleeinformation) Console.Printf(
+				"%s's %s hit %s for %d %s damage, resulting in %s.",
+				self.GetClassName(),
+				invoker.GetClassName(),
+				mo.GetClassName(),
+				actualDamage, invoker.DamageType,
+				(shouldPuff && shouldBleed)?
+					String.Format("a %s and blood", puff.GetClassName()) :
+					shouldPuff? String.Format("a %s", puff.GetClassName()) :
+					shouldBleed? "blood" :
+					"neither a puff nor blood"
+			);
+			
 			actorsHit = true;
 		}
 		
