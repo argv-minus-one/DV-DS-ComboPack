@@ -696,6 +696,8 @@ class SceptrePuff : AetheriusMeleePuff
 	states
 	{
 		Spawn:
+		Melee:
+		Crash:
 			TNT1 A 1;
 			TNT1 A 0
 			{
