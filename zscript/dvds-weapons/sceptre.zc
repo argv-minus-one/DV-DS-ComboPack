@@ -1,3 +1,19 @@
+/*
+TODO:
+• Make Sceptre hits on monsters and projectiles generate the correct sound effects.
+• Animate alt fire.
+• Don't generate hit sounds for monsters pushed back by the shield, but do generate puffs.
+• Make it possible to cast spells through the shield.
+• Nerf the push-back effect. It's ridiculously strong at level 16.
+• Smooth out the attack animations.
+• Implement the spin attack.
+• Make alt fire cost stamina and MP.
+• Don't generate multiple puffs/sounds on the same actor being continuously pushed away by alt fire. Instead, generate one, and make it keep looping its animation and sticking to the actor until it's no longer needed.
+• Apply damage modifiers: berserk, debuffs, strength stat, etc.
+• Port the FloraWeapon class to ZScript, then derive this class from it.
+• Rename to SceptreOfEmpyrea when done.
+*/
+
 class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 {
 	default
