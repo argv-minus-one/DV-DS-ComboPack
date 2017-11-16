@@ -113,11 +113,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 	// Code //
 	
 	protected int SceptreLevel, CharLevel;
-	SceptreShield Shields[8];
-	static const double ShieldSizes[] =
-	{
-		20, 15, 10, 5, 1, .5, .1, 0
-	};
+	SceptreShieldPower Shield;
 	
 	override void Tick()
 	{
@@ -150,7 +146,10 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		int damageMin = -1,
 		int damageMax = -1,
 		Class<Actor> puffType = "SceptrePuff",
-		double swingAngle = 0
+		double swingAngle = 0,
+		double swingWidth = SceptreOfEmpyreaZSC.MaxShieldAngle,
+		bool puffWalls = true,
+		bool rememberAlreadyHitActors = true
 	) {
 		if (range == -1)
 			range = invoker.SceptreRange[invoker.SceptreLevel];
@@ -188,12 +187,29 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			
 			// TODO: Check vertical angle (pitch)? Not needed for the Sceptre because its max angle is wider than 180° anyway, but…
 			
-			if (invoker.ActorsHitThisSwing.Find(mo) < invoker.ActorsHitThisSwing.Size())
-				continue;
+			if (rememberAlreadyHitActors)
+			{
+				if (invoker.ActorsHitThisSwing.Find(mo) < invoker.ActorsHitThisSwing.Size())
+					continue;
+				else
+					invoker.ActorsHitThisSwing.Push(mo);
+			}
+			
+			int damage;
+			if (damageMin)
+			{
+				if (damageMax)
+					damage = random(damageMin, damageMax);
+				else
+					damage = damageMin;
+			}
+			else if (damageMax)
+				damage = damageMax;
 			else
-				invoker.ActorsHitThisSwing.Push(mo);
+				damage = 0;
 			
 			let shouldBleed =
+				damage > 0 &&
 				!mo.bMissile &&
 				!mo.bNoBlood &&
 				!mo.bInvulnerable &&
@@ -226,8 +242,10 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			}
 			
 			int actualDamage = 0;
-			if (mo.bShootable)
+			if (mo.bShootable && damage)
 			{
+				let modt = mo.bDontThrust;
+				mo.bDontThrust = true;
 				actualDamage = mo.DamageMobj(
 					puff,
 					self,
@@ -236,6 +254,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 					flags: DMG_INFLICTOR_IS_PUFF | (invoker.bPierceArmor? DMG_NO_ARMOR : 0),
 					angle: puff.Angle
 				);
+				mo.bDontThrust = modt;
 				
 				if (puffDefaults.PoisonDamage > 0)
 					mo.PoisonMobj(puff, self, puffDefaults.PoisonDamage, puffDefaults.PoisonDuration, puffDefaults.PoisonPeriod, puffDefaults.PoisonDamageType);
@@ -277,7 +296,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			actorsHit = true;
 		}
 		
-		if (!actorsHit)
+		if (!actorsHit && puffWalls)
 		{
 			let wallHitAngle = Normalize180(self.Angle + swingAngle);
 			
@@ -302,31 +321,12 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 	// See relevant feature request: https://forum.zdoom.org/viewtopic.php?f=15&t=58468
 	action void A_SceptreDefend()
 	{
-		for (let i = 0, l = invoker.Shields.Size(); i < l; i++)
-		{
-			let shield = invoker.Shields[i];
-			
-			if (dvdsdebug_sceptre_showshieldstatus)
-			{
-				if (!shield)
-					Console.Printf("Shield #%d doesn't exist. Creating.", i);
-				else if (shield.bDestroyed)
-					Console.Printf("Shield #%d has already been destroyed. Creating a new one.", i);
-			}
-			
-			if (!shield || shield.bDestroyed)
-			{
-				shield = SceptreShield(Spawn("SceptreShield", Pos));
-				shield.master = self; // Remember that the self pointer of a weapon points to the actor holding it.
-				shield.ShieldSize = SceptreOfEmpyreaZSC.ShieldSizes[i];
-				shield.ShieldNum = i;
-				if (i == 0)
-					shield.bReflective = true;
-				invoker.Shields[i] = shield;
-			}
-			
-			shield.ExpirationTime = gametic + 2;
-		}
+		if (invoker.Shield)
+			invoker.Shield.EffectTics = 2;
+		else
+			invoker.Shield = SceptreShieldPower(self.GiveInventoryType("SceptreShieldPower"));
+		
+		A_SceptreAttack(damageMin: 0, damageMax: 0, puffWalls: false, rememberAlreadyHitActors: false);
 	}
 	
 	bool CheckSpinAttack()
@@ -536,7 +536,8 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 					invoker.SceptreDamageMin[invoker.SceptreLevel],
 					invoker.SceptreDamageMax[invoker.SceptreLevel],
 					"SceptrePuff",
-					invoker.SwingAngle += invoker.SwingAngleStep
+					invoker.SwingAngle += invoker.SwingAngleStep,
+					SceptreOfEmpyreaZSC.SwingAngleStep
 				);
 			}
 			goto Select;
@@ -721,31 +722,28 @@ class SceptreShockwave : Actor
 	}
 }
 
-class SceptreShield : Actor
+class SceptreShieldPower : PowerShielded
 {
 	default
 	{
-		Health 1;
-		+SHOOTABLE;
-		+DONTRIP;
-		+NOTIMEFREEZE;
-		+NOBLOOD;
-		+NOBLOODDECALS;
-		+NOGRAVITY;
-		+NOTRIGGER;
-		+NOTELEPORT;
+		Powerup.Duration 2;
+		PowerShielded.ShieldActorClass "SceptreShield";
 	}
-	
-	int ExpirationTime;
-	int ShieldNum;
-	double ShieldSize;
+}
+
+class SceptreShield : PowerShielded_Shield
+{
+	default
+	{
+		+REFLECTIVE;
+		+NOTARGET;
+	}
 	
 	override bool CanCollideWith(Actor other, bool passive)
 	{
 		if (
 			!master ||
 			master == other ||
-			other.GetClassName() == "SceptreShield" ||
 			(other.bMissile && master == other.target)
 		)
 			return false;
@@ -758,14 +756,14 @@ class SceptreShield : Actor
 		{
 			if (block)
 				Console.Printf(
-					"%s blocked by %s #%d!",
+					"%s blocked by %s!",
 					other.GetClassName(),
-					GetClassName(), ShieldNum
+					GetClassName()
 				);
 			else
 				Console.Printf(
-					"%s #%d couldn't block a %s.",
-					GetClassName(), ShieldNum,
+					"%s couldn't block a %s.",
+					GetClassName(),
 					other.GetClassName()
 				);
 		}
@@ -780,8 +778,8 @@ class SceptreShield : Actor
 		
 		if (dvdsdebug_sceptre_showshieldstatus)
 			Console.Printf(
-				"%s #%d was hit from angle %f (abs %f) by a %s fired by %s!",
-				GetClassName(), ShieldNum,
+				"%s was hit from angle %f (abs %f) by a %s fired by %s!",
+				GetClassName(),
 				angle, rang,
 				inflictor.GetClassName(),
 				source.GetClassName()
@@ -791,9 +789,9 @@ class SceptreShield : Actor
 		{
 			if (dvdsdebug_sceptre_showshieldstatus)
 				Console.Printf(
-					"%d %s damage blocked by %s #%d!",
+					"%d %s damage blocked by %s!",
 					damage, damageType,
-					GetClassName(), ShieldNum
+					GetClassName()
 				);
 			
 			return 0;
@@ -801,45 +799,11 @@ class SceptreShield : Actor
 		
 		if (dvdsdebug_sceptre_showshieldstatus)
 			Console.Printf(
-				"%s #%d couldn't block %d %s damage.",
-				GetClassName(), ShieldNum,
+				"%s couldn't block %d %s damage.",
+				GetClassName(),
 				damage, damageType
 			);
 		
 		return master.DamageMobj(inflictor, source, damage, damageType, flags, angle);
-	}
-	
-	override void Tick()
-	{
-		if (!master)
-		{
-			if (dvdsdebug_sceptre_showshieldstatus)
-				Console.Printf("\crWTF?!? %s #%d has no master!", GetClassName(), ShieldNum);
-			
-			Destroy();
-		}
-		else if (gametic >= ExpirationTime)
-		{
-			if (dvdsdebug_sceptre_showshieldstatus)
-				Console.Printf("%s #%d has expired. RIP.", GetClassName(), ShieldNum);
-			
-			Destroy();
-		}
-		else
-		{
-			A_SetSize(master.Radius + ShieldSize, master.Height + ShieldSize);
-			A_Warp(
-				AAPTR_MASTER,
-				zofs: -(Height - master.Height) * .5,
-				flags: WARPF_NOCHECKPOSITION | WARPF_BOB | WARPF_COPYVELOCITY | WARPF_COPYPITCH | WARPF_INTERPOLATE
-			);
-		}
-	}
-	
-	states
-	{
-		Spawn:
-			TNT1 A -1;
-			stop;
 	}
 }
