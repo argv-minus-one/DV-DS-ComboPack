@@ -592,12 +592,9 @@ class SceptrePuff : AetheriusMeleePuff
 	{
 		VSpeed 0;
 		RenderStyle 'Translucent';
-		Species 'Players';
 		DamageType 'Sceptre';
 		+PUFFONACTORS;
 		+FORCEPAIN;
-		+THRUSPECIES;
-		+MTHRUSPECIES;
 		+SPECTRAL;
 	}
 	
