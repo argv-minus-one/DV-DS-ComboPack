@@ -166,7 +166,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		for (let mo = Actor(it.Next()); mo; mo = Actor(it.Next()))
 		{
 			if (
-				mo == self || mo.bDormant || (
+				mo == self || mo.master == self || mo.bDormant || (
 					puffDefaults.bAllowThruFlags &&
 					(
 						puffDefaults.bThruActors ||
