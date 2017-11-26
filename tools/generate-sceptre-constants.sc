@@ -49,6 +49,12 @@ print('\n' + generateConstantTable(
 	"Sound HitWallSounds"
 ))
 
+print('\n' + generateConstantTable(
+	for (_ <- 0 to 16) yield """"SceptreBlocked"""",
+	4,
+	"Sound HitProjectileSounds"
+))
+
 // Generate SceptrePuff.QuakeBaseIntensity
 print('\n' + generateConstantTable(
 	for {
