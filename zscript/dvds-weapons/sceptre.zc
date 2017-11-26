@@ -23,6 +23,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		Weapon.SlotNumber 1;
 		Weapon.SlotPriority 1;
 		Weapon.KickBack 256;
+		DamageType 'Sceptre';
 		+SPECTRAL;
 		+WEAPON.NOAUTOAIM;
 		+WEAPON.NOALERT;
