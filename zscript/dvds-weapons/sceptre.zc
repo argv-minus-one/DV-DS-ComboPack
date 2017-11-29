@@ -2,7 +2,6 @@
 TODO:
 • Animate alt fire.
 • Make it possible to cast spells through the shield.
-• Nerf the push-back effect. It's ridiculously strong at level 16.
 • Smooth out the attack animations.
 • Implement the spin attack.
 • Make alt fire cost stamina and MP.
@@ -344,9 +343,11 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			}
 			else if (!mo.bDontThrust)
 			{
-				let deflectForce = (800. + (30. * invoker.SceptreLevel) ** 2.) * frandom(.9, 1.1) / mo.Mass;
-				mo.Thrust(deflectForce, deflectAngle);
-				mo.Vel.Z += frandom(-8., 8.) * min(deflectForce, 1.);
+				let deflectSpeed = min(
+					(1. + (double(invoker.SceptreLevel) ** 2)) / sqrt(double(mo.Mass)),
+					frandom(27, 33)
+				);
+				mo.Thrust(deflectSpeed, deflectAngle);
 			}
 			
 			if (dvdsdebug_showmeleeinformation) Console.Printf(
