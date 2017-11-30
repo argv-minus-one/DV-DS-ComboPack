@@ -613,12 +613,12 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			
 			SCEM DEFGHIJKLMNO 1 {
 				A_SceptreAttack(
-					invoker.SceptreRange[invoker.SceptreLevel],
-					invoker.SceptreDamageMin[invoker.SceptreLevel],
-					invoker.SceptreDamageMax[invoker.SceptreLevel],
-					"SceptrePuff",
-					invoker.SwingAngle += invoker.SwingAngleStep,
-					SceptreOfEmpyreaZSC.SwingAngleStep
+					range: invoker.SceptreRange[invoker.SceptreLevel],
+					damageMin: invoker.SceptreDamageMin[invoker.SceptreLevel],
+					damageMax: invoker.SceptreDamageMax[invoker.SceptreLevel],
+					puffType: "SceptrePuff",
+					swingAngle: invoker.SwingAngle += invoker.SwingAngleStep,
+					swingWidth: SceptreOfEmpyreaZSC.SwingAngleStep
 				);
 			}
 			goto Select;
