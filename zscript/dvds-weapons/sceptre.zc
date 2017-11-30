@@ -256,6 +256,10 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 				)
 				{
 					puff = pt.target;
+					
+					if (!puff.CanCollideWith(mo, false) || !mo.CanCollideWith(puff, true))
+						continue;
+					
 					puffIsNew = false;
 					puff.SetXYZ(puffPos);
 					puff.Angle = puffAngle;
@@ -275,6 +279,12 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 					);
 					puffIsNew = true;
 					puff.tracer = mo;
+					
+					if (!puff.CanCollideWith(mo, false) || !mo.CanCollideWith(puff, true))
+					{
+						puff.Destroy();
+						continue;
+					}
 					
 					if (shouldPuff)
 					{
@@ -384,8 +394,6 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		}
 	}
 	
-	// Note: Don't call this during an attack sequence, or Flora will be killed by her own weapon!
-	// See relevant feature request: https://forum.zdoom.org/viewtopic.php?f=15&t=58468
 	action void A_SceptreDefend()
 	{
 		if (invoker.Shield)
