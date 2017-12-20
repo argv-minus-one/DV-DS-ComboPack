@@ -1,12 +1,17 @@
 /*
 TODO:
-• Animate alt fire.
+• Animate twirl.
 • Make it possible to cast spells through the shield.
 • Implement the spin attack.
-• Make alt fire cost stamina and MP.
+• Make all moves cost stamina.
+• Make twirl also cost MP.
 • Apply damage modifiers: berserk, debuffs, strength stat, etc.
 • Port the FloraWeapon class to ZScript, then derive this class from it.
-• Rename to SceptreOfEmpyrea when done.
+
+When done:
+• Rename to SceptreOfEmpyrea.
+• Remove ACS function “SceptreTwirlFrameCheck”.
+• Remove allocation of ACS miscellaneous variables 198 and 397.
 */
 
 class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
