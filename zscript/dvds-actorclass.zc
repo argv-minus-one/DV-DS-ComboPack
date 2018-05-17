@@ -4177,7 +4177,6 @@ class AetheriusPlayerPawn : PlayerPawn
 		if (player.cheats & CF_NOCLIP2) pnoclip2 = 1; else pnoclip2 = 0;
 		actortimer++;
 		super.Tick(); // KEEP THIS HERE ELSE OTHER FUNCTIONS RELATED TO Tick() BREAK :V
-		PowerShielded.ShieldThinkAll(self); // Update any shields we may have.
 	}
 
 	override bool CanCollideWith(Actor other, bool passive)
@@ -4486,43 +4485,16 @@ class PowerShielded : Powerup
 	}
 	
 	PowerShielded_Shield ShieldActor;
-	private int LastShieldThinkTic;
-	private bool ComplainedAboutShieldThink;
-	
-	virtual void ShieldThink()
-	{
-		ComplainedAboutShieldThink = false;
-		
-		if (ShieldActor)
-		{
-			LastShieldThinkTic = gametic;
-			ShieldActor.master = Owner;
-			ShieldActor.ShieldThink(ShieldActorSizeAdd);
-		}
-	}
-	
-	static void ShieldThinkAll(Actor owner)
-	{
-		for (let inv = owner.Inv; inv; inv = inv.Inv)
-		if (inv is "PowerShielded")
-			PowerShielded(inv).ShieldThink();
-	}
 	
 	override void Tick()
 	{
 		Super.Tick();
 		
-		// Make sure that ShieldThink is getting called.
-		if (Owner && ShieldActor && !ComplainedAboutShieldThink && LastShieldThinkTic < gametic - 1)
+		if (Owner && ShieldActor)
 		{
-			Console.Printf(
-				"\cr%s.ShieldThink has not been called by owner %s in the last 2 tics.\c- Actors that are given a %s must call its ShieldThink method from their own Tick method. (Use the convenience static method PowerShielded.ShieldThinkAll to do that.) Otherwise, the shield actor %s will get out of sync with its owner's movements, and fail to provide protection!",
-				GetClassName(),
-				Owner.GetClassName(),
-				GetClassName(),
-				ShieldActor.GetClassName()
-			);
-			ComplainedAboutShieldThink = true;
+			// On an owned inventory item, Tick is called immediately after its owner moves. Hence, we update the shield's position from here, *not* from the Tick method of the shield itself.
+			ShieldActor.master = Owner;
+			ShieldActor.ShieldThink(ShieldActorSizeAdd);
 		}
 	}
 	
