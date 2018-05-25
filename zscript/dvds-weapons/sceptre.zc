@@ -125,7 +125,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 	const AerialAttackMinSceptreLevel = 4;
 	const SpinAttackButtons = BT_MOVELEFT | BT_MOVERIGHT;
 	const SwingDefenseDuration = 12;
-	const MaxShieldAngle = 120.;
+	const FullAttackAngle = 120.;
 	
 	// Code //
 	
@@ -164,7 +164,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		int damageMax = -1,
 		Class<Actor> puffType = "SceptrePuff",
 		double swingAngle = 0,
-		double swingWidth = SceptreOfEmpyreaZSC.MaxShieldAngle,
+		double swingWidth = SceptreOfEmpyreaZSC.FullAttackAngle,
 		bool puffWalls = true,
 		bool rememberAlreadyHitActors = true,
 		int enabledEffects = 0xFFFFFFFF
@@ -897,7 +897,7 @@ class SceptreShield : PowerShielded_Shield
 		
 		let ang = master.AngleTo(other);
 		let rang = absangle(master.AngleTo(other), master.Angle);
-		let block = rang <= SceptreOfEmpyreaZSC.MaxShieldAngle;
+		let block = rang <= SceptreOfEmpyreaZSC.FullAttackAngle;
 		
 		if (dvdsdebug_sceptre_showshieldstatus)
 		{
@@ -921,7 +921,7 @@ class SceptreShield : PowerShielded_Shield
 	override int DamageMobj(Actor inflictor, Actor source, int damage, Name damageType, int flags = 0, double angle = 0)
 	{
 		let rang = absangle(master.AngleTo(inflictor), master.Angle);
-		let block = rang <= SceptreOfEmpyreaZSC.MaxShieldAngle;
+		let block = rang <= SceptreOfEmpyreaZSC.FullAttackAngle;
 		
 		if (dvdsdebug_sceptre_showshieldstatus)
 			Console.Printf(
