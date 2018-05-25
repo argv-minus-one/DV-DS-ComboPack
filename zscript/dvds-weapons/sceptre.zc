@@ -112,12 +112,12 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		1, 1, 1, 1
 	};
 	
-	static const uint16 SceptreTwirlMPCost[] =
+	static const float SceptreTwirlMPCost[] =
 	{
-		// TODO
-		1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1
+		0.21052632, 0.20988564, 0.2079636, 0.20476018, 0.2002754,
+		0.19450927, 0.18746176, 0.1791329, 0.16952264, 0.15863106,
+		0.14645809, 0.13300376, 0.11826806, 0.102251, 0.08495257,
+		0.06637278, 0.046511628
 	};
 	
 	const AerialAttackButtons = BT_JUMP;

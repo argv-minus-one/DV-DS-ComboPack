@@ -1,5 +1,7 @@
 // Scala script that generates some of the constant tables used in sceptre.zc. It outputs them on stdout, which can be redirected into a file.
 
+import math.pow
+
 def generateConstantTable(
 	constants: Seq[Any],
 	perLine: Int,
@@ -26,8 +28,22 @@ def generateConstantTable(
 	s"${commentText}static const ${typeAndName}[] =\n{${lines.mkString}\n};\n"
 }
 
-// Generate SceptrePuff.HitThingSounds
+// Generate SceptreOfEmpyrea.SceptreTwirlMPCost
 print(generateConstantTable(
+	for {
+		lv <- 0 to 16
+		worst = 0.21052632f
+		best = 0.046511628f
+		// See SceptreTwirlMPCost.ods (spreadsheet) for explanation.
+		cost = best + ((worst - best) * (1d - pow(lv / 16d, 2)))
+	} yield cost.toFloat,
+	5,
+	"float SceptreTwirlMPCost",
+	"for SceptreOfEmpyrea"
+))
+
+// Generate SceptrePuff.HitThingSounds
+print('\n' + generateConstantTable(
 	for {
 		lv <- 0 to 16
 		soundIndex = 1 + (lv >> 3)
