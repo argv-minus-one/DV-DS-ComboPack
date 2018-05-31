@@ -1,6 +1,6 @@
 /*
 TODO:
-• Animate twirl.
+• Apply motion blur to twirl.
 • Make it possible to cast spells through the shield.
 • Implement the spin attack.
 • Make all moves cost stamina.
@@ -131,6 +131,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 	
 	protected int SceptreLevel, CharLevel;
 	SceptreShieldPower Shield;
+	SceptreTwirling Twirling;
 	
 	override void Tick()
 	{
@@ -548,6 +549,12 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			{
 				invoker.ActorsHitThisSwing.Clear();
 				A_SceptreRaiseReset();
+				
+				if (invoker.Twirling)
+				{
+					invoker.Twirling.Destroy();
+					invoker.Twirling = null;
+				}
 			}
 			
 			SCEM A 1
@@ -665,9 +672,45 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			goto Hold;
 		
 		AltFire:
+			SCEM A 1 A_SceptreLower(andThen: 1, speed: 3);
+			wait;
+			
+			FLHS B 0 A_WeaponOffset(0, WEAPONBOTTOM);
+			#### # 1 A_AnimateOffset(1, (0, WEAPONTOP), speed: (10, 10));
+			wait;
+			
+			#### # 0 {
+				{
+					let rc = GetReplacement("SceptreTwirling");
+					if (!(rc is "SceptreTwirling"))
+						ThrowAbortException("%s, the replacement for SceptreTwirling, is not a subtype of SceptreTwirling!", rc.GetClassName());
+				}
+				
+				// Spawn the twirling sceptre.
+				invoker.Twirling = SceptreTwirling(Spawn("SceptreTwirling", pos: Pos, replace: ALLOW_REPLACE));
+				invoker.Twirling.master = self;
+			}
+			
+		AltHold:
 			FLHS A 1 A_SceptreDefend;
 			#### # 0 A_ReFire;
-			goto Ready;
+			
+			// Start the recall animation, then wait for it to finish.
+			#### # 0 { invoker.Twirling.Recall(); }
+			#### # 1 A_JumpIf(invoker.Twirling.ReadyToCatch, 1);
+			wait;
+			
+			FLHS B 0 {
+				invoker.Twirling.Destroy();
+				invoker.Twirling = null;
+			}
+			
+			// Lower Flora's hand.
+			#### # 1 A_AnimateOffset(1, (0, WEAPONBOTTOM), speed: (10, 10));
+			wait;
+			SCEM A 0 A_SceptreBeginRaise;
+			#### # 1 A_SceptreRaise(andThen: "Ready", speed: 3);
+			wait;
 	}
 }
 
@@ -952,5 +995,212 @@ class SceptreShield : PowerShielded_Shield
 			);
 		
 		return master.DamageMobj(inflictor, source, damage, damageType, flags, angle);
+	}
+}
+
+class SceptreTwirling : Actor
+{
+	default
+	{
+		+INTERPOLATEANGLES;
+		+FLATSPRITE;
+		+ROLLSPRITE;
+		+ROLLCENTER;
+		+NOINTERACTION;
+		+BRIGHT;
+		Speed 2;
+		Height 40;
+		Radius 40;
+		Scale .08888888888888889; // (40 / 450) in double precision
+		SceptreTwirling.SpinAccel 1;
+		SceptreTwirling.SpinRate 3, 25, 1;
+		SceptreTwirling.TouchPos 14, -6, 0;
+		SceptreTwirling.TouchAngle 0;
+		SceptreTwirling.TwirlPos 50, 0, 0;
+	}
+	
+	float SpinAccel;
+	property SpinAccel: SpinAccel;
+	
+	float MinSpinRate, FullSpinRate;
+	uint16 SpinDownRevolutions;
+	// How fast the Sceptre spins initially and at full speed (in degrees per tic), and how many extra revolutions it takes to spin down.
+	property SpinRate: MinSpinRate, FullSpinRate, SpinDownRevolutions;
+	
+	double TouchPosX, TouchPosY, TouchPosZ;
+	// When the Sceptre is touching Flora's hand, this is the offset from her position relative to her yaw and pitch.
+	property TouchPos: TouchPosX, TouchPosY, TouchPosZ;
+	
+	double TouchAngle;
+	// When the Sceptre is touching Flora's hand, this is what its roll should be.
+	property TouchAngle: TouchAngle;
+	
+	double TwirlPosX, TwirlPosY, TwirlPosZ;
+	// Like TouchPos, but for when the Sceptre is out and twirling.
+	property TwirlPos: TwirlPosX, TwirlPosY, TwirlPosZ;
+	
+	protected float SpinRate, TargetSpinRate, SpinDownDeltaAngle;
+	protected Vector3 PrevRelPos, CurrentRelPos, TargetRelPos;
+	bool ReadyToCatch;
+	
+	override void PostBeginPlay()
+	{
+		if (!master)
+		{
+			Console.Printf("\cr%s spawned without a master!", GetClassName());
+			Destroy();
+			return;
+		}
+		
+		PrevRelPos = CurrentRelPos = TargetRelPos = (TouchPosX, TouchPosY, TouchPosZ);
+	}
+	
+	override void Tick()
+	{
+		if (!master || master.bDestroyed || (master.bShootable && master.Health <= 0))
+		{
+			Destroy();
+			return;
+		}
+		
+		Super.Tick();
+		
+		if (SpinDownDeltaAngle != 0.)
+		{
+			// Spin down the Sceptre.
+			let psr = MinSpinRate + ((TargetSpinRate - MinSpinRate) * (SpinDownDeltaAngle / (SpinDownRevolutions * 360.)));
+			
+			if (psr > SpinDownDeltaAngle)
+			{
+				Roll += SpinDownDeltaAngle;
+				SpinRate = SpinDownDeltaAngle = TargetSpinRate = 0.;
+			}
+			else
+			{
+				SpinRate = psr;
+				SpinDownDeltaAngle -= psr;
+			}
+		}
+		else if (TargetSpinRate != SpinRate)
+		{
+			// Approach the TargetSpinRate.
+			if (TargetSpinRate > SpinRate)
+				SpinRate = min(SpinRate + SpinAccel, TargetSpinRate);
+			else
+				SpinRate = max(SpinRate - SpinAccel, TargetSpinRate);
+		}
+		
+		// Actually spin.
+		if (SpinRate != 0.)
+			Roll = Normalize180(Roll + SpinRate);
+		
+		if (CurrentRelPos != TargetRelPos)
+		{
+			// Move toward the destination.
+			let delta = TargetRelPos - CurrentRelPos;
+			let deltaLength = delta.Length();
+			let nextPos = CurrentRelPos + (delta.Unit() * Speed);
+			let nextDelta = TargetRelPos - nextPos;
+			let nextDeltaLength = nextDelta.Length();
+			
+			// Make sure not to overshoot.
+			if ((deltaLength < 0. && nextDeltaLength >= 0.) || (deltaLength > 0. && nextDeltaLength <= 0.))
+				// Finished moving to the target relpos. Update PrevRelPos as well.
+				PrevRelPos = CurrentRelPos = TargetRelPos;
+			else
+				// Not finished moving to the target relpos. Keep going.
+				CurrentRelPos = nextPos;
+		}
+		
+		{
+			let realRelPos = CurrentRelPos;
+			
+			{
+				/*
+				// Correct for the user's pitch.
+				let pitchCorrection = RotateVector((CurrentRelPos.X, CurrentRelPos.Z), -master.Pitch);
+				realRelPos.X = pitchCorrection.X;
+				realRelPos.Z = pitchCorrection.Y;
+				*/
+				// This is disabled because, if twirling the Sceptre while looking straight down, the Sceptre will disappear through the floor. And if it didn't, it'd be twirling through Flora's legs!
+			}
+			
+			// If the wielder is a player character, align with its eyes. Otherwise, align with its height center.
+			if (master.player)
+				realRelPos.Z += master.player.viewheight;
+			else
+				realRelPos.Z += master.Height * .5;
+			
+			Warp(master, realRelPos.X, realRelPos.Y, realRelPos.Z, flags: WARPF_INTERPOLATE|WARPF_COPYPITCH|WARPF_COPYVELOCITY|WARPF_BOB|WARPF_NOCHECKPOSITION, pitch: 90.);
+		}
+	}
+	
+	protected action void A_MoveToTwirlPos()
+	{
+		invoker.PrevRelPos = invoker.CurrentRelPos;
+		invoker.TargetRelPos = (invoker.TwirlPosX, invoker.TwirlPosY, invoker.TwirlPosZ);
+	}
+	
+	protected action void A_MoveToTouchPos()
+	{
+		invoker.PrevRelPos = invoker.CurrentRelPos;
+		invoker.TargetRelPos = (invoker.TouchPosX, invoker.TouchPosY, invoker.TouchPosZ);
+	}
+	
+	protected action void A_SpinUp()
+	{
+		invoker.TargetSpinRate = invoker.FullSpinRate;
+	}
+	
+	protected action void A_SpinDown()
+	{
+		invoker.SpinDownDeltaAngle = deltaangle(Roll, invoker.TouchAngle) + (invoker.SpinDownRevolutions * 360.);
+	}
+	
+	protected double ProgressTowardTargetRelPos()
+	{
+		if (TargetRelPos == CurrentRelPos)
+			return 1.;
+		else
+		{
+			let totalLength = abs((TargetRelPos - PrevRelPos).Length());
+			let remainingLength = abs((TargetRelPos - CurrentRelPos).Length());
+			return (totalLength - remainingLength) / totalLength;
+		}
+	}
+	
+	void Recall()
+	{
+		SetStateLabel("Recall");
+	}
+	
+	states
+	{
+		Spawn:
+			SCEM Z 1;
+			// Wait for the next tic before beginning to fly away and spin up.
+			#### # -1 { A_MoveToTwirlPos(); A_SpinUp(); }
+			stop;
+		
+		Recall:
+			// Start spinning down.
+			#### # 0 A_SpinDown;
+			#### # 1 A_JumpIf(invoker.SpinDownDeltaAngle < 45., 1);
+			wait;
+			
+			// Get into catch distance.
+			#### # 0 A_MoveToTouchPos;
+			#### # 1 A_JumpIf(invoker.ProgressTowardTargetRelPos() > .99, 1);
+			wait;
+			
+			// Recall finished.
+			#### # -1 { invoker.ReadyToCatch = true; }
+			stop;
+		
+		/*
+		Blocked:
+			#### # 0 A_PlaySound(SceptrePuff.HitWallSounds[0]);
+			goto Recall;
+		*/
 	}
 }

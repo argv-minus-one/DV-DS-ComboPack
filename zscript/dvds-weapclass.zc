@@ -386,6 +386,34 @@ class AetheriusBaseWeaponZSC : Weapon
 		)
 			A_PlaySound(AetheriusPlayerPawn(self).KiaiSound, CHAN_VOICE);
 	}
+	
+	action state A_AnimateOffset(statelabel whenDone, Vector2 tgt, Vector2 speed = (6, 6), int layer = PSprite.WEAPON)
+	{
+		if (!player)
+			return ResolveState(whenDone);
+		
+		let psp = player.FindPSprite(layer);
+		if (!psp || (tgt.X == psp.x && tgt.Y == psp.y))
+			return ResolveState(whenDone);
+		
+		if (tgt.X != psp.x)
+		{
+			if (tgt.X > psp.x)
+				psp.x = min(psp.x + speed.X, tgt.X);
+			else
+				psp.x = max(psp.x - speed.X, tgt.X);
+		}
+		
+		if (tgt.Y != psp.y)
+		{
+			if (tgt.Y > psp.y)
+				psp.y = min(psp.y + speed.Y, tgt.Y);
+			else
+				psp.y = max(psp.y - speed.Y, tgt.Y);
+		}
+		
+		return null;
+	}
 }
 
 class AetheriusBaseCustomInventoryZSC : CustomInventory 
