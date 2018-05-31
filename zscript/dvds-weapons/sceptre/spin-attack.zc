@@ -1,15 +1,5 @@
 extend class SceptreOfEmpyreaZSC
 {
-	static const Sound SceptreSpinAttackSounds[] =
-	{
-		 "SceptreSwingLvl0",  "SceptreSwingLvl1",  "SceptreSwingLvl2",
-		 "SceptreSwingLvl3",  "SceptreSwingLvl4",  "SceptreSwingLvl5",
-		 "SceptreSwingLvl6",  "SceptreSwingLvl7",  "SceptreSwingLvl8",
-		 "SceptreSwingLvl9", "SceptreSwingLvl10", "SceptreSwingLvl11",
-		"SceptreSwingLvl12", "SceptreSwingLvl13", "SceptreSwingLvl14",
-		"SceptreSwingLvl15", "SceptreSwingLvl16"
-	};
-	
 	static const uint16 SceptreSpinAttackStaminaCost[] =
 	{
 		1005, 996, 987, 978, 969, 960,

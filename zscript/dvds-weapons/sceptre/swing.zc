@@ -7,23 +7,12 @@ extend class SceptreOfEmpyreaZSC
 		473, 462, 451, 440, 428
 	};
 	
-	static const Sound SceptreSwingSounds[] =
-	{
-		 "SceptreSwingLvl0",  "SceptreSwingLvl1",  "SceptreSwingLvl2",
-		 "SceptreSwingLvl3",  "SceptreSwingLvl4",  "SceptreSwingLvl5",
-		 "SceptreSwingLvl6",  "SceptreSwingLvl7",  "SceptreSwingLvl8",
-		 "SceptreSwingLvl9", "SceptreSwingLvl10", "SceptreSwingLvl11",
-		"SceptreSwingLvl12", "SceptreSwingLvl13", "SceptreSwingLvl14",
-		"SceptreSwingLvl15", "SceptreSwingLvl16"
-	};
-	
 	const SwingDefenseDuration = 12;
+	const SwingAngleStart = -120.;
+	const SwingAngleStep = (120. * 2. / 12.); // 240° over 12 tics.
 	
 	Array<Actor> ActorsHitThisSwing;
 	double SwingAngle;
-	
-	const SwingAngleStart = -120.;
-	const SwingAngleStep = (120. * 2. / 12.); // 240° over 12 tics.
 	
 	states
 	{

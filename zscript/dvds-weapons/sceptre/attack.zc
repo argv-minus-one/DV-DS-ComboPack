@@ -1,13 +1,5 @@
 extend class SceptreOfEmpyreaZSC
 {
-	static const float SceptreAttackSpeeds[] =
-	{
-		 0,       -0.03125, -0.0625,  -0.09375, -0.125,
-		-0.15625, -0.1875,  -0.21875, -0.25,    -0.28125,
-		-0.3125,  -0.34375, -0.375,   -0.40625, -0.4375,
-		-0.46875, -0.5
-	};
-	
 	static const uint16 SceptreDamageMin[] =
 	{
 		275, 280, 290,  320,  340, 365,

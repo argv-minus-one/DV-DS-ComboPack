@@ -22,6 +22,9 @@ When done:
 #include "zscript/dvds-weapons/sceptre/swing.zc"
 #include "zscript/dvds-weapons/sceptre/twirl.zc"
 
+// This needs to go last, since it modifies the other includes above.
+#include "zscript/dvds-weapons/sceptre/constants.zc"
+
 class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 {
 	default
