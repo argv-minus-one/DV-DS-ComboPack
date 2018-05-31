@@ -1,0 +1,50 @@
+extend class SceptreOfEmpyreaZSC
+{
+	static const Sound SceptreSpinAttackSounds[] =
+	{
+		 "SceptreSwingLvl0",  "SceptreSwingLvl1",  "SceptreSwingLvl2",
+		 "SceptreSwingLvl3",  "SceptreSwingLvl4",  "SceptreSwingLvl5",
+		 "SceptreSwingLvl6",  "SceptreSwingLvl7",  "SceptreSwingLvl8",
+		 "SceptreSwingLvl9", "SceptreSwingLvl10", "SceptreSwingLvl11",
+		"SceptreSwingLvl12", "SceptreSwingLvl13", "SceptreSwingLvl14",
+		"SceptreSwingLvl15", "SceptreSwingLvl16"
+	};
+	
+	static const uint16 SceptreSpinAttackStaminaCost[] =
+	{
+		1005, 996, 987, 978, 969, 960,
+		 951, 942, 933, 924, 915, 903,
+		 891, 879, 867, 855, 840
+	};
+	
+	const SpinAttackButtons = BT_MOVELEFT | BT_MOVERIGHT;
+	
+	bool CheckSpinAttack()
+	{
+		return
+			Owner && Owner.player &&
+			(Owner.player.cmd.buttons & SpinAttackButtons) == SpinAttackButtons &&
+			CallACS("GetMiscellaneousVar", 244);
+	}
+	
+	states
+	{
+		SpinAttack:
+			// TODO
+			/*
+			TNT1 A 0
+			{
+				if (!CallACS("UseStaminaAttack", SceptreSpinAttackStaminaCost[SceptreLevel]))
+					return ResolveState("Ready");
+				
+				// Strife mode makes the punch work like the Punch Dagger where it NEVER makes sound
+				if (!(gameinfo.gametype & GAME_Strife) && (random() & 255) >= 248)
+					// Sometimes a swing will be enough to wake up all monsters in the area.
+					A_AlertMonsters();
+				
+				A_Kiai(31);
+			}
+			*/
+			goto Hold;
+	}
+}

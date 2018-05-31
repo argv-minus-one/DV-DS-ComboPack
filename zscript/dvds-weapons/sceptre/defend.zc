@@ -1,0 +1,106 @@
+extend class SceptreOfEmpyreaZSC
+{
+	SceptreShieldPower Shield;
+	
+	action void A_SceptreDefend()
+	{
+		if (invoker.Shield)
+			invoker.Shield.EffectTics = 2;
+		else
+			invoker.Shield = SceptreShieldPower(self.GiveInventoryType("SceptreShieldPower"));
+		
+		A_SceptreAttack(
+			damageMin: 0,
+			damageMax: 0,
+			puffWalls: false,
+			rememberAlreadyHitActors: false,
+			enabledEffects: SceptrePuff.SPFX_QUAKE_ALL | SceptrePuff.SPFX_SOUND_HITPROJECTILE
+		);
+	}
+}
+
+class SceptreShieldPower : PowerShielded
+{
+	default
+	{
+		Powerup.Duration 2;
+		PowerShielded.ShieldActorClass "SceptreShield";
+	}
+}
+
+class SceptreShield : PowerShielded_Shield
+{
+	default
+	{
+		+REFLECTIVE;
+		+NOTARGET;
+	}
+	
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if (
+			!master ||
+			master == other ||
+			(other.bMissile && master == other.target)
+		)
+			return false;
+		
+		let ang = master.AngleTo(other);
+		let rang = absangle(master.AngleTo(other), master.Angle);
+		let block = rang <= SceptreOfEmpyreaZSC.FullAttackAngle;
+		
+		if (dvdsdebug_sceptre_showshieldstatus)
+		{
+			if (block)
+				Console.Printf(
+					"%s blocked by %s!",
+					other.GetClassName(),
+					GetClassName()
+				);
+			else
+				Console.Printf(
+					"%s couldn't block a %s.",
+					GetClassName(),
+					other.GetClassName()
+				);
+		}
+		
+		return block;
+	}
+	
+	override int DamageMobj(Actor inflictor, Actor source, int damage, Name damageType, int flags = 0, double angle = 0)
+	{
+		let rang = absangle(master.AngleTo(inflictor), master.Angle);
+		let block = rang <= SceptreOfEmpyreaZSC.FullAttackAngle;
+		
+		if (dvdsdebug_sceptre_showshieldstatus)
+			Console.Printf(
+				"%s was hit from angle %f (abs %f) by a %s fired by %s!",
+				GetClassName(),
+				angle, rang,
+				inflictor.GetClassName(),
+				source.GetClassName()
+			);
+		
+		if (block)
+		{
+			if (dvdsdebug_sceptre_showshieldstatus)
+				Console.Printf(
+					"%d %s damage blocked by %s!",
+					damage, damageType,
+					GetClassName()
+				);
+			
+			return 0;
+		}
+		
+		if (dvdsdebug_sceptre_showshieldstatus)
+			Console.Printf(
+				"%s couldn't block %d %s damage.",
+				GetClassName(),
+				damage, damageType
+			);
+		
+		return master.DamageMobj(inflictor, source, damage, damageType, flags, angle);
+	}
+}

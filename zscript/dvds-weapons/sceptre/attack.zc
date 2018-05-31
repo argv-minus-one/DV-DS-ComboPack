@@ -1,0 +1,273 @@
+extend class SceptreOfEmpyreaZSC
+{
+	static const float SceptreAttackSpeeds[] =
+	{
+		 0,       -0.03125, -0.0625,  -0.09375, -0.125,
+		-0.15625, -0.1875,  -0.21875, -0.25,    -0.28125,
+		-0.3125,  -0.34375, -0.375,   -0.40625, -0.4375,
+		-0.46875, -0.5
+	};
+	
+	static const uint16 SceptreDamageMin[] =
+	{
+		275, 280, 290,  320,  340, 365,
+		425, 425, 545,  590,  640, 750,
+		810, 875, 1015, 1015, 1255
+	};
+	
+	static const uint16 SceptreDamageMax[] =
+	{
+		325, 330,  340,  370,  390, 415,
+		475, 475,  595,  640,  690, 800,
+		860, 925, 1065, 1065, 1305
+	};
+	
+	static const uint8 SceptreRange[] =
+	{
+		130, 133, 135, 138, 140, 145,
+		148, 153, 160, 165, 168, 170,
+		173, 178, 180, 185, 192
+	};
+	
+	const FullAttackAngle = 120.;
+	
+	action void A_SceptreAttack(
+		int range = -1,
+		int damageMin = -1,
+		int damageMax = -1,
+		Class<Actor> puffType = "SceptrePuff",
+		double swingAngle = 0,
+		double swingWidth = SceptreOfEmpyreaZSC.FullAttackAngle,
+		bool puffWalls = true,
+		bool rememberAlreadyHitActors = true,
+		int enabledEffects = 0xFFFFFFFF
+	) {
+		if (range == -1)
+			range = invoker.SceptreRange[invoker.SceptreLevel];
+		if (damageMin == -1)
+			damageMin = invoker.SceptreDamageMin[invoker.SceptreLevel];
+		if (damageMax == -1)
+			damageMax = invoker.SceptreDamageMax[invoker.SceptreLevel];
+		
+		class<Actor> replacedPuffType = GetReplacement(puffType);
+		let puffDefaults = GetDefaultByType(replacedPuffType);
+		bool actorsHit = false;
+		
+		let it = ThinkerIterator.Create("Actor");
+		for (let mo = Actor(it.Next()); mo; mo = Actor(it.Next()))
+		{
+			if (
+				mo == self || mo.master == self ||
+				(mo.bMissile && mo.target == self) ||
+				mo.bDormant ||
+				(
+					puffDefaults.bAllowThruFlags &&
+					(
+						puffDefaults.bThruActors ||
+						(puffDefaults.bMThruSpecies && puffDefaults.Species == mo.Species)
+					)
+				) ||
+				((invoker.bThruGhost || puffDefaults.bThruGhost) && mo.bGhost) ||
+				(mo.bSpectral && !puffDefaults.bSpectral) ||
+				!(mo.bShootable || mo.bMissile) ||
+				Distance3D(mo) > range ||
+				(mo.CurSector.PortalGroup != CurSector.PortalGroup && !CheckSight(mo))
+			)
+				continue;
+			
+			let angle = AngleTo(mo);
+			if (absangle(angle, self.Angle + swingAngle) > SwingAngleStep)
+				continue;
+			
+			// TODO: Check vertical angle (pitch)? Not needed for the Sceptre because its max angle is wider than 180° anyway, but…
+			
+			if (rememberAlreadyHitActors)
+			{
+				if (invoker.ActorsHitThisSwing.Find(mo) < invoker.ActorsHitThisSwing.Size())
+					continue;
+				else
+					invoker.ActorsHitThisSwing.Push(mo);
+			}
+			
+			int damage;
+			if (damageMin)
+			{
+				if (damageMax)
+					damage = random(damageMin, damageMax);
+				else
+					damage = damageMin;
+			}
+			else if (damageMax)
+				damage = damageMax;
+			else
+				damage = 0;
+			
+			let shouldBleed =
+				damage > 0 &&
+				!mo.bMissile &&
+				!mo.bNoBlood &&
+				!mo.bInvulnerable &&
+				!mo.bDormant &&
+				!puffDefaults.bBloodlessImpact;
+			
+			let shouldPuff =
+				!shouldBleed ||
+				puffDefaults.bPuffOnActors;
+			
+			Actor puff;
+			bool puffIsNew;
+			{
+				let puffAngle = Normalize180(angle - 180.);
+				let puffPos = mo.Vec3Offset(
+					(mo.radius + 1) * cos(puffAngle),
+					(mo.radius + 1) * sin(puffAngle),
+					(mo.Height / 2) - mo.Floorclip
+				);
+				
+				Inventory pt;
+				if (
+					shouldPuff && // puff needs to be tracked at all
+					(pt = mo.FindInventory("SceptrePuffTracker")) && // there is a puff tracker
+					pt.target && // there is already a tracked puff
+					(pt.target.Pos - puffPos).Length() < max(pt.Owner.Radius, pt.Owner.Height) * .55 // the tracked puff is close enough
+				)
+				{
+					puff = pt.target;
+					
+					if (!puff.CanCollideWith(mo, false) || !mo.CanCollideWith(puff, true))
+						continue;
+					
+					puffIsNew = false;
+					puff.SetXYZ(puffPos);
+					puff.Angle = puffAngle;
+				}
+				else
+				{
+					puff = SpawnPuff(
+						replacedPuffType,
+						puffPos,
+						puffAngle,
+						puffAngle,
+						0,
+						flags: PF_HITTHING | PF_MELEERANGE |
+						(shouldBleed? PF_HITTHINGBLEED : 0) |
+						(shouldPuff? 0 : PF_TEMPORARY),
+						victim: mo
+					);
+					puffIsNew = true;
+					puff.tracer = mo;
+					
+					if (!puff.CanCollideWith(mo, false) || !mo.CanCollideWith(puff, true))
+					{
+						puff.Destroy();
+						continue;
+					}
+					
+					if (shouldPuff)
+					{
+						// If we found a tracker already, but decided its puff isn't eligible, then delete it.
+						if (pt && pt.Owner)
+							pt.Owner.RemoveInventory(pt);
+						if (pt)
+							pt.Destroy();
+						
+						pt = mo.GiveInventoryType("SceptrePuffTracker");
+						pt.target = puff;
+					}
+				}
+			}
+			
+			{
+				let sp = SceptrePuff(puff);
+				if (sp)
+				{
+					sp.SceptreLevel = invoker.SceptreLevel;
+					sp.EnabledEffects = enabledEffects;
+					
+					if (!puffIsNew)
+						sp.Refresh();
+				}
+			}
+			
+			int actualDamage = 0;
+			if (mo.bShootable && damage)
+			{
+				let modt = mo.bDontThrust;
+				mo.bDontThrust = true;
+				actualDamage = mo.DamageMobj(
+					puff,
+					self,
+					random(damageMin, damageMax),
+					invoker.DamageType,
+					flags: DMG_INFLICTOR_IS_PUFF | (invoker.bPierceArmor? DMG_NO_ARMOR : 0),
+					angle: puff.Angle
+				);
+				mo.bDontThrust = modt;
+				
+				if (puffDefaults.PoisonDamage > 0)
+					mo.PoisonMobj(puff, self, puffDefaults.PoisonDamage, puffDefaults.PoisonDuration, puffDefaults.PoisonPeriod, puffDefaults.PoisonDamageType);
+			}
+			
+			if (shouldBleed)
+			{
+				if (invoker.bAxeBlood || invoker.bBloodSplatter)
+					mo.BloodSplatter(puff.Pos, puff.Angle, invoker.bAxeBlood);
+				else
+					mo.SpawnBlood(puff.Pos, puff.Angle, actualDamage);
+			}
+			
+			if (!shouldPuff)
+				puff.Destroy();
+			
+			let deflectAngle = Normalize180(angle + frandom(-45., 45.));
+			
+			if (mo.bMissile)
+			{
+				mo.Vel.XY = AngleToVector(deflectAngle, mo.Speed * frandom(.6, 1.2));
+				
+				if (!mo.bFloorHugger && !mo.bCeilingHugger)
+					mo.Vel.Z = frandom(-8., 8.);
+			}
+			else if (!mo.bDontThrust)
+			{
+				let deflectSpeed = min(
+					(1. + (double(invoker.SceptreLevel) ** 2)) / sqrt(double(mo.Mass)),
+					frandom(27, 33)
+				);
+				mo.Thrust(deflectSpeed, deflectAngle);
+			}
+			
+			if (dvdsdebug_showmeleeinformation) Console.Printf(
+				"%s's %s hit %s for %d %s damage, resulting in %s.",
+				self.GetClassName(),
+				invoker.GetClassName(),
+				mo.GetClassName(),
+				actualDamage, invoker.DamageType,
+				(shouldPuff && shouldBleed)?
+					String.Format("a %s and blood", puff.GetClassName()) :
+					shouldPuff? String.Format("a %s", puff.GetClassName()) :
+					shouldBleed? "blood" :
+					"neither a puff nor blood"
+			);
+			
+			actorsHit = true;
+		}
+		
+		if (!actorsHit && puffWalls)
+		{
+			let wallHitAngle = Normalize180(self.Angle + swingAngle);
+			
+			let puff = LineAttack(
+				Normalize180(self.Angle + swingAngle),
+				range,
+				AimLineAttack(swingAngle, range),
+				random(damageMin, damageMax),
+				puffDefaults.DamageType,
+				puffType
+			);
+			
+			if (puff is "SceptrePuff")
+				SceptrePuff(puff).SceptreLevel = invoker.SceptreLevel;
+		}
+	}
+}

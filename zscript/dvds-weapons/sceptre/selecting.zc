@@ -1,0 +1,74 @@
+extend class SceptreOfEmpyreaZSC
+{
+	// Starting offset (completely offscreen): 87, 112
+	// Ending offset (completely onscreen): 0, 32
+	// Number of frames: 10
+	// Interpolation step: -8.7, -8
+	static const double SceptreRaiseStartOffset[] = { 87, 80 + WEAPONTOP };
+	static const double SceptreRaiseEndOffset[] = { 0, WEAPONTOP };
+	static const double SceptreRaiseStep[] = { -8.7, -8 };
+	
+	/** This should be called on a TNT1 A 1 frame, before beginning the sceptre raise animation proper. */
+	action void A_SceptreBeginRaise()
+	{
+		A_WeaponOffset(invoker.SceptreRaiseStartOffset[0], invoker.SceptreRaiseStartOffset[1]);
+	}
+	
+	action state A_SceptreRaise(statelabel andThen = null, double speed = 1)
+	{
+		if (!player)
+			return null;
+		
+		let ps = player.FindPSprite(PSP_WEAPON);
+		if (!ps)
+			return null;
+		
+		if (andThen && ps.x <= invoker.SceptreRaiseEndOffset[0] && ps.y <= invoker.SceptreRaiseEndOffset[1])
+		{
+			if (andThen == "Ready")
+				A_Raise(0);
+			return ResolveState(andThen);
+		}
+		else
+		{
+			let nx = max(ps.x + (invoker.SceptreRaiseStep[0] * speed), invoker.SceptreRaiseEndOffset[0]);
+			let ny = max(ps.y + (invoker.SceptreRaiseStep[1] * speed), invoker.SceptreRaiseEndOffset[1]);
+			A_WeaponOffset(nx, ny, WOF_INTERPOLATE);
+			return null;
+		}
+	}
+	
+	action state A_SceptreLower(statelabel andThen = null, bool switchWeaponWhenDone = false, double speed = 1)
+	{
+		if (!player)
+			return null;
+		
+		let ps = player.FindPSprite(PSP_WEAPON);
+		if (!ps)
+			return null;
+		
+		if (ps.x >= invoker.SceptreRaiseStartOffset[0] && ps.y >= invoker.SceptreRaiseStartOffset[1])
+		{
+			if (switchWeaponWhenDone)
+			{
+				A_WeaponOffset(0, WEAPONBOTTOM);
+				A_Lower();
+				return null;
+			}
+			else
+				return ResolveState(andThen);
+		}
+		else
+		{
+			let nx = min(ps.x - (invoker.SceptreRaiseStep[0] * speed), invoker.SceptreRaiseStartOffset[0]);
+			let ny = min(ps.y - (invoker.SceptreRaiseStep[1] * speed), invoker.SceptreRaiseStartOffset[1]);
+			A_WeaponOffset(nx, ny, WOF_INTERPOLATE);
+			return null;
+		}
+	}
+	
+	action void A_SceptreRaiseReset()
+	{
+		A_WeaponOffset(invoker.SceptreRaiseEndOffset[0], invoker.SceptreRaiseEndOffset[1]);
+	}
+}

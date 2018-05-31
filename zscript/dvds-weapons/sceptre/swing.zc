@@ -1,0 +1,116 @@
+extend class SceptreOfEmpyreaZSC
+{
+	static const uint16 SceptreSwingStaminaCost[] =
+	{
+		575, 568, 561, 554, 546, 538,
+		530, 521, 512, 503, 493, 483,
+		473, 462, 451, 440, 428
+	};
+	
+	static const Sound SceptreSwingSounds[] =
+	{
+		 "SceptreSwingLvl0",  "SceptreSwingLvl1",  "SceptreSwingLvl2",
+		 "SceptreSwingLvl3",  "SceptreSwingLvl4",  "SceptreSwingLvl5",
+		 "SceptreSwingLvl6",  "SceptreSwingLvl7",  "SceptreSwingLvl8",
+		 "SceptreSwingLvl9", "SceptreSwingLvl10", "SceptreSwingLvl11",
+		"SceptreSwingLvl12", "SceptreSwingLvl13", "SceptreSwingLvl14",
+		"SceptreSwingLvl15", "SceptreSwingLvl16"
+	};
+	
+	const SwingDefenseDuration = 12;
+	
+	Array<Actor> ActorsHitThisSwing;
+	double SwingAngle;
+	
+	const SwingAngleStart = -120.;
+	const SwingAngleStep = (120. * 2. / 12.); // 240° over 12 tics.
+	
+	states
+	{
+		Fire:
+			SCEM A 1
+			{
+				if (!invoker.CanOwnerMove())
+					return state(null);
+				else if (invoker.CheckAerialAttack())
+					return ResolveState("AerialAttack");
+				else if (invoker.CheckSpinAttack())
+					return ResolveState("SpinAttack");
+				else
+					return A_SceptreLower("Hold", speed: 1.5);
+			}
+			wait;
+		
+		Hold:
+			TNT1 A 0 A_SceptreRaiseReset;
+			
+			TNT1 A 1
+			{
+				let inMenu = CallACS("GetMiscellaneousVar", 2500);
+				let asleep = CallACS("GetBuffTimer", 20);
+				
+				if (!invoker.CanOwnerMove())
+					return ResolveState("Hold");
+				else if (player.cmd.buttons & BT_USER1)
+					return ResolveState("User1");
+				else if (invoker.CheckSpinAttack())
+					return ResolveState("SpinAttack");
+				else if (player.cmd.buttons & BT_ALTATTACK)
+					return ResolveState("Select");
+				else if (player.cmd.buttons & BT_ATTACK)
+					return state(null);
+				else
+					return ResolveState("Swing");
+			}
+			wait;
+		
+		Swing:
+			TNT1 A 0
+			{
+				if (!CallACS("UseStaminaAttack", invoker.SceptreSwingStaminaCost[invoker.SceptreLevel]))
+					return ResolveState("Select");
+				
+				CallACS("AddSceptreEXP", 0, 1, 1);
+				A_Kiai(63);
+				A_PlaySound(invoker.SceptreSwingSounds[invoker.SceptreLevel], CHAN_WEAPON);
+				invoker.SwingAngle = SwingAngleStart;
+				
+				// Strife mode makes the punch work like the Punch Dagger where it NEVER makes sound
+				if (!(gameinfo.gametype & GAME_Strife) && (random() & 255) >= 252)
+					// Sometimes a swing will be enough to wake up all monsters in the area.
+					A_AlertMonsters();
+				
+				CallACS("StartTensionCountDown");
+				
+				A_WeaponOffset(46);
+				
+				return state(null);
+			}
+			
+			SCEM CCCCCCCCCCCC 1
+			{
+				if (!player)
+					return;
+				let psp = player.FindPSprite(PSP_WEAPON);
+				if (!psp)
+					return;
+				
+				// During these 12 frames, the weapon psprite needs to move 459 offset units leftward.
+				// 459 / 12 = 38.25
+				A_WeaponOffset(psp.x - 38.25, psp.y, WOF_INTERPOLATE);
+				
+				A_SceptreAttack(
+					range: invoker.SceptreRange[invoker.SceptreLevel],
+					damageMin: invoker.SceptreDamageMin[invoker.SceptreLevel],
+					damageMax: invoker.SceptreDamageMax[invoker.SceptreLevel],
+					puffType: "SceptrePuff",
+					swingAngle: invoker.SwingAngle,
+					swingWidth: SceptreOfEmpyreaZSC.SwingAngleStep
+				);
+				invoker.SwingAngle += invoker.SwingAngleStep;
+			}
+			
+			TNT1 A 0 A_WeaponOffset; // Reset the offset.
+			goto Select;
+	}
+}

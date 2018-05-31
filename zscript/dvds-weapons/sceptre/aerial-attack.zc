@@ -1,0 +1,29 @@
+extend class SceptreOfEmpyreaZSC
+{
+	static const uint16 SceptreAerialAttackStaminaCost[] =
+	{
+		575, 568, 561, 554, 546, 538,
+		530, 521, 512, 503, 493, 483,
+		473, 462, 451, 440, 428
+	};
+	
+	const AerialAttackButtons = BT_JUMP;
+	const AerialAttackMinCharLevel = 13;
+	const AerialAttackMinSceptreLevel = 4;
+	
+	bool CheckAerialAttack()
+	{
+		return
+			CharLevel >= AerialAttackMinCharLevel &&
+			SceptreLevel >= AerialAttackMinSceptreLevel &&
+			Owner && Owner.player &&
+			Owner.Vel.Z < 0. &&
+			(Owner.player.cmd.buttons & AerialAttackButtons) == AerialAttackButtons;
+	}
+	
+	states
+	{
+		AerialAttack:
+			goto Hold;
+	}
+}
