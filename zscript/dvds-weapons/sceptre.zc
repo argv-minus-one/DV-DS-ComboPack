@@ -1015,7 +1015,7 @@ class SceptreTwirling : Actor
 		SceptreTwirling.SpinRate 3, 25, 1;
 		SceptreTwirling.TouchPos 14, -6, 0;
 		SceptreTwirling.TouchAngle 180;
-		SceptreTwirling.TwirlPos 50, 0, 0;
+		SceptreTwirling.TwirlPos 30, 0, 0;
 	}
 	
 	float SpinAccel;
