@@ -1015,7 +1015,7 @@ class SceptreTwirling : Actor
 		SceptreTwirling.SpinAccel 1;
 		SceptreTwirling.SpinRate 3, 25, 1;
 		SceptreTwirling.TouchPos 14, -6, 0;
-		SceptreTwirling.TouchAngle 0;
+		SceptreTwirling.TouchAngle 180;
 		SceptreTwirling.TwirlPos 50, 0, 0;
 	}
 	
@@ -1042,6 +1042,7 @@ class SceptreTwirling : Actor
 	protected float SpinRate, TargetSpinRate, SpinDownDeltaAngle;
 	protected Vector3 PrevRelPos, CurrentRelPos, TargetRelPos;
 	bool ReadyToCatch;
+	private int SpawnTic;
 	
 	override void PostBeginPlay()
 	{
@@ -1052,7 +1053,9 @@ class SceptreTwirling : Actor
 			return;
 		}
 		
+		SpawnTic = gametic;
 		PrevRelPos = CurrentRelPos = TargetRelPos = (TouchPosX, TouchPosY, TouchPosZ);
+		Roll = TouchAngle;
 	}
 	
 	override void Tick()
@@ -1131,7 +1134,10 @@ class SceptreTwirling : Actor
 			else
 				realRelPos.Z += master.Height * .5;
 			
-			Warp(master, realRelPos.X, realRelPos.Y, realRelPos.Z, flags: WARPF_INTERPOLATE|WARPF_COPYPITCH|WARPF_COPYVELOCITY|WARPF_BOB|WARPF_NOCHECKPOSITION, pitch: 90.);
+			// Don't interpolate on the tic it was spawned. Doing so may create ugly graphical artifacts for a frame or two, since it's interpolating from an invalid state.
+			let interpolate = gametic != SpawnTic;
+			
+			Warp(master, realRelPos.X, realRelPos.Y, realRelPos.Z, flags: (interpolate? WARPF_INTERPOLATE : 0)|WARPF_COPYPITCH|WARPF_COPYVELOCITY|WARPF_BOB|WARPF_NOCHECKPOSITION, pitch: 90.);
 		}
 	}
 	
