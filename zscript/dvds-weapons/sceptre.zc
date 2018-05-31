@@ -1,6 +1,5 @@
 /*
 TODO:
-• Apply motion blur to twirl.
 • Make it possible to cast spells through the shield.
 • Implement the spin attack.
 • Make all moves cost stamina.
@@ -1139,6 +1138,15 @@ class SceptreTwirling : Actor
 			
 			Warp(master, realRelPos.X, realRelPos.Y, realRelPos.Z, flags: (interpolate? WARPF_INTERPOLATE : 0)|WARPF_COPYPITCH|WARPF_COPYVELOCITY|WARPF_BOB|WARPF_NOCHECKPOSITION, pitch: 90.);
 		}
+		
+		if (SpinRate > (FullSpinRate * .95))
+			frame = 28;
+		else if (SpinRate > (FullSpinRate * .8))
+			frame = 27;
+		else if (SpinRate > (FullSpinRate * .6))
+			frame = 26;
+		else
+			frame = 25;
 	}
 	
 	protected action void A_MoveToTwirlPos()
