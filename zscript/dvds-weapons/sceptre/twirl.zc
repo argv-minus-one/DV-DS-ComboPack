@@ -151,17 +151,17 @@ class SceptreTwirling : Actor
 			// Move toward the destination.
 			let delta = TargetRelPos - CurrentRelPos;
 			let deltaLength = delta.Length();
-			let nextPos = CurrentRelPos + (delta.Unit() * Speed);
-			let nextDelta = TargetRelPos - nextPos;
-			let nextDeltaLength = nextDelta.Length();
 			
-			// Make sure not to overshoot.
-			if ((deltaLength < 0. && nextDeltaLength >= 0.) || (deltaLength > 0. && nextDeltaLength <= 0.))
+			if (Speed >= deltaLength)
+			{
 				// Finished moving to the target relpos. Update PrevRelPos as well.
 				PrevRelPos = CurrentRelPos = TargetRelPos;
+			}
 			else
+			{
 				// Not finished moving to the target relpos. Keep going.
-				CurrentRelPos = nextPos;
+				CurrentRelPos += delta.Unit() * Speed;
+			}
 		}
 		
 		{
