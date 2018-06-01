@@ -387,32 +387,33 @@ class AetheriusBaseWeaponZSC : Weapon
 			A_PlaySound(AetheriusPlayerPawn(self).KiaiSound, CHAN_VOICE);
 	}
 	
-	action state A_AnimateOffset(statelabel whenDone, Vector2 tgt, Vector2 speed = (6, 6), int layer = PSprite.WEAPON)
+	action state A_AnimateOffset(statelabel whenDone, Vector2 tgt, double speed = 6, int layer = PSprite.WEAPON)
 	{
+		let done = ResolveState(whenDone);
+		
 		if (!player)
-			return ResolveState(whenDone);
+			return done;
 		
 		let psp = player.FindPSprite(layer);
 		if (!psp || (tgt.X == psp.x && tgt.Y == psp.y))
-			return ResolveState(whenDone);
+			return done;
 		
-		if (tgt.X != psp.x)
+		let cur = (psp.x, psp.y);
+		let delta = tgt - cur;
+		
+		if (delta.Length() <= speed)
 		{
-			if (tgt.X > psp.x)
-				psp.x = min(psp.x + speed.X, tgt.X);
-			else
-				psp.x = max(psp.x - speed.X, tgt.X);
+			psp.x = tgt.X;
+			psp.y = tgt.Y;
+			return done;
 		}
-		
-		if (tgt.Y != psp.y)
+		else
 		{
-			if (tgt.Y > psp.y)
-				psp.y = min(psp.y + speed.Y, tgt.Y);
-			else
-				psp.y = max(psp.y - speed.Y, tgt.Y);
+			let step = delta.Unit() * speed;
+			psp.x += step.X;
+			psp.y += step.Y;
+			return null;
 		}
-		
-		return null;
 	}
 }
 

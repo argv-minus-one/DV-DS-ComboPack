@@ -9,7 +9,7 @@ extend class SceptreOfEmpyreaZSC
 			wait;
 			
 			FLHS B 0 A_WeaponOffset(0, WEAPONBOTTOM);
-			#### # 1 A_AnimateOffset(1, (0, WEAPONTOP), speed: (10, 10));
+			#### # 1 A_AnimateOffset(1, (0, WEAPONTOP), speed: 10);
 			wait;
 			
 			#### # 0 {
@@ -39,7 +39,7 @@ extend class SceptreOfEmpyreaZSC
 			}
 			
 			// Lower Flora's hand.
-			#### # 1 A_AnimateOffset(1, (0, WEAPONBOTTOM), speed: (10, 10));
+			#### # 1 A_AnimateOffset(1, (0, WEAPONBOTTOM), speed: 10);
 			wait;
 			SCEM A 0 A_SceptreBeginRaise;
 			#### # 1 A_SceptreRaise(andThen: "Ready", speed: 3);
