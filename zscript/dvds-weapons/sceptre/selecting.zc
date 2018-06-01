@@ -71,4 +71,29 @@ extend class SceptreOfEmpyreaZSC
 	{
 		A_WeaponOffset(invoker.SceptreRaiseEndOffset[0], invoker.SceptreRaiseEndOffset[1]);
 	}
+	
+	states
+	{
+		Select:
+			TNT1 A 1
+			{
+				A_SceptreBeginRaise();
+				A_SetCrosshair(8);
+				SetInventory("DrawingDiarisBow", 0);
+				invoker.AnimSpeedsEnabled = true;
+			}
+			
+			SCEM A 1 A_SceptreRaise("Ready");
+			wait;
+		
+		Deselect:
+			TNT1 A 0
+			{
+				A_SetCrosshair(0);
+				CallACS("MiscVarSetDECORATE",397,0);
+			}
+			
+			SCEM A 1 A_SceptreLower(switchWeaponWhenDone: true);
+			wait;
+	}
 }
