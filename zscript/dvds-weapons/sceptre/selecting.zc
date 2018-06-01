@@ -80,7 +80,6 @@ extend class SceptreOfEmpyreaZSC
 				A_SceptreBeginRaise();
 				A_SetCrosshair(8);
 				SetInventory("DrawingDiarisBow", 0);
-				invoker.AnimSpeedsEnabled = true;
 			}
 			
 			SCEM A 1 A_SceptreRaise("Ready");

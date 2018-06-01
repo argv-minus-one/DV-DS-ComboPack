@@ -47,6 +47,12 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 	
 	protected int SceptreLevel, CharLevel;
 	
+	override void BeginPlay()
+	{
+		Super.BeginPlay();
+		AnimSpeedsEnabled = true;
+	}
+	
 	override void Tick()
 	{
 		if (Owner && Owner.player && Owner.player.ReadyWeapon == self)
