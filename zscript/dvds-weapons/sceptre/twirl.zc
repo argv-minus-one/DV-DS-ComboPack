@@ -24,9 +24,9 @@ extend class SceptreOfEmpyreaZSC
 				invoker.Twirling.master = self;
 			}
 			
-		AltHold:
+		Twirling:
 			FLHS A 1 A_SceptreDefend;
-			#### # 0 A_ReFire;
+			#### # 0 A_ReFire("Twirling");
 			
 			// Start the recall animation, then wait for it to finish.
 			#### # 0 { invoker.Twirling.Recall(); }
