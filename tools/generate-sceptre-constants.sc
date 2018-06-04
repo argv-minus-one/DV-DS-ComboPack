@@ -110,7 +110,7 @@ Show(
 				lv <- 0 to 16
 				worst = 0.21052632f
 				best = 0.046511628f
-				// See SceptreTwirlMPCost.ods (spreadsheet) for explanation.
+				// See tools/SceptreConstantsData.ods (spreadsheet) for explanation.
 				cost = best + ((worst - best) * (1d - pow(lv / 16d, 2)))
 			} yield cost.toFloat
 		)
