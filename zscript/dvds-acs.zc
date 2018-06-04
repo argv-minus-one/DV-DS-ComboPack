@@ -1,0 +1,33 @@
+/** Some helpers for interacting with Aetherius' ACS code. */
+struct AetheriusACS
+{
+	static bool CheckMP(int amount, bool ignoreInfiniteAmmo = true)
+	{
+		return ACS_NamedExecuteWithResult("UseManaAttack", amount, 1, !ignoreInfiniteAmmo);
+	}
+	
+	static bool TryTakeMP(int amount, bool ignoreInfiniteAmmo = true)
+	{
+		return ACS_NamedExecuteWithResult("UseManaAttack", amount, 2, !ignoreInfiniteAmmo);
+	}
+	
+	static void TakeMP(int amount, bool ignoreInfiniteAmmo = true)
+	{
+		ACS_NamedExecuteWithResult("UseManaAttack", amount, 0, !ignoreInfiniteAmmo);
+	}
+	
+	static bool CheckStamina(int amount)
+	{
+		return ACS_NamedExecuteWithResult("UseStaminaAttack", amount, 1);
+	}
+	
+	static bool TryTakeStamina(int amount)
+	{
+		return ACS_NamedExecuteWithResult("UseStaminaAttack", amount, 2);
+	}
+	
+	static void TakeStamina(int amount)
+	{
+		ACS_NamedExecuteWithResult("UseStaminaAttack", amount, 0);
+	}
+}

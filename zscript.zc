@@ -1,5 +1,6 @@
 version "3.2.1"
 
+#include "zscript/dvds-acs.zc"
 #include "zscript/psprite-speed-scaler.zc"
 #include "zscript/dvds-weapclass.zc"
 #include "zscript/dvds-actorclass.zc"
