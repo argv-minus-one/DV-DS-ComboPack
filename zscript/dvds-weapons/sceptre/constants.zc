@@ -44,6 +44,24 @@ extend class SceptreOfEmpyreaZSC
 		0.14645809, 0.13300376, 0.11826806, 0.102251, 0.08495257,
 		0.06637278, 0.046511628
 	};
+	
+	static const float TwirlSpinRate[] =
+	{
+		37.24138, 39.91379, 42.58621, 45.25862, 47.931034,
+		50.603447, 53.275864, 55.948277, 58.62069, 61.293102,
+		63.96552, 66.63793, 69.31035, 71.98276, 74.655174,
+		77.32758, 80.0
+	};
+	
+	static const Sound TwirlSound[] =
+	{
+		"SceptreTwirl1", "SceptreTwirl1", "SceptreTwirl1",
+		"SceptreTwirl1", "SceptreTwirl1", "SceptreTwirl1",
+		"SceptreTwirl1", "SceptreTwirl1", "SceptreTwirl2",
+		"SceptreTwirl2", "SceptreTwirl2", "SceptreTwirl2",
+		"SceptreTwirl2", "SceptreTwirl2", "SceptreTwirl2",
+		"SceptreTwirl3", "SceptreTwirl3"
+	};
 }
 
 extend class SceptrePuff

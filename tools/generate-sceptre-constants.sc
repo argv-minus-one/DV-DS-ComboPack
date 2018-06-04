@@ -1,6 +1,6 @@
 // Scala script that generates some of the constant tables used in sceptre.zc. It outputs them on stdout, which can be redirected into a file.
 
-import math.pow
+import math._
 
 // Framework
 
@@ -113,6 +113,29 @@ Show(
 				// See tools/SceptreConstantsData.ods (spreadsheet) for explanation.
 				cost = best + ((worst - best) * (1d - pow(lv / 16d, 2)))
 			} yield cost.toFloat
+		),
+		
+		ConstantTable(
+			"float TwirlSpinRate", 5,
+			for {
+				lv <- 0 to 16
+				worst = 37.2413793103448
+				best = 80.0
+				rate = worst + ((best - worst) * (lv / 16d))
+			} yield rate.toFloat
+		),
+		
+		ConstantTable(
+			"Sound TwirlSound", 3,
+			for {
+				lv <- 0 to 16
+				soundNum = {
+					if (lv >= 15) 3
+					else if (lv >= 8) 2
+					else 1
+				}
+				sound = s""""SceptreTwirl$soundNum""""
+			} yield sound
 		)
 	),
 	

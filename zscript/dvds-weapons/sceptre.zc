@@ -3,12 +3,9 @@ TODO:
 • Make it possible to cast spells through the shield.
 • Implement the spin attack.
 • Make all moves cost stamina.
-• Make twirl also cost MP.
 • Apply damage modifiers: berserk, debuffs, strength stat, etc.
 • Port the FloraWeapon class to ZScript, then derive this class from it.
 • Do…something about the twirl animation in the software renderer.
-• Add sound to the twirl animation.
-• Make the twirl animation reflect the weapon level.
 
 When done:
 • Rename to SceptreOfEmpyrea.
