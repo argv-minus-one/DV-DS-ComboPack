@@ -59,7 +59,7 @@ extend class SceptreOfEmpyreaZSC
 			}
 			
 		Twirling:
-			FLHS A 0 A_JumpIf(!invoker.TwirlDeductCosts(), "TwirlStop");
+			FLHS A 0 A_JumpIf(!invoker.TwirlDeductCosts() || !invoker.Twirling, "TwirlStop");
 			#### # 1 { A_SceptreDefend(); invoker.TwirlUpdate(); }
 			#### # 0 A_ReFire("Twirling");
 		
@@ -67,16 +67,20 @@ extend class SceptreOfEmpyreaZSC
 			// Start the recall animation, then wait for it to finish.
 			#### # 0
 			{
-				invoker.Twirling.Recall();
+				if (invoker.Twirling)
+					invoker.Twirling.Recall();
 				invoker.TwirlStamCostAccum = invoker.TwirlMPCostAccum = 0.;
 			}
 			
-			#### # 1 A_JumpIf(invoker.Twirling.ReadyToCatch, 1);
+			#### # 1 A_JumpIf(!invoker.Twirling || invoker.Twirling.ReadyToCatch, 1);
 			wait;
 			
 			FLHS B 0 {
-				invoker.Twirling.Destroy();
-				invoker.Twirling = null;
+				if (invoker.Twirling)
+				{
+					invoker.Twirling.Destroy();
+					invoker.Twirling = null;
+				}
 			}
 			
 			// Lower Flora's hand.
