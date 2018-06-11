@@ -312,7 +312,7 @@ class SceptreTwirling : Actor
 		
 		// At what rate should the Sceptre's spinning accelerate/decelerate, in order to reach the targetAngle right when it reaches the targetSpinRate?
 		// FIXME: This is wrong! It causes the Sceptre to stop too soon when spinning down. It looks okayish, but not as good as it should.
-		invoker.SpinDeltaAccel = accel * (minDeltaAngle / invoker.SpinDeltaAngle);
+		invoker.SpinDeltaAccel = invoker.SpinDeltaAngle == 0.? 0. : accel * (minDeltaAngle / invoker.SpinDeltaAngle);
 		
 		// And we're done!
 		// Damn but this took me forever to figure out. [argv_minus_one]
