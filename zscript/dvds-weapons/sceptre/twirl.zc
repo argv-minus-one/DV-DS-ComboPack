@@ -294,6 +294,15 @@ class SceptreTwirling : Actor
 			invoker.FullSpinRate * invoker.SpinAccelMult :
 			invoker.FullSpinRate * -invoker.SpinDecelMult;
 		
+		// Can't do anything if the acceleration is zero!
+		if (accel == 0.)
+		{
+			Console.Printf("\cg%s has a zero FullSpinRate or SpinAccelMult!\n[\c-FullSpinRate=\cf%f \c-SpinAccelMult=\cf%f \c-SpinDecelMult=\cf%f\cg]", GetClassName(), invoker.FullSpinRate, invoker.SpinAccelMult, invoker.SpinDecelMult);
+			invoker.ReadyToCatch = true;
+			invoker.Destroy();
+			return;
+		}
+		
 		// Given the current acceleration rate, what's the minimum time (in tics) needed to reach the targetSpinRate from the current SpinRate?
 		// Credit to Carl Gauss for figuring out how to compute this part.
 		let minTics = (targetSpinRate - invoker.SpinRate + accel) / accel;
