@@ -5,7 +5,6 @@ TODO:
 • Make all moves cost stamina.
 • Apply damage modifiers: berserk, debuffs, strength stat, etc.
 • Port the FloraWeapon class to ZScript, then derive this class from it.
-• Do…something about the twirl animation in the software renderer.
 
 When done:
 • Rename to SceptreOfEmpyrea.

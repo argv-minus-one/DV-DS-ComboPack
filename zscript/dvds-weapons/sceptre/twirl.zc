@@ -222,6 +222,8 @@ class SceptreTwirling : Actor
 			}
 		}
 		
+		SetSpriteAndFrame();
+		
 		{
 			let realRelPos = CurrentRelPos;
 			
@@ -245,18 +247,6 @@ class SceptreTwirling : Actor
 			let interpolate = gametic != SpawnTic;
 			
 			Warp(master, realRelPos.X, realRelPos.Y, realRelPos.Z, flags: (interpolate? WARPF_INTERPOLATE : 0)|WARPF_COPYPITCH|WARPF_COPYVELOCITY|WARPF_BOB|WARPF_NOCHECKPOSITION, pitch: 90.);
-		}
-		
-		{
-			let asr = abs(SpinRate);
-			if (asr > 75.)
-				frame = 28;
-			else if (asr > 55.)
-				frame = 27;
-			else if (asr > 25.)
-				frame = 26;
-			else
-				frame = 25;
 		}
 	}
 	
@@ -353,6 +343,55 @@ class SceptreTwirling : Actor
 		SetStateLabel("Recall");
 	}
 	
+	protected virtual void SetSpriteAndFrame()
+	{
+		state st;
+		
+		if (vid_rendermode == 4)
+		{
+			// If using the OpenGL renderer, use the fancy twirl style.
+			bRollSprite = true;
+			
+			// The frames of the animation are under the FancyTwirlFrames label. +0 is with no blur, +1 is with a little blur, and so on.
+			// So, for every degrees/tic of spin rate, increase blur by 1/25 (up to 4).
+			uint f = min(abs(SpinRate) / 25, 3);
+			st = FindState("FancyTwirlFrames") + f;
+		}
+		else
+		{
+			// Fall back to the legacy style.
+			bRollSprite = false;
+			
+			if (abs(deltaangle(Roll, TouchAngle)) < 45. && abs(SpinRate) < 10.)
+			{
+				// Use the regular unblurred sprite in this situation.
+				st = FindState("Spawn");
+			}
+			else
+			{
+				// First of all, choose the correct sprite set. There are two blur levels in this animation, so we'll go to the blurrier one at ≥50°/tic.
+				if (abs(SpinRate) >= 50.)
+					st = FindState("LegacyTwirlFramesSuper");
+				else
+					st = FindState("LegacyTwirlFrames");
+				
+				// The frames for this animation are determined by the roll angle.
+				// The angles of the sprite frames are:
+				// 	A:-84.47°	B:-130.2°	C:-174.35°
+				// 	D:140.75°	E:95.53°	F:50.67°
+				// 	G:5.59°	H:-39.25°
+				// Each frame is offset from the next one by about 45°.
+				// The frame lookup table has been set up so that we'll get the right frame with the given index.
+				uint f = floor(4.5 + (Normalize180(Roll - 90.) / 45.));
+				f %= 8;
+				st += f;
+			}
+		}
+		
+		sprite = st.sprite;
+		frame = st.frame;
+	}
+	
 	states
 	{
 		Spawn:
@@ -383,5 +422,10 @@ class SceptreTwirling : Actor
 			#### # 0 A_PlaySound(SceptrePuff.HitWallSounds[0]);
 			goto Recall;
 		*/
+			
+		// This is a lookup table for sprites and frames. We never actually jump into any of these states; they're only used for sprite/frame lookup.
+		FancyTwirlFrames: SCEM Z[^] -1;
+		LegacyTwirlFrames: STR3 ABCDEFGH -1;
+		LegacyTwirlFramesSuper: STR2 ABCDEFGH -1;
 	}
 }
