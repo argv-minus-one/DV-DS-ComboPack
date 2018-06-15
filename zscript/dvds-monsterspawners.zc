@@ -1,0 +1,808 @@
+// BASE Spawner
+class BaseMonsterSpawner : Actor
+{
+	default
+	{
+		+NOTIMEFREEZE
+	}
+	const SpawnerFlags = SXF_NOCHECKPOSITION |
+											SXF_TRANSFERPOINTERS | 
+											SXF_TRANSFERPITCH | 
+											SXF_TRANSFERROLL | 
+											SXF_TRANSFERAMBUSHFLAG | 
+											SXF_TRANSFERSPECIAL;
+}
+
+// BASE Spawner
+class AetheriusMonsterSpawner : RandomSpawner abstract
+{
+	virtual Class<Actor> ChooseWhatToSpawn() { return null; }
+	
+	protected bool CanFitHere(Class<Actor> actorClass) 
+	{
+		let actor = Spawn(actorClass, Pos, NO_REPLACE);
+		
+		if (actor == null)
+			return false;
+		else 
+		{
+			let result = actor.TestMobjLocation();
+			actor.ClearCounters();
+			actor.Destroy();
+			return result;
+		}
+	}
+
+	override void BeginPlay()
+	{
+		Actor.BeginPlay();
+		
+		let wts = ChooseWhatToSpawn();
+		
+		if (!wts)
+		{
+			Spawn("Unknown", Pos, NO_REPLACE);
+			Console.Printf(TEXTCOLOR_RED.."%s.ChooseWhatToSpawn returned null. Did you forget to override that method?", GetClassName());
+			Destroy();
+			return;
+		}
+		
+		{
+			let replacement = GetReplacement(wts);
+			if (replacement)
+				wts = replacement;
+		}
+		
+		Species = Name(wts);
+		let def = GetDefaultByType(wts);
+		Speed = def.Speed;
+		bMissile |= def.bMissile;
+		bSeekerMissile |= def.bSeekerMissile;
+		bSpectral |= def.bSpectral;
+	}
+}
+
+// Doom Monsters
+class ZombiemanSpawner : AetheriusMonsterSpawner replaces Zombieman
+{
+	Default
+	{
+		//$Sprite "RNMSA0"
+		Radius 20;
+		Height 56;
+	}
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,256) <= 4) return "ShotgunGuySpawner"; // Gives an VERY-RARE chance for a Zombieman to use ShotgunGuy spawns instead. :V
+		else if (random(1,256) <= 8 && modtype == 0 && checkbombers == 1) return "SuicideBomber";
+		else if (random(1,256) <= 4 && modtype == 0 && monstersoption == 1) return "HellCleric";
+		else if (random(1,256) <= 8 && doomtype == 1) return "ChaingunGuy";
+		else if (random(1,256) <= evolvechance)
+		{
+			if (random(1,2) == 1) return "RocketLauncherGuy";
+			else
+			{
+				if (random(1,320) <= evolvechance)
+				{
+					if (modtype == 1) // Prevents Repeater and Karasawa Zombies from spawning in DVI-DS.
+					{
+						return "PlasmaGuy";
+					}
+					else
+					{
+						if (random(1,2) == 1)
+							return "RepeaterZombie";
+						else
+							return "KarasawaGuy";
+					}
+				}
+				else
+					return "PlasmaGuy";
+			}
+		}
+		else
+			return "DSZombieman";
+	}
+}
+class StealthZombiemanSpawner : ZombiemanSpawner replaces StealthZombieman { }
+
+// Plasma-Rifle Guy
+// Rocket-Launcher Guy
+// Repeater Zombie
+// Karasawa Guy
+
+// Shotgun Guy
+class ShotgunGuySpawner : AetheriusMonsterSpawner replaces ShotgunGuy
+{
+	Default
+	{
+		//$Sprite "RNMSB0"
+		Radius 20;
+		Height 56;
+	}
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,256) <= 4) return "ZombiemanSpawner"; // Gives an VERY-RARE chance for a ShotgunGuy to use Zombieman spawns instead. :V
+		if (random(1,256) <= 8 && modtype == 0 && checkbombers == 1) return "SuicideBomber";
+		else if (random(1,256) <= 8 && modtype == 0 && monstersoption == 1) return "HellCleric";
+		else if (random(1,256) <= 16 && doomtype == 1) return "ChaingunGuy";
+		else if (random(1,256) <= evolvechance)
+		{
+			if (random(1,256) <= evolvechance)
+				return "FemaleRailZombie";
+			else
+				return "SuperShotgunGuy";
+		}
+		else
+			return "DSShotgunGuy";
+	}
+}
+class StealthShotgunGuySpawner : ShotgunGuySpawner replaces StealthShotgunGuy { }
+
+// Super-Shotgun Guy
+
+// Chaingun Guy
+class ChaingunGuySpawner : AetheriusMonsterSpawner replaces ChaingunGuy
+{
+	Default
+	{
+		//$Sprite "RNMSC0"
+		Radius 20;
+		Height 56;
+	}
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,256) <= 4) { if (random(1,2) == 1) return "ShotgunGuySpawner"; else return "ZombiemanSpawner"; } // Gives an VERY-RARE chance for a ChaingunGuy to use Zombieman or ShotgunGuy spawns instead. :V
+		if (random(1,256) <= 8 && modtype == 0 && checkbombers == 1) return "SuicideBomber";
+		else if (random(1,256) <= 4 && modtype == 0 && monstersoption == 1) return "HellCleric";
+		else if (random(1,256) <= evolvechance)
+		{
+			if (random(1,320) <= evolvechance)
+				return "BFGGuy";
+			else
+				return "Minigunner";
+		}
+		else
+			return "DSChaingunGuy";
+	}
+}
+class StealthChaingunGuySpawner : ChaingunGuySpawner replaces StealthChaingunGuy { }
+
+// BFG9000 Guy
+
+// Imp
+class DoomImpSpawner : AetheriusMonsterSpawner replaces DoomImp
+{
+	Default
+	{
+		//$Sprite "RNMSD0"
+		Radius 20;
+		Height 56;
+	}
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		let darkimptype = random(1,3);
+		
+		if (random(1,256) <= 8 && modtype == 0 && monstersoption == 1)
+			return "HellCleric";
+		else if (random(1,256) <= evolvechance)
+		{
+			if (random(1,320) <= evolvechance)
+			{
+				if (CanFitHere("NetherDarkImp")) return "NetherDarkImp";
+				else 
+				{
+					if (darkimptype == 1) return "VoidDarkImp"; // Stronger Dark Imp
+					else if (darkimptype == 2) return "STDarkImp"; // Weaker Dark Imp
+					else return "DarkImp"; // Normal Dark Imp
+				}
+			}
+			else
+			{
+				if (darkimptype == 1)
+					return "VoidDarkImp"; // Stronger Dark Imp
+				else if (darkimptype == 2)
+					return "STDarkImp"; // Weaker Dark Imp
+				else
+					return "DarkImp"; // Normal Dark Imp
+			}
+		}
+		else
+			return "DSDoomImp";
+	}
+}
+class StealthDoomImpSpawner : DoomImpSpawner replaces StealthDoomImp { }
+
+// Dark Imp
+
+// Demon
+class DemonSpawner : AetheriusMonsterSpawner replaces Demon
+{
+	Default
+	{
+		//$Sprite "RNMSE0"
+		Radius 30;
+		Height 56;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,256) <= 16 && modtype == 0 && monstersoption == 1)
+			return "HellCleric";
+		else if (random(1,256) <= evolvechance) // Spectres
+		{
+			if (random(1,256) <= evolvechance)
+			{
+				if (random(1,512) <= evolvechance)
+					return "ChaingunSpectre";
+				else if (random(1,16) <= 1)
+					return "ChaingunSpectre";
+				else
+					return "BloodSpectre";
+			}
+			else
+				return "DSSpectre";
+		}
+		else if (random(1,256) <= evolvechance) // Demons
+		{
+			if (random(1,512) <= evolvechance)
+				return "ChaingunDemon";
+			else if (random(1,16) <= 1)
+				return "ChaingunDemon";
+			else
+				return "BloodDemon";
+		}
+		else
+			return "DSDemon";
+	}
+}
+
+class SpectreSpawner : AetheriusMonsterSpawner replaces Spectre
+{
+	Default
+	{
+		//$Sprite "RNMSF0"
+		Radius 30;
+		Height 56;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,256) <= 16 && modtype == 0 && monstersoption == 1)
+			return "HellCleric";
+		else if (random(1,256) <= evolvechance) // Demons
+		{
+			if (random(1,512) <= evolvechance)
+				return "ChaingunSpectre";
+			else if (random(1,16) <= 1)
+				return "ChaingunSpectre";
+			else
+				return "BloodSpectre";
+		}
+		else
+			return "DSSpectre";
+	}
+}
+class StealthDemonSpawner : DemonSpawner replaces StealthDemon { }
+
+// Blood Demon
+
+// Revenant
+class RevenantSpawner : AetheriusMonsterSpawner replaces Revenant
+{
+	Default
+	{
+		//$Sprite "RNMSG0"
+		Radius 20;
+		Height 56;
+	}
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,256) <= 16 && modtype == 0 && monstersoption == 1)
+			return "HellCleric";
+		else if (random(1,256) <= evolvechance)
+			return "DeathIncarnate";
+		else
+			return "DSRevenant";
+	}
+}
+class StealthRevenantSpawner : RevenantSpawner replaces StealthRevenant { }
+
+// Death Incarnate
+
+// Cacodemon
+class CacodemonSpawner : AetheriusMonsterSpawner replaces Cacodemon
+{
+	Default
+	{
+		//$Sprite "RNMSH0"
+		Radius 31;
+		Height 56;
+	}
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,256) <= evolvechance) // Upgrade to Other Cacos
+		{
+			if (modtype == 1) // DVI
+			{
+				if (random(1,320) <= evolvechance)
+				{
+					if (CanFitHere("Abaddon")) return "Abaddon";
+					else if (CanFitHere("Cacolantern")) return "Cacolantern";
+					else return "DSCacoDemon";
+				}
+				else
+				{
+					if (CanFitHere("Cacolantern")) return "Cacolantern";
+					else return "DSCacoDemon";
+				}
+			}
+			else // Normal or DVII
+			{
+				if (random(1,320) <= evolvechance)
+				{
+					if (random(1,384) <= evolvechance)
+					{
+						if (random(1,448) <= evolvechance)
+						{
+							if (CanFitHere("HadesOverlord")) return "HadesOverlord";
+							else if (CanFitHere("HadesElemental")) return "HadesElemental";
+							else return "Abaddon";
+						}
+						else
+						{
+							if (CanFitHere("HadesElemental")) return "HadesElemental";
+							else return "Abaddon";
+						}
+					}
+					else
+					{
+						if (CanFitHere("Abaddon")) return "Abaddon";
+						else return "Cacolantern";
+					}
+				}
+				else
+				{
+					if (CanFitHere("Cacolantern")) return "Cacolantern";
+					else return "DSCacodemon";
+				}
+			}
+		}
+		else
+		if (random(1,768) <= evolvechance) // Upgrade to Hades Scion
+		{
+			if (random(1,960) <= evolvechance)
+			{
+				if (CanFitHere("HadesOverlord")) return "HadesOverlord";
+				else if (CanFitHere("HadesElemental")) return "HadesElemental";
+				else return "DSCacodemon";
+			}
+			else
+			{
+				if (CanFitHere("HadesElemental")) return "HadesElemental";
+				else return "DSCacodemon";
+			}
+		}
+		else
+			return "DSCacoDemon";
+	}
+}
+class StealthCacodemonSpawner : CacodemonSpawner replaces StealthCacodemon { }
+
+// Cacolantern
+// Abaddon
+
+// Pain Elemental
+class PainElementalSpawner : AetheriusMonsterSpawner replaces PainElemental
+{
+	Default
+	{
+		//$Sprite "RNMSI0"
+		Radius 31;
+		Height 56;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (modtype == 0 && random(1,256) <= evolvechance) // Upgrade to Hades Scion
+		{
+			if (random(1,320) <= evolvechance)
+			{
+				if (CanFitHere("HadesOverlord")) return "HadesOverlord";
+				else if (CanFitHere("HadesElemental")) return "HadesElemental";
+				else return "DSPainElemental";
+			}
+			else
+			{
+				if (CanFitHere("HadesElemental")) return "HadesElemental";
+				else return "DSPainElemental";
+			}
+		}
+		else return "DSPainElemental";
+	}
+}
+
+// Hades Elemental
+// Hades Overlord
+
+// LostSoul
+class LostSoulSpawner : AetheriusMonsterSpawner replaces LostSoul
+{
+	Default
+	{
+		//$Sprite "RNMSR0"
+		Radius 16;
+		Height 56;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+
+		if (random(1,256) <= evolvechance)
+		{
+			if (random(1,384) <= evolvechance) return "ForgottenOne";
+			else return "DSLostSoul2";
+		}
+		else return "DSLostSoul";
+	}
+}
+
+// Arachnotron
+class ArachnotronSpawner : AetheriusMonsterSpawner replaces Arachnotron
+{
+	Default
+	{
+		//$Sprite "RNMSJ0"
+		Radius 64;
+		Height 64;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,256) <= evolvechance) // Upgrade to Barons
+		{
+			if (random(1,2) == 1)
+				return "FusionArachnotron";
+			else
+				return "ArachnotronMK2";
+		}
+		else if (random(1,256) <= 96)
+			return "DSRailArachnotron";
+		else
+			return "DSArachnotron";
+	}
+}
+class StealthArachnotronSpawner : ArachnotronSpawner replaces StealthArachnotron { }
+
+// Fusion Arachnotron
+
+// Hell Knight
+class HellKnightSpawner : AetheriusMonsterSpawner replaces HellKnight
+{
+	Default
+	{
+		//$Sprite "RNMSK0"
+		Radius 24;
+		Height 64;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		let barontype = random(1,3);
+		
+		if (random(1,256) <= 8 && modtype == 0 && monstersoption == 1)
+		{
+			if (random(1,512) <= evolvechance)
+				return "Hierophant";
+			else
+				return "FlyingBalrog";
+		}
+		else if (random(1,256) <= evolvechance) // Upgrade to Barons
+		{
+			if (random(1,320) > evolvechance)
+				return "BaronOfHell";
+			else
+			{
+				if (random(1,384) > evolvechance)
+					return "Belphegor";
+				else
+				{
+					if (random(1,448) > evolvechance)
+					{
+						if (barontype == 1)
+							return "BruiserDemon";
+						else if (barontype == 2)
+							return "ArchonofHell";
+						else
+							return "CyBruiser";
+					}
+					else
+					{
+						if (random(1,1024) > evolvechance)
+							return "PyroDemon";
+						else
+							return "Hierophant";
+					}
+				}
+			}
+		}
+		else
+		if (random(1,1024) <= evolvechance)
+			return "HellWarrior";
+		else
+			return "HellKnight";
+	}
+}
+class StealthHellKnightSpawner : HellKnightSpawner replaces StealthHellKnight { }
+
+// Mancubus
+class MancubusSpawner : AetheriusMonsterSpawner replaces Fatso
+{
+	Default
+	{
+		//$Sprite "RNMSL0"
+		Radius 48;
+		Height 64;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,256) <= evolvechance)
+		{
+			if (random(1,320) > evolvechance)
+				return "Hectebus";
+			else
+				return "Daedabus";
+		}
+		else
+			return "DSFatso";
+	}
+}
+class StealthMancubusSpawner : MancubusSpawner replaces StealthFatso { }
+
+// Hectebus
+
+// Archvile
+class ArchvileSpawner : AetheriusMonsterSpawner replaces Archvile
+{
+	Default
+	{
+		//$Sprite "RNMSM0"
+		Radius 20;
+		Height 56;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		let barontype = random(1,3);
+		
+		if (random(1,256) <= 8 && modtype == 0 && monstersoption == 1)
+			return "Diabloist";
+		else
+			return "DSArchvile";
+	}
+}
+class StealthArchvileSpawner : ArchvileSpawner replaces StealthArchvile { }
+
+// Diabloist
+
+// Baron Of Hell
+class BaronofHellSpawner : AetheriusMonsterSpawner replaces BaronofHell
+{
+	Default
+	{
+		//$Sprite "RNMSN0"
+		Radius 24;
+		Height 64;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		let barontype = random(1,3);
+		
+		if (random(1,256) <= 8 && modtype == 0 && monstersoption == 1)
+		{
+			if (random(1,512) <= evolvechance)
+				return "Hierophant";
+			else
+				return "FlyingBalrog";
+		}
+		else if (random(1,256) <= evolvechance) // Upgrade to Barons
+		{
+			if (random(1,320) > evolvechance)
+				return "Belphegor";
+			else
+			{
+				if (random(1,384) > evolvechance)
+				{
+					if (barontype == 1)
+						return "BruiserDemon";
+					else if (barontype == 2)
+						return "ArchonofHell";
+					else
+						return "CyBruiser";
+				}
+				else
+				{
+					if (random(1,1024) > evolvechance)
+						return "PyroDemon";
+					else
+						return "Hierophant";
+				}
+			}
+		}
+		else
+		if (random(1,4096) <= evolvechance)
+			return "HellWarrior";
+		else
+			return "DSBaronofHell";
+	}
+}
+class StealthBaronSpawner : BaronofHellSpawner replaces StealthBaron { }
+
+// Blephegor
+
+
+// Brusier Demon
+// Archon of Hell
+// Pyro Demon
+
+// Spider Mastermind
+class SpiderMastermindSpawner : AetheriusMonsterSpawner replaces SpiderMastermind
+{
+	Default
+	{
+		//$Sprite "RNMSO0"
+		Radius 128;
+		Height 100;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,256) <= evolvechance)
+			return "Demolisher";
+		else
+			return "DSSpiderMastermind";
+	}
+}
+
+// Cyberdemon
+class CyberdemonSpawner : AetheriusMonsterSpawner replaces Cyberdemon
+{
+	Default
+	{
+		//$Sprite "RNMSP0"
+		Radius 40;
+		Height 110;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,256) <= evolvechance)
+			return "Annihilator";
+		else
+			return "DSCyberdemon";
+	}
+}
+
+// FlyingBalrog
+class FlyingBalrogSpawner : AetheriusMonsterSpawner // 21122
+{
+	Default
+	{
+		//$Sprite "RNMSQ0"
+		Radius 24;
+		Height 64;
+	}
+
+	override Class<Actor> ChooseWhatToSpawn()
+	{
+		int modtype = CallACS("CheckModType");
+		int doomtype = CallACS("CheckDoomType");
+		int evolvechance = CallACS("GetEvolveChance");
+		int monstersoption = dvds_classicdviimonsters;
+		int checkbombers = dvds_suicidebombers;
+		
+		if (random(1,512) <= evolvechance)
+			return "Hierophant";
+		else
+			return "FlyingBalrog";
+	}
+}

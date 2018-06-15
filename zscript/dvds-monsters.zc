@@ -1,0 +1,4596 @@
+// Base monster class [for later use, general monster use outside of game]
+class AetheriusMonsterZSC : AetheriusBaseZSC
+{
+	// Gargoyle
+	bool extremecrash;
+	// Afrit
+	const FIREDEMON_ATTACK_RANGE = 64*8.;
+	int fdstrafecount;
+	// Bishop
+	int missilecount;
+	int bobstate;
+
+	// General
+	const SKILL_VERY_EASY = 0;
+	const SKILL_EASY = 1;
+	const SKILL_NORMAL = 2;
+	const SKILL_HARD = 3;
+	const SKILL_VERY_HARD = 4;
+	const SKILL_EXTREME = 5;
+	const SKILL_HORRIBLE = 6;
+	const SKILL_IMPOSSIBLE = 7;
+	const SKILL_OMEGA = 8;
+
+	int painchancefist, painchancekick, painchancegauntlets;
+	int levelbehavior;
+	int bullet_tracer_mode;
+	int gfxeffectlevel;
+	int AggressionLevelThreshold1, AggressionLevelThreshold2, AggressionLevelThreshold3;
+	int neverbleeds;
+	
+	property AggressionLevelThreshold: AggressionLevelThreshold1, AggressionLevelThreshold2, AggressionLevelThreshold3;
+
+	default
+	{
+    AetheriusMonsterZSC.AggressionLevelThreshold 60, 120, 180;
+		Painchance "GravityHP", 256;
+		Painchance "GravityMP", 256;
+		Painchance "GravityHPMP", 256;
+	}
+
+	double oldVelZ;
+	int actortimer;
+	int user_tookcrit;
+	
+	
+	/**
+	* 32 random bits, generated separately for each actor. Each actor has its own unique random bits, but the random bits don't change over the actor's lifetime.
+	*
+	* The bottom 4 bits are used to schedule “once every n tics” computations so that all actors don't do it on the same tic, but it still happens exactly once every n tics.
+	*/
+	int ActorRandomBits;
+	
+	private class<Inventory> LDLToken, LDLCheck, MiscCheck, MiscCheck2, MiscCheck3, MiscCheck4;
+	Actor lastattacker;
+	Actor lastattackeratk;
+	Actor playeriskiller;
+	
+	override void PostBeginPlay()
+	{
+		if (special == 0)
+		{
+			user_presetleveladd = Args[0];
+			user_presetlevelrand1 = Args[1];
+			user_presetlevelrand2 = Args[2];
+		}
+
+		if (bNOBLOOD == 1) 
+		{
+			if (bNOBLOODDECALS == 0) bNOBLOODDECALS == 1;
+			neverbleeds = 1;
+		}
+		if (bNOBLOODDECALS == 1) 
+		{
+			if (bNOBLOOD == 0) bNOBLOOD == 1;
+			neverbleeds = 1;
+		}
+
+		A_AetheriusStats(0); 
+		if (self.health <= User_MaxHP) self.health = User_MaxHP;
+
+		ActorRandomBits = random();
+
+		String nm = "LDLegendaryMonsterToken";
+		LDLToken = nm;
+
+		nm = "LDLegendaryMonsterTransformed";
+		LDLCheck = nm;
+
+		user_hyperlvl1 = 225;
+		user_hyperlvl2 = 450;
+		//This space for rent.
+		Super.PostBeginPlay();
+	}
+
+	int glitterheight, glitterheight2, glitterwidth;
+	override void Tick()
+	{
+		bullet_tracer_mode = dvds_monsterbulletstracers;
+		levelbehavior = dvds_monsterlevelbehavior;
+		gfxeffectlevel = dvds_gfxeffectlevel;
+		if (self.health > 0 && CountInv("MonsterLevelCalcs") == 0) { A_AetheriusStats(0); }
+
+		if (((gametic + (ActorRandomBits & 15)) & 15) == 1)
+		{
+			if (self.bFRIENDLY > 0 && self.health > 0 && !(level.frozen || globalfreeze))
+			{
+				let glitterheight = self.height / 2;
+				let glitterheight2 = self.height / 4;
+				let glitterwidth = self.radius * 5 / 4;
+				
+				for (int i = 1; i < 3; i++)
+				{
+					A_SpawnItemEx("FyggGlitter", random[TeleGlitter](-glitterwidth,glitterwidth), random[TeleGlitter](-glitterwidth,glitterwidth), glitterheight+random(-glitterheight2,glitterheight2)+random[TeleGlitter](0,31)-16,frandom(-0.75,0.75),frandom(-0.75,0.75),frandom(-0.75,0.75));
+					if (user_charmed <= 0 && random(1,15) == 1) A_SpawnItemEx("FyggGlitter", random[TeleGlitter](-glitterwidth,glitterwidth), random[TeleGlitter](-glitterwidth,glitterwidth), glitterheight+random(-glitterheight2,glitterheight2)+random[TeleGlitter](0,31)-16,frandom(-0.75,0.75),frandom(-0.75,0.75),frandom(-0.75,0.75));
+					if (user_charmed <= 0 && random(1,15) == 1) A_SpawnItemEx("FyggGlitter", random[TeleGlitter](-glitterwidth,glitterwidth), random[TeleGlitter](-glitterwidth,glitterwidth), glitterheight+random(-glitterheight2,glitterheight2)+random[TeleGlitter](0,31)-16,frandom(-0.75,0.75),frandom(-0.75,0.75),frandom(-0.75,0.75));
+				}
+				if (user_charmed > 0)
+				{
+					if (CountInv("CharmMonsterAttack") <= 0) A_GiveInventory("CharmMonsterAttack",1);
+					if (CountInv("CharmMonsterDefense") <= 0) A_GiveInventory("CharmMonsterDefense",1);
+					for (int i = 1; i < 3; i++)
+					{
+						A_SpawnItemEx("ArmorGlitter2", random[TeleGlitter](-glitterwidth,glitterwidth), random[TeleGlitter](-glitterwidth,glitterwidth), glitterheight+random(-glitterheight2,glitterheight2)+random[TeleGlitter](0,31)-16,frandom(-0.75,0.75),frandom(-0.75,0.75),frandom(-0.75,0.75));
+						if (random(1,15) == 1) A_SpawnItemEx("ArmorGlitter", random[TeleGlitter](-glitterwidth,glitterwidth), random[TeleGlitter](-glitterwidth,glitterwidth), glitterheight+random(-glitterheight2,glitterheight2)+random[TeleGlitter](0,31)-16,frandom(-0.75,0.75),frandom(-0.75,0.75),frandom(-0.75,0.75));
+						if (random(1,15) == 1) A_SpawnItemEx("ArmorGlitter", random[TeleGlitter](-glitterwidth,glitterwidth), random[TeleGlitter](-glitterwidth,glitterwidth), glitterheight+random(-glitterheight2,glitterheight2)+random[TeleGlitter](0,31)-16,frandom(-0.75,0.75),frandom(-0.75,0.75),frandom(-0.75,0.75));
+					}
+				}
+			}
+
+			if (CountInv(LDLToken) > 0) user_willbecomelegendary = 1;
+
+			// Undoes LDLite Tokens if the var is set to !0
+			if (user_nolegendarytrans) SetInventory(LDLToken, 0);
+
+			// Unsets BUDDHA from a transformed legendary [in the rare case a monster doesn't get it removed by the initial transformation]
+			if (CountInv(LDLCheck)) bBuddha = false;
+		}
+
+		//This space for rent.
+		super.Tick(); // KEEP THIS HERE ELSE OTHER FUNCTIONS RELATED TO THIS BREAK :V
+	}
+
+	override void Die(Actor source, Actor inflictor, int dmgflags)
+	{
+		if (self.health <= 0 && CountInv("MonsterLevelCalcs") == 1 && !bICECORPSE) { A_AetheriusStats(1); }
+		if (CountInv("CharmMonsterAttack") > 0) A_TakeInventory("CharmMonsterAttack",9999);
+		if (CountInv("CharmMonsterDefense") > 0) A_TakeInventory("CharmMonsterDefense",9999);
+		if (user_charmed > 0) user_charmed = 0;
+
+		//This space for rent.
+		Super.Die(source, inflictor, dmgflags);
+	}
+
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		// Non-passive means the one moving into the other is performing the checks.
+		if (!passive)
+		{
+			// Pass through players, if the calling monster is Friendly
+			if (bFRIENDLY == 1 && other.GetSpecies() == "Players")
+			{
+				return false; 
+				//A_Log("False - Friendly - Player"); 
+			}
+
+			// Pass through other actors, if the calling monster is Friendly
+			if (bFRIENDLY == 1 && other.bFRIENDLY == 1)
+			{
+				return false; 
+				//A_Log("False - Friendly - Other Friendly"); 
+			}
+
+			// Pass through charm shots if the calling monster is Friendly
+			if (bFRIENDLY == 1 && other.CheckClass("CharmShot")) 
+			{
+				return false; 
+				//A_Log("False - Friendly - Charm Shot"); 
+			}
+
+			if (bFRIENDLY == 1 && other.CheckClass("Heal1Shot"))
+			{
+				if (self.health < self.User_MaxHP) { return true; } 
+				else 
+				{
+					return false; 
+					//A_Log("False - Heal1"); 
+				}
+			}
+			if (bFRIENDLY == 1 && other.CheckClass("Heal2Shot"))
+			{
+				if (self.health < self.User_MaxHP) { return true; } 
+				else
+				{
+					return false; 
+					//A_Log("False - Heal2"); 
+				}
+			}
+			if (bFRIENDLY == 1 && other.CheckClass("Heal3Shot"))
+			{
+				if (self.health < (self.User_MaxHP*2)) { return true; }
+				else
+				{
+					return false; 
+					//A_Log("False - Heal3"); 
+				}
+			}
+		}
+		// We don't really care about others making the check.
+		return true;
+	}
+
+	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
+	{
+		int criticalhit;
+		int CritChance, CritRoll;
+		int oldhealth = self.health;
+		if (neverbleeds == 0)
+		{
+			bNOBLOOD = 0;
+			bNOBLOODDECALS = 0;
+		}
+		int maxdmg = self.health;
+		string infl, sour, vict;
+		vict = GetClassName();
+		if (inflictor != null) lastattackeratk = inflictor;
+		if (inflictor == null) infl = "NONE";
+											else infl = inflictor.GetClassName();
+		if (source != null) lastattacker = source;
+		if (source == null) sour = "NONE";
+									 else sour = source.GetClassName();
+
+		int olddmg = damage;
+		if (dvdsdebug_actordmgdisplays > 0 && olddmg > 0) Console.Printf("    (\czActor Defensive Input [STEP 1 - Base Damage]\c-: \cydmg = %d\c-)", olddmg);
+
+		bool dealtcrit = false;
+		double critdmgmulti = 2.0 + (0.01 * random(-10,10));
+		double ldldmgmulti = 1.0;
+		int preplayerdmg = damage;
+		int prefriendlydmg = 0;
+		int precritdmg = 0;
+		int preldldmg = 0;
+		// Player/Actor Check
+		AetheriusPlayerPawn playpawn;
+		AetheriusMonsterZSC DVDSActor;
+		AetheriusEffectProjectile ailmentproj;
+		SingleDamageRipper singleripproj;
+		SingleDamageFastRipper singlefastripproj;
+		if (source) 
+		{
+			playpawn = AetheriusPlayerPawn(source);
+			DVDSActor = AetheriusMonsterZSC(source);
+		}
+		if (inflictor)
+		{
+			ailmentproj = AetheriusEffectProjectile(inflictor);
+			singleripproj = SingleDamageRipper(inflictor);
+			singlefastripproj = SingleDamageFastRipper(inflictor);
+		}
+		if (playpawn && damage > 0)
+		{
+			prefriendlydmg = damage;
+			if (bFRIENDLY)
+			{
+				damage /= 4;
+				if (user_summoned > 0) damage /= 4;
+				if (user_charmed > 0) damage /= 4;
+				if (damage < 1) damage = 1;
+				if (dvdsdebug_actordmgdisplays > 0 && damage > 0) Console.Printf("    (\czActor Defensive Input [STEP 2a - Player-Friendly Dmg]\c-: \cxolddmg = %d\c-, \cydmg = %d\c-)", prefriendlydmg, damage);
+			}
+			
+			// Chance to RESIST a crit.
+			double CritResistChance = 1.25;
+			double ExtraBlock = 0.0;
+			// Enemy Type
+			if (vict == "ForgottenOne") CritResistChance = 25.0;
+			// Enemy Flags
+			if (bBOSS) CritResistChance *= 1.5;
+			// Enemy Has "Item"
+			if (CountInv("HWShieldDefense")) CritResistChance += ((100.0 - CritResistChance) * 0.25);
+			if (CountInv("ImpWarlordShieldDefend")) CritResistChance += ((100.0 - CritResistChance) * 0.25);
+			if (CountInv("ImpWarlordShieldDefendExtra")) CritResistChance += ((100.0 - CritResistChance) * 0.45);
+			if (CountInv("DKnightShieldDefend")) CritResistChance += ((100.0 - CritResistChance) * 0.375);
+			if (CountInv("DKnightShieldDefendExtra")) CritResistChance += ((100.0 - CritResistChance) * 0.475);
+			if (CountInv("AcolyteShieldDefend")) CritResistChance += ((100.0 - CritResistChance) * 0.125);
+			if (CountInv("AcolyteShieldDefendExtra")) CritResistChance += ((100.0 - CritResistChance) * 0.35);
+			if (CountInv("CentaurShieldDefend")) CritResistChance += ((100.0 - CritResistChance) * 0.333);
+			if (CountInv("CentaurShieldDefendExtra")) CritResistChance += ((100.0 - CritResistChance) * 0.48666);
+			if (CountInv("SlaughtaurShieldDefend")) CritResistChance += ((100.0 - CritResistChance) * 0.41667);
+			if (CountInv("SlaughtaurShieldDefendExtra")) CritResistChance += ((100.0 - CritResistChance) * 0.49333);
+			if (CountInv("MaulotaurChargeDefense")) CritResistChance += ((100.0 - CritResistChance) * 0.375);
+			if (CountInv("HeresiarchShieldDefense")) CritResistChance += ((100.0 - CritResistChance) * 0.4375);
+			if (CountInv("HightmarePhaseOutDefense")) CritResistChance += ((100.0 - CritResistChance) * 0.46875);
+			String nm = "ThamuzApocalypseDefendMode"; MiscCheck = nm; if (CountInv(MiscCheck)) CritResistChance += ((100.0 - CritResistChance) * 0.4);
+			// Flag Detection
+			if (user_legendaryevolved) CritResistChance += ((100.0 - CritResistChance) * 0.1875);
+			// Ripper Detection
+			if (infl == "RagingSpirit" && random(1,6) != 1) CritResistChance = 200.0;
+			if (inflictor && inflictor.bRIPPER) { if (!singleripproj && !singlefastripproj && random(1,6) != 1) CritResistChance = 200.0; }
+			
+			if (CountInv("CheatCritUltimate", AAPTR_PLAYER1) > 0) CritResistChance = -200.0;
+			double CritResistRoll = frandom(0.1,100.0);
+
+			// Dealing with Critical hits
+			precritdmg = damage;
+
+			if (CountInv("DealCriticalHit", AAPTR_PLAYER1) > 0 && CritResistRoll > CritResistChance)
+			{
+				if (CountInv("AnubisCufflinksFear", AAPTR_PLAYER1) > 0) critdmgmulti *= 1.25;
+				if (CountInv("RuinousShield", AAPTR_PLAYER1) > 0) critdmgmulti *= 0.8;
+				damage *= critdmgmulti;
+				A_GiveInventory("TookCriticalHit",1);
+				dealtcrit = true;
+				if (dvdsdebug_actordmgdisplays > 0 && damage > 0) Console.Printf("    (\czActor Defensive Input [STEP 2b - Player-Crit Dmg]\c-: \cxolddmg = %d\c-, \cydmg = %d\c-, \cacritdmgmulti = %3f\c-)", precritdmg, damage, critdmgmulti);
+			}
+
+			// "Villain Killer" Perk [for extra damage specifically against Legendaries]
+			preldldmg = damage;
+			if (CountInv(LDLCheck) && (CallACS("MiscVarCheckDECORATE",10057) + CallACS("MiscVarCheckDECORATE",10058) > 0))
+			{
+				double ldlbasemod;
+				if (bBOSS) ldlbasemod = frandom(0.15,0.2);
+							else ldlbasemod = frandom(0.10,0.125);
+
+				// DamageType Modifiers
+				if (mod == 'Sceptre') ldlbasemod *= 1.5;
+				if (mod == 'Gauntlets') ldlbasemod *= 1.25;
+				if (mod == 'Melee' || mod == 'Trample' || mod == 'Stomp' || mod == 'Fist' || mod == 'Kick' || mod == 'Chainsaw') ldlbasemod *= 1.125;
+
+				ldldmgmulti += (ldlbasemod * CallACS("MiscVarCheckDECORATE",10057));
+				ldldmgmulti += ((ldlbasemod * 2.5) * CallACS("MiscVarCheckDECORATE",10058));
+				damage *= ldldmgmulti;
+				if (dvdsdebug_actordmgdisplays > 0 && damage > 0) Console.Printf("    (\czActor Defensive Input [STEP 2c - Player-LDLPerk Dmg]\c-: \cxolddmg = %d\c-, \cydmg = %d\c-, \caldldmgmulti = %3f\c-)", preldldmg, damage, ldldmgmulti);
+			}
+			if (dvdsdebug_actordmgdisplays > 0 && damage > 0) Console.Printf("    (\czActor Defensive Input [STEP 2x - Player Dmg]\c-: \cxprefdmg = %d\c-, \cxprefrienddmg = %d\c-, \cxprecritdmg = %d\c-, \cxpreldldmg = %d\c-, \cydmg = %d\c-, \cbCritResist: (%8f) / %8f\c-)", preplayerdmg, prefriendlydmg, precritdmg, preldldmg, damage, CritResistRoll, CritResistChance);
+		}
+		else
+		if (DVDSActor && damage > 0 && dvds_monstercrits != 0)
+		{
+			// Dealing with Critical hits from other Monsters
+			precritdmg = damage;
+			string AilmentProjClass;
+			if (ailmentproj) AilmentProjClass = ailmentproj.GetClassName();
+			string ActorClass = DVDSActor.GetClassName();
+			int meleeattack = 0;
+			if (dvds_monstercrits != 0)
+			{
+				if (mod == 'Melee' || mod == 'Trample' || mod == 'Stomp' || mod == 'Fist' || mod == 'Kick' || mod == 'Chainsaw' || mod == 'Gauntlets' || mod == 'Sceptre') meleeattack = 1;
+				//*****************************************************
+				//**Allows Monsters to deal crits [4/256 base chance]**
+				//*****************************************************
+				// Base Chances
+				CritChance = 8 + (DVDSActor.user_monsterlevel / 11.25); // 8 (+ 8 every 90 levels)
+				if (DVDSActor && DVDSActor.bBOSS) CritChance = (CritChance * 3) / 2; // Boss Flag Check
+				if (DVDSActor && DVDSActor.bJUSTHIT) CritChance *= 2; // JustHit Flag Check
+				if (DVDSActor && DVDSActor.user_charmed > 0) CritChance = (CritChance * 3) / 2; // Charm Flag Check
+				if (DVDSActor && DVDSActor.user_legendaryevolved) CritChance *= 4; // Legendaries have double crit rate
+				if (DVDSActor && DVDSActor.health <= DVDSActor.user_HPBuffRange) CritChance = (CritChance * 6) / 4;
+			
+				// Actor Only Checks
+				if (ActorClass == "DSHelperDog") CritChance *= 3; // Helper Dogs get triple crit rate
+				if (ActorClass == "DSPainElemental" || ActorClass == "FPainElemental" || ActorClass == "DSPainElemental64" || ActorClass == "DSLostSoul" || ActorClass == "DSLostSoul2" || ActorClass == "ForgottenOne" || ActorClass == "DSLostSoul64" || ActorClass == "DSLostSoul642" ||
+						ActorClass == "FLostSoul1" || ActorClass == "FLostSoul2") CritChance *= 4; // Pain-Elementals/Lost Souls are Crit-happy nuisances
+				if (ActorClass == "DSRevenant" || ActorClass == "FRevenant" || ActorClass == "DeathIncarnate" || ActorClass == "FDeathIncarnate") CritChance = (CritChance * 6) / 4; // Revenants/Death Incarnates have 50% more crit
+				if (ActorClass == "ChainsawZombieNew") CritChance = (CritChance * 10) / 4; // Chainsaw Zombies have 150% more crit
+				if (ActorClass == "NightmareNew" || ActorClass == "SirenNightmareNew") CritChance *= 4; // Nightmares are good at crits too
+				if (ActorClass == "EvilDeadHandNew" || ActorClass == "BabyClownNew" || 
+						ActorClass == "BabyClown2New" || ActorClass == "BouncingClownNew") CritChance *= 4;
+				// Ally Specfic
+				if (ActorClass == "RebelNew" || ActorClass == "Rebel1New" || ActorClass == "Rebel2New" || ActorClass == "Rebel3New" || 
+						ActorClass == "Rebel4New" || ActorClass == "Rebel5New" || ActorClass == "Rebel6New") 
+						CritChance = (CritChance * random(7,9)) / 4; // Strife Rebles have +75-125% more crit
+				// Boss Only Checks
+				if (ActorClass == "DragonNew" || ActorClass == "FDragon" || ActorClass == "HeresiarchNew" || ActorClass == "FHeresiarch" || 
+						ActorClass == "DSparilMountedNew" || ActorClass == "ClericBossNew" || ActorClass == "FighterBossNew" || ActorClass == "MageBossNew" ||
+						ActorClass == "ProgrammerNew" || ActorClass == "StrifeBishopNew" || ActorClass == "LoremasterNew" || ActorClass == "Macil1New" || ActorClass == "StrifMacil2NeweBishopNew") CritChance *= 4;
+				if (ActorClass == "AlienSpectre1New" || ActorClass == "AlienSpectre2New" || ActorClass == "AlienSpectre3New" || ActorClass == "AlienSpectre4New" || ActorClass == "AlienSpectre5New" ||
+						ActorClass == "AvatarNew" || ActorClass == "Benellus1DS" || ActorClass == "Benellus2DS" || ActorClass == "Benellus3DS" ||
+						ActorClass == "TNTSpider" || ActorClass == "SourceGuardian" || ActorClass == "AdolfHitlerDS") CritChance *= 6;
+				if (ActorClass == "DSparilUnmountedNew" || ActorClass == "KoraxNew" || ActorClass == "PennywiseBoss" ||
+						ActorClass == "EntityBossNew" || ActorClass == "EntitySecondNew" || ActorClass == "EntityAscended" || ActorClass == "ThamuzNew" || ActorClass == "TchernobogNew" ||
+						ActorClass == "Magmantis" || ActorClass == "Zakachi") CritChance *= 8;
+		
+				// Unique Checks
+				if (meleeattack && (ActorClass == "WraithNew" || ActorClass == "WraithBuriedNew" || ActorClass == "FWraith")) 
+						CritChance *= 4;
+
+				if (meleeattack && (ActorClass == "Dragon" || ActorClass == "FDragon")) 
+						CritChance *= 8;
+
+				if (meleeattack && (ActorClass == "EttinNew" || ActorClass == "EttinCommander" || ActorClass == "Bormereth" ||
+						ActorClass == "FEttinNew" || ActorClass == "FEttinCommander" || ActorClass == "FBormereth")) 
+						CritChance = (CritChance * 9) / 4; // Ettins have 125% more crit for Melee
+	
+				if (meleeattack && (ActorClass == "StalkerNew" || ActorClass == "StalkerLeaderNew" || ActorClass == "IceStalker" || ActorClass == "IceStalkerLeader" || 
+						ActorClass == "FStalker" || ActorClass == "FStalkerLeader")) 
+						CritChance *= 2; // Hexen Stalkers have 2x more crit for Melee
+	
+				if (meleeattack && (ActorClass == "CentaurNew" || ActorClass == "SlaughtaurNew" || 
+						ActorClass == "FCentaur" || ActorClass == "FSlaughtaur")) 
+						CritChance *= 2; // Centaurs have 2x more crit for Melee
+
+				if (meleeattack && (ActorClass == "DSRevenant" || ActorClass == "FRevenant" || ActorClass == "DeathIncarnate" || ActorClass == "FDeathIncarnate")) 
+						CritChance = (CritChance * 6) / 4; // Revenants/Death Incarnates have another +50% more crit when using melee
+
+				if (meleeattack && (ActorClass == "KnightNew" || ActorClass == "FKnight" || ActorClass == "KnightGhostNew" || ActorClass == "FKnightGhost")) 
+						CritChance = (CritChance * 6) / 4; // Revenants/Death Incarnates have another +50% more crit when using melee
+
+				if (meleeattack && (ActorClass == "ReaverNew")) 
+						CritChance *= 3; // Reavers have 3x more crit for melee
+
+				if (meleeattack && (ActorClass == "OStalkerNew")) 
+						CritChance = (CritChance * 6) / 4; // Strife Stalkers have 50% more crit
+
+				if (meleeattack && 
+						(ActorClass == "DSCacodemon" || ActorClass == "DSCacodemon64" || ActorClass == "FCacodemon" ||
+						ActorClass == "Cacolantern" || ActorClass == "FCacolantern" ||
+						ActorClass == "Abaddon" || ActorClass == "FAbaddon")) 
+						CritChance *= 2; // Cacos have 2x Crit for Melee
+
+				if (meleeattack && 
+						(ActorClass == "HadesElemental" || ActorClass == "FHadesElemental" ||
+						ActorClass == "HadesOverlord" || ActorClass == "FHadesOverlord")) 
+						CritChance *= 3; // Hades Scions have 3x Crit for Melee
+
+				if (meleeattack && (ActorClass == "SatyrNew")) 
+						CritChance *= 8; // Satyrs are very likely to crit too
+						
+				if (meleeattack && 
+						(ActorClass == "DSDemon" || ActorClass == "DSDemon64" || 
+						ActorClass == "DSSpectre" || ActorClass == "DSSpectre64" || 
+						ActorClass == "BloodDemon" || ActorClass == "BloodSpectre" ||
+						ActorClass == "BloodFiendNew" || ActorClass == "LurkerNew" ||
+						ActorClass == "FDemon" || ActorClass == "FSpectre" || 
+						ActorClass == "FBloodDemon" || ActorClass == "FBloodSpectre")) 
+						CritChance = (CritChance * 6) / 4; // Pinkies have 50% more crit with Melee
+
+				if (meleeattack && (ActorClass == "ClinkNew" || ActorClass == "FClink")) 
+						CritChance = (CritChance * 6) / 4; // SabreClaws have 50% more crit with Melee
+
+				if (meleeattack && 
+						(ActorClass == "DSCyberdemon" || ActorClass == "DSCyberdemon64" || ActorClass == "Annihilator" || 
+						ActorClass == "FCyberdemon" || ActorClass == "FAnnihilator")) 
+						CritChance *= 8; // Cyberdemon Stomps/Melee have 8x chance to crit.
+
+				if (meleeattack && 
+						(ActorClass == "DSHellKnight" || ActorClass == "DSHellKnight64" || ActorClass == "FHellKnight" || 
+						ActorClass == "HellWarrior" || ActorClass == "FHellWarrior" || 
+						ActorClass == "DSBaronofHell" || ActorClass == "DSBaronofHell64" || ActorClass == "FBaronofHell" || 
+						ActorClass == "Belphegor" || ActorClass == "FBelphegor" || 
+						ActorClass == "BruiserDemon" || ActorClass == "FBruiserDemon" || 
+						ActorClass == "CyBruiser" || ActorClass == "FCyBruiser" || 
+						ActorClass == "ArchonofHell" || ActorClass == "FArchonofHell" ||
+						ActorClass == "PyroDemon" || ActorClass == "FPyroDemon" ||
+						ActorClass == "WeakenedFlyingBalrog" || ActorClass == "FlyingBalrog" || ActorClass == "FFlyingBalrog")) 
+						CritChance *= 4; // Hell Nobles have 4x chance to Crit w/ melee attacks
+
+				// Misc
+				if (mod == 'BFG' || mod == 'BFGSpray') // BFG related attacks have signficantly LESS chance to crit, but still always have at least a 1/512 chance :P
+				{ 
+					CritChance /= 16;
+					if (CritChance < 1) CritChance = 1;
+				}
+				if (infl == "DemonFire" || infl == "DemonFireCrisis" || 
+						infl == "MiniFirePuff" || infl == "MiniFirePuffCrisis" || 
+						infl == "DogFireNew" || infl == "DogFireNewCrisis" ||
+						infl == "FireBreath" || infl == "FireBreathCrisis" ||
+						infl == "SGuardianFlameBreath" || infl == "SGuardianFlameBreathCrisis" ||
+						infl == "Demon5Jet" || infl == "Demon5JetCrisis")
+				{
+					CritChance *= 4;
+				}
+				if (infl == "SuicideBomb" || infl == "SuicideBomber" || infl == "HSBoom" || infl == "HadesSphere" || infl == "HSOverlord") CritChance = 0; // Kamikaze Monsters Cannot Crit
+		
+				// Final Crit Roll
+				CritRoll = random(1,512);
+				if (CritRoll <= CritChance && DVDSActor.health > 0 && !(level.frozen || globalfreeze) && dvds_monstercrits != 0) criticalhit = 1;
+				if (dvdsdebug_actordmgdisplays > 0 && dvds_monstercrits != 0) Console.Printf("    (\czActor Defensive Input [Monster Crit Rate]\c-: %d / 512 (%d) \c-, \cyActorClass: = %s\c-)", CritRoll, CritChance, ActorClass);
+
+				// Chance to RESIST a crit.
+				double CritResistChance = 1.25;
+				double ExtraBlock = 0.0;
+				// Enemy Type
+				if (vict == "ForgottenOne") CritResistChance = 25.0;
+				// Enemy Flags
+				if (bBOSS) CritResistChance *= 1.5;
+				// Enemy Has "Item"
+				if (CountInv("HWShieldDefense")) CritResistChance += ((100.0 - CritResistChance) * 0.25);
+				if (CountInv("ImpWarlordShieldDefend")) CritResistChance += ((100.0 - CritResistChance) * 0.25);
+				if (CountInv("ImpWarlordShieldDefendExtra")) CritResistChance += ((100.0 - CritResistChance) * 0.45);
+				if (CountInv("DKnightShieldDefend")) CritResistChance += ((100.0 - CritResistChance) * 0.375);
+				if (CountInv("DKnightShieldDefendExtra")) CritResistChance += ((100.0 - CritResistChance) * 0.475);
+				if (CountInv("AcolyteShieldDefend")) CritResistChance += ((100.0 - CritResistChance) * 0.125);
+				if (CountInv("AcolyteShieldDefendExtra")) CritResistChance += ((100.0 - CritResistChance) * 0.35);
+				if (CountInv("CentaurShieldDefend")) CritResistChance += ((100.0 - CritResistChance) * 0.333);
+				if (CountInv("CentaurShieldDefendExtra")) CritResistChance += ((100.0 - CritResistChance) * 0.48666);
+				if (CountInv("SlaughtaurShieldDefend")) CritResistChance += ((100.0 - CritResistChance) * 0.41667);
+				if (CountInv("SlaughtaurShieldDefendExtra")) CritResistChance += ((100.0 - CritResistChance) * 0.49333);
+				if (CountInv("MaulotaurChargeDefense")) CritResistChance += ((100.0 - CritResistChance) * 0.375);
+				if (CountInv("HeresiarchShieldDefense")) CritResistChance += ((100.0 - CritResistChance) * 0.4375);
+				if (CountInv("HightmarePhaseOutDefense")) CritResistChance += ((100.0 - CritResistChance) * 0.46875);
+				String nm = "ThamuzApocalypseDefendMode"; MiscCheck = nm; if (CountInv(MiscCheck)) CritResistChance += ((100.0 - CritResistChance) * 0.4);
+				// Flag Detection
+				if (user_legendaryevolved) CritResistChance += ((100.0 - CritResistChance) * 0.1875);
+				// Ripper Detection
+				if (infl == "RagingSpirit" && random(1,6) != 1) CritResistChance = 200.0;
+				if (inflictor && inflictor.bRIPPER) { if (!singleripproj && !singlefastripproj && random(1,6) != 1) CritResistChance = 200.0; }
+
+				int CritResistRoll = frandom(0.1,100.0);
+				if (criticalhit && CritResistRoll <= CritResistChance) 
+				{
+					criticalhit = 0;
+					if (dvdsdebug_actordmgdisplays > 0 && damage > 0) Console.Printf("    (\czActor Defensive Input [STEP 2b - Monster-Crit]\c-: \cxRESISTED\c-, \cbCritResist: (%8f) / %8f\c-)", CritResistRoll, CritResistChance);
+				}
+				
+				if (criticalhit) 
+				{
+					damage *= critdmgmulti;
+					A_GiveInventory("TookCriticalHit",1);
+					dealtcrit = true;
+					if (dvdsdebug_actordmgdisplays > 0 && damage > 0) Console.Printf("    (\czActor Defensive Input [STEP 2b - Monster-Crit Dmg]\c-: \cxolddmg = %d\c-, \cydmg = %d\c-, \cacritdmgmulti = %3f\c-, \cbCritResist: (%8f) / %8f\c-)", precritdmg, damage, critdmgmulti, CritResistRoll, CritResistChance);
+				}
+			}
+		}
+
+		int predmginr = damage;
+		// (Partial) Defense Ignoring Attacks
+		double basedmgfactor = DamageFactor;
+
+		double HubBubRand = frandompick(0.45,0.475,0.5,0.525,0.55);
+		double RailRandom = frandompick(0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.33,0.33,0.33,0.33,0.33,0.33,0.33,0.33,0.50,0.50,0.50,0.50,0.75,0.75,0.9875);
+		double ActorDefenseIgnoreFactor = 0.00;
+		// BFG Ignores roughly half of "normal" damagefactor
+		if (inflictor == null && source == null) { }
+		else
+		{
+			if (mod == 'BFG' || mod == 'BFGSpray') 
+			{ 
+				ActorDefenseIgnoreFactor += (frandom(0.45,0.55) * (1.00 - ActorDefenseIgnoreFactor));
+			}
+			// Plasma Ignores 1/4th of "normal" damagefactor
+			if (mod == 'Plasma') 
+			{ 
+				ActorDefenseIgnoreFactor += (frandom(0.225,0.275) * (1.00 - ActorDefenseIgnoreFactor));
+			}
+			// Railguns
+			if (infl == "DBTRailPuff") 
+			{ 
+				ActorDefenseIgnoreFactor += (RailRandom * (1.00 - ActorDefenseIgnoreFactor));
+			}
+			// Hubble Bubbles
+			if (infl == "HubbleBubbleSmall" || infl == "HubbleBubbleLarge") 
+			{ 
+				ActorDefenseIgnoreFactor += (HubBubRand * (1.00 - ActorDefenseIgnoreFactor));
+			}
+			// Sceptre
+			if (mod == 'Sceptre') 
+			{ 
+				ActorDefenseIgnoreFactor += (0.5 * (1.00 - ActorDefenseIgnoreFactor));
+			}
+			if (mod == 'Drowning') 
+			{
+				ActorDefenseIgnoreFactor += (1.00 * (1.00 - ActorDefenseIgnoreFactor));
+			}
+			// Suicide Bombers/Kamikaze Enemy Attacks
+			if (infl == "SuicideBomber" || infl == "SuicideBomb" || infl == "HSBoom" || infl == "HadesSphere" || infl == "HSOverlord") 
+			{
+				ActorDefenseIgnoreFactor += (0.6667 * (1.00 - ActorDefenseIgnoreFactor));
+			}
+			// Fire Breath
+			if (infl == "DemonFire" || infl == "DemonFireCrisis" || 
+					infl == "MiniFirePuff" || infl == "MiniFirePuffCrisis" || 
+					infl == "DogFireNew" || infl == "DogFireNewCrisis" ||
+					infl == "FireBreath" || infl == "FireBreathCrisis" ||
+					infl == "SGuardianFlameBreath" || infl == "SGuardianFlameBreathCrisis" ||
+					infl == "Demon5Jet" || infl == "Demon5JetCrisis")
+			{
+				ActorDefenseIgnoreFactor += (0.75 * (1.00 - ActorDefenseIgnoreFactor));
+			}
+			// Legendaries
+			if (DVDSActor && DVDSActor.user_legendaryevolved) 
+			{ 
+				ActorDefenseIgnoreFactor = 0.5;
+			}
+		}
+		if (DamageFactor < 1.00) DamageFactor += ((1.00 - DamageFactor) * ActorDefenseIgnoreFactor); 
+
+		//**********************************************************************
+		//*This ignores damage factors [similar to how DQ crits ignore defense]*
+		//**********************************************************************
+		if (dealtcrit && DamageFactor < 1.00) 
+		{
+			ActorDefenseIgnoreFactor = 1.00;
+			DamageFactor += ((1.00 - DamageFactor) * ActorDefenseIgnoreFactor); 
+		}
+		if (dvdsdebug_actordmgdisplays > 0 && damage > 0) 
+		{
+			if (ActorDefenseIgnoreFactor > 0.00) Console.Printf("    (\czActor Defensive Input [STEP 3 - Def Ignoring]\c-: \caDefenseIgnoreFactor = %8f\c-, \cadmgfactor = %8f\c-, \cypredmg = %d\c-, \cydmg = %d\c- (Monster Actor))", ActorDefenseIgnoreFactor, DamageFactor, predmginr, damage);
+																			else Console.Printf("    (\czActor Defensive Input [STEP 3 - Def Ignoring]\c-: \caSKIPPED\c-, \cydmg = %d\c-)", predmginr);
+		}
+
+		int predirdmg = damage;
+		// Direct Damage Changes
+		if (infl == "DemonFire" || infl == "DemonFireCrisis" || 
+				infl == "MiniFirePuff" || infl == "MiniFirePuffCrisis" || 
+				infl == "DogFireNew" || infl == "DogFireNewCrisis" ||
+				infl == "FireBreath" || infl == "FireBreathCrisis" ||
+				infl == "SGuardianFlameBreath" || infl == "SGuardianFlameBreathCrisis" ||
+				infl == "Demon5Jet" || infl == "Demon5JetCrisis")
+		{
+			damage *= 1.125;
+		}
+		if (dvdsdebug_actordmgdisplays > 0 && damage > 0) 
+		{
+			if (DamageFactor != basedmgfactor) Console.Printf("    (\czActor Defensive Input [STEP 4 - Direct Dmg Changes]:\c- \cypredmg = %d\c-, \cydmg = %d\c-)", predirdmg, damage);
+																		else Console.Printf("    (\czActor Defensive Input [STEP 4 - Direct Dmg Changes]:\c- \caSKIPPED\c-, \cydmg = %d\c-)", predirdmg);
+		}
+		
+		double nrmldmgfctr = DamageFactor;
+		// Space for rent :V
+		//************************************************************************
+		let ret = super.DamageMobj(inflictor, source, damage, mod, flags, angle);
+		//************************************************************************
+
+		int outputdmg = damage;
+		if (playpawn) outputdmg = playpawn.playoutputdmg;
+		double finaldmgfactor = 1.00;
+		if (outputdmg > 0) finaldmgfactor = 1.00 * ret / outputdmg;
+		if (dvdsdebug_actordmgdisplays > 0 && outputdmg > 0) 
+		{
+			if (inflictor == null && source == null && mod == 'Melee' && health < 1) { }
+			else
+			{
+				Console.Printf("    (\czActor Defensive Output [STEP 7 - Final Dmg]:\c- \cypredmg \c-/ \cyfinaldmg\c- = \cy%d\c- / \cy%d\c-, \cydmgdifffactor = %8f\c-, \cxhealth = %d (%d) / %d\c-, \cynormaldamagefactor\c- = \cy%8f\c-, \cyactualdamagefactor\c- = \cy%8f\c-, \cwdmgtype\c- = \cw%s\c-, \cavictim\c- = \ca%s\c-, \cdinflictor\c- = \cd%s\c-, \cnsource\c- = \cn%s\c-)", 
+											outputdmg, ret, finaldmgfactor,
+											health, oldhealth, user_MaxHP,
+											basedmgfactor, nrmldmgfctr,
+											mod, vict, infl, sour);
+			}
+		}
+
+		// Unsets Alterations of target's DamageFactor
+		DamageFactor = basedmgfactor;
+
+		// Gauntlet HP/MP/AP drain
+		if (ret > 0 && bFRIENDLY == 0)
+		{
+			int InvalidTargetType = 0;
+			if (vict == "PracticeTarget" || vict == "PracticeTarget2") InvalidTargetType = 1;
+			//if (dvdsdebug_actordmgdisplays > 0) Console.Printf("    (\czINFO:\c- \cavict\c-: \ca%s\c-, \cdinfl\c-: \cd%s\c-)", vict, infl);
+
+			if (InvalidTargetType == 0)
+			{
+				if (infl == "GauntletPuff" || infl == "GauntletAltPuff")
+				{
+					// Give some life when hurting a monster [1+(HP/250)]
+					// Give more life when killing a monster [5+(HP/50)]
+					
+					let drainamt = ret;
+					if (drainamt > maxdmg) drainamt = maxdmg;
+					if (dvdsdebug_actordmgdisplays > 0 && drainamt > 0) Console.Printf("    (\czActor Def. Output [STEP (8) - Gauntlet Drain]:\c- \cy%d\c- / \cy%d\c-)", drainamt, maxdmg);
+					ACS_NamedExecuteAlways("SauronGauntletsHit",0,drainamt,(health > 0? 1 : 2),0); 
+				}
+				// Sceptre EXP Gain
+				else if (infl == "SceptrePuff-Normal" || infl == "SceptrePuff-Spinning")
+				{
+					ACS_NamedExecuteAlways("AddSceptreEXP",0,0,0,(health > 0? 10 : 1));
+				}
+			}
+		}
+
+		if (ret == 0)
+		{
+			if (neverbleeds == 0)
+			{
+				bNOBLOOD = 1;
+				bNOBLOODDECALS = 1;
+			}
+		}
+		return ret;
+	}
+
+	//****************************
+	//*AETHERIUS UNIQUE FUNCTIONS*
+	//****************************
+	void A_AetheriusStats(int type)
+	{
+		// 0 = Set special stats
+		// 1 = Unset special stats
+		int flagsbaselevel;
+		levelbehavior = dvds_monsterlevelbehavior;
+		if (type == 0 && CountInv("MonsterLevelCalcs") == 0) 
+		{
+			CallACS("MonsterStatsHP_ATK_DEF_SPD",type);
+			if (levelbehavior > 0)
+			{
+				//Console.Printf("Level %d!", user_monsterlevel);
+				if (user_monsterlevel > AggressionLevelThreshold3) { bMISSILEEVENMORE = true; bMISSILEMORE = true; }
+				else if (user_monsterlevel > AggressionLevelThreshold2) { bMISSILEEVENMORE = true; bMISSILEMORE = false; }
+				else if (user_monsterlevel > AggressionLevelThreshold1) { bMISSILEEVENMORE = false; bMISSILEMORE = true; }
+			}
+		}
+
+		if (type != 0 && CountInv("MonsterLevelCalcs") > 0) 
+		{
+			CallACS("MonsterStatsHP_ATK_DEF_SPD",type);
+		}
+	}
+
+	void A_GiveGold(int basegold)
+	{
+		String nm = "LDLegendaryMonsterToken";
+		LDLToken = nm;
+
+		nm = "LDLegendaryMonsterTransformed";
+		LDLCheck = nm;
+
+		int goldamt = CountInv("Coin",AAPTR_DEFAULT);
+		user_golddrop = basegold;
+		user_golddrop += goldamt;
+		
+		int LDLMulti = 2; // 2 = 100%
+		if (CountInv(LDLCheck)) LDLMulti = random(4,6);
+		user_golddrop = (user_golddrop * LDLMulti) / 2;
+		
+		int clearofmind = CallACS("MiscVarCheckDECORATE",10055);
+		int deftness = CallACS("MiscVarCheckDECORATE",33);
+		int extragold;
+		int extragold2;
+		int deftbonus;
+		int bonuspart1;
+		int bonuspart2;
+		int bonusgold;
+		int bonusgold2;
+		int basecoins = user_golddrop;
+
+		AetheriusPlayerPawn playpawn;
+		if (target) playpawn = AetheriusPlayerPawn(target);
+		if (playpawn)
+		{
+			if (clearofmind > 0)
+			{
+				bonuspart1 = clearofmind * 6;
+				bonuspart1 = (bonuspart1 * LDLMulti) / 4;
+				bonusgold = (100 + bonuspart1);
+				user_golddrop = user_golddrop * (bonusgold) / 100;
+
+				bonuspart2 = ((clearofmind * 8) / 5);
+				bonuspart2 = (bonuspart2 * LDLMulti) / 4;
+				extragold = bonuspart2 - 5;
+				if (extragold < 0) extragold = 0;
+				user_golddrop += extragold;
+			}
+			
+			deftbonus = deftness / 4;
+			deftbonus = (deftbonus * LDLMulti) / 4;
+			bonusgold2 = (100 + deftbonus);
+			user_golddrop = user_golddrop * (bonusgold2) / 100;
+
+			extragold2 = deftness / 32;
+			if (extragold2 < 0) extragold2 = 0;
+			extragold2 = (extragold2 * LDLMulti) / 4;
+
+			user_golddrop += extragold2;
+		}
+		A_GiveToTarget("Coin",user_golddrop);
+		A_TakeInventory("Coin",goldamt,0,AAPTR_DEFAULT);
+
+		//if (playpawn) Console.Printf("Gained %d Coins! [bonusdft%: %d, extra2: %d, bonus%: %d, extra: %d, base2: %d, base1: %d, LDLMulti: %d / 2]", user_golddrop, bonusgold2, extragold2, bonusgold, extragold, basecoins, basegold, LDLMulti);
+		if (playpawn) Console.Printf("Gained %d Coins!", user_golddrop);
+	}
+
+	void A_GetAccuracySpreads()
+	{
+		Console.Printf("ACCURACY: XY-: %.4f, XY+: %.4f, Z-: %.4f, Z+: %.4f", user_shotaccuracy1, user_shotaccuracy2, user_shotzaccuracy1, user_shotzaccuracy2);
+	}
+
+	// Attempts to mitigate floating-monsters from drifting too out of control when fast-chasing or damaged [like if they get kicked backwards]
+	// by slowing them down gradually and then stopping them at a certain interval that won't reset until they get hurt again or they attempt 
+	// to fast-chase.
+	void A_FloatLook(int time = 16)
+	{
+		A_Look();
+		user_fastchasetimer = time;
+		user_painreacttimer = time;
+	}
+	void A_FloatPain(int settime = 0, int settime2 = 8, int settime2chance = 64)
+	{
+		A_Pain();
+		if (random(1,256) <= settime2chance) user_painreacttimer = settime2; else user_painreacttimer = settime;
+	}
+	void A_FloatSetFChaseT(int time = 0)
+	{
+		user_fastchasetimer = time;
+	}
+	void A_FloatChaseCheck(int time1 = 4, int time2 = 8, int time3 = 12, int time4 = 16, double decelrate1 = 0.5, double decelrate2 = 0.5)
+	{
+		user_painreacttimer++;
+		if (user_painreacttimer == time1) { A_ScaleVelocity(decelrate1); }
+		if (user_painreacttimer == time2) { A_ScaleVelocity(decelrate1); }
+		if (user_painreacttimer == time3) { A_ScaleVelocity(decelrate1); }
+		if (user_painreacttimer == time4) { A_ScaleVelocity(0); A_Stop(); }
+		//A_LogInt(user_painreacttimer);
+		user_fastchasetimer++;
+		if (user_fastchasetimer == time1) { A_ScaleVelocity(decelrate2); }
+		if (user_fastchasetimer == time2) { A_ScaleVelocity(decelrate2); }
+		if (user_fastchasetimer == time3) { A_ScaleVelocity(decelrate2); }
+		if (user_fastchasetimer == time4) { A_ScaleVelocity(0); A_Stop(); }
+		//A_LogInt(user_fastchasetimer);
+	}
+
+	void A_MonsterCrisisCheck ()
+	{
+		user_canusecrisisatk = 0;
+		if(health <= user_HPLowRange) { if(health <= user_HPCritRange) { user_canusecrisisatk = 1; } else { if (random(1,4) == 4) { user_canusecrisisatk = 1; } } }
+		if(dvds_monstercrisisattacks == 0) { user_canusecrisisatk = 0; }
+	}
+
+	void A_PlayCrisisAtkSound ()
+	{
+		A_PlaySound("crisisattack",6);
+		A_PlaySound("crisisattack2",7);
+	}
+
+	void A_CrisisExplode (int damage = 128, int radius = 128, int flags = 1, bool alert = false, int fulldmgradius = 0, int nails = 0, int naildamage = 10, string pufftype = "BulletPuff", string damagetype = "none", bool playcrisissound = true)
+	{
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) 
+		{
+			damage *= CallACS("CrisisMultiplier"); 
+			if (playcrisissound == 1) { A_PlayCrisisAtkSound(); } 
+		}
+		A_Explode(damage,radius,flags,alert,fulldmgradius,nails,naildamage,pufftype,damagetype);
+	}
+ 
+	void A_CrisisMushroom (string missiletype, string crisismissiletype, int amount = 0, int flags = 0, float vrange = 4.0, float hrange = 0.5, bool playcrisissound = true)
+	{
+		string atktype = missiletype;
+		if(user_canusecrisisatk == 1) 
+		{
+			if (playcrisissound == 1) { A_PlayCrisisAtkSound(); } 
+			atktype = crisismissiletype;
+		}
+		A_MushRoom(atktype,amount,flags,vrange,hrange);
+	}
+ 
+	void A_CrisisSpawnProjectile (string missiletype, string crisismissiletype, float spawnheight = 32.0, float spawnofs_xy = 0.0, double angle = 0.0, int flags = 0, double pitch = 0.0, int ptr = AAPTR_TARGET, bool playcrisissound = true)
+	{
+		string atktype = missiletype;
+		if(user_canusecrisisatk == 1) 
+		{
+			if (playcrisissound == 1) { A_PlayCrisisAtkSound(); } 
+			atktype = crisismissiletype;
+		}
+		A_SpawnProjectile(atktype,spawnheight,spawnofs_xy,angle,flags,pitch,ptr);
+	}
+
+	void A_CrisisBulletAttack(float horz_spread, float vert_spread, int numbullets, int damageperbullet, string pufftype = "BulletPuff", float range = 2048.0, int flags = 0, int ptr = AAPTR_TARGET, string missile = "none", float spawnheight = 32.0, float Spawnofs_xy = 0.0, bool playcrisissound = true)
+	{
+		if(user_canusecrisisatk == 1) 
+		{
+			if (playcrisissound == 1) { A_PlayCrisisAtkSound(); } 
+			damageperbullet *= CallACS("CrisisMultiplier"); 
+		}
+		for (int i = 0; i < numbullets; i++) 
+		{
+			A_CustomBulletAttack(horz_spread,vert_spread,1,damageperbullet,pufftype,range,flags,ptr,missile,spawnheight,Spawnofs_xy); 
+		}
+	}
+ 
+	void A_CrisisRailgun(int damage, int spawnofs_xy = 0, color ringcolor = 0, color corecolor = 0, int flags = 0, int aim = 0, double maxdiff = 0, string pufftype = "", double spread_xy = 0.0, double spread_z = 0.0, int range = 8192, int duration = 35, double sparsity = 1.0, double driftspeed = 1.0, string spawnclass = "", double spawnofs_z = 0.0, int spiraloffset = 270, int limit = 0, double veleffect = 3.0, bool playcrisissound = true)
+	{
+		if(user_canusecrisisatk == 1) 
+		{
+			damage *= CallACS("CrisisMultiplier"); 
+			if (playcrisissound == 1) { A_PlayCrisisAtkSound(); } 
+		}
+		A_CustomRailgun(damage,spawnofs_xy,ringcolor,corecolor,flags,aim,maxdiff,pufftype,spread_xy,spread_z,range,duration,sparsity,driftspeed,spawnclass,spawnofs_z,spiraloffset,limit,veleffect);
+	}
+ 
+	void A_CrisisComboAttack(string missiletype, string crisismissiletype, float spawnheight = 32.0, int meleedamage = 0, string meleesound = "imp/melee", string damagetype = "Melee", bool bleed = 1, bool playcrisissound = true)
+	{
+		string atktype = missiletype;
+		if(user_canusecrisisatk == 1) 
+		{
+			meleedamage *= CallACS("CrisisMultiplier"); 
+			if (playcrisissound == 1) { A_PlayCrisisAtkSound(); }
+			atktype = crisismissiletype;
+		}
+		A_CustomComboAttack(atktype,spawnheight,meleedamage,meleesound,damagetype,bleed);
+	}
+
+	void A_CrisisMeleeAttack(int meleedamage, string meleesound = "", string misssound = "", string damagetype = "Melee", bool bleed = 1, bool playcrisissound = true)
+	{
+		if(user_canusecrisisatk == 1) 
+		{
+			meleedamage *= CallACS("CrisisMultiplier");
+			if (playcrisissound == 1) { A_PlayCrisisAtkSound(); }
+		}
+		A_CustomMeleeAttack(meleedamage,meleesound,misssound,damagetype,bleed);
+	}
+	
+	void A_CrisisSpawnItemEx(string type = "", string crisistype = "", float xofs = 0.0, float yofs = 0.0, float zofs = 0.0, float xvel = 0.0, float yvel = 0.0, float zvel = 0.0, float angle = 0.0, int flags = 0, int failchance = 0, int tid = 0, bool playcrisissound = true)
+	{
+		string spawntype = type;
+		if(user_canusecrisisatk == 1) 
+		{
+			if (playcrisissound == 1) { A_PlayCrisisAtkSound(); }
+			spawntype = crisistype;
+		}
+		else
+		{
+			A_SpawnItemEx(spawntype,xofs,yofs,zofs,xvel,yvel,zvel,angle,flags,failchance,tid);
+		}
+	}
+
+	// Shielding Imp Warlord
+	void A_ImpWarShieldOff()
+	{
+		bNOBLOOD = 0; bNOPAIN = 0;
+		A_TakeInventory("ImpWarlordShieldDefend",0x7FFFFFFF); // A_UnSetInvulnerable
+		A_TakeInventory("ImpWarlordShieldDefendExtra",0x7FFFFFFF);
+	}
+	void A_ImpWarShieldOn()
+	{
+		bNOPAIN = 1; bNOBLOOD = 1;
+		A_GiveInventory("ImpWarlordShieldDefend",1); // A_SetInvulnerable
+		A_TakeInventory("ImpWarlordShieldDefendExtra",0x7FFFFFFF);
+		if (random(1,4) == 1) { A_GiveInventory("ImpWarlordShieldDefendExtra",1); } 
+	}
+
+	// Shielding Death Knight
+	void A_DeathKnightShieldOff()
+	{
+		user_defendtimer = 0; user_defendcycles = 0;
+		bNOBLOOD = 0; bNOPAIN = 0; bREFLECTIVE = 0;
+		A_TakeInventory("DKnightShieldDefend",0x7FFFFFFF); // A_UnSetInvulnerable
+		A_TakeInventory("DKnightShieldDefendExtra",0x7FFFFFFF);
+	}
+	void A_DeathKnightShieldOn()
+	{
+		bNOBLOOD = 1; bNOPAIN = 1; bREFLECTIVE = 1;
+		A_GiveInventory("DKnightShieldDefend",1); // A_SetInvulnerable
+		A_TakeInventory("DKnightShieldDefendExtra",0x7FFFFFFF);
+		if (random(1,4) == 1) { A_GiveInventory("DKnightShieldDefendExtra",1); } 
+	}
+	
+	// Shielding Acolytes
+	void A_AcolyteShieldOff()
+	{
+		bNOBLOOD = 0; bNOPAIN = 0;
+		A_TakeInventory("AcolyteShieldDefend",0x7FFFFFFF); // A_UnSetInvulnerable
+		A_TakeInventory("AcolyteShieldDefendExtra",0x7FFFFFFF);
+	}
+	void A_AcolyteShieldOn()
+	{
+		if (random(1,2) == 1) { bNOPAIN = 1; bNOBLOOD = 1; } else { bNOPAIN = 0; bNOBLOOD = 0; }
+		A_GiveInventory("AcolyteShieldDefend",1); // A_SetInvulnerable
+		A_TakeInventory("AcolyteShieldDefendExtra",0x7FFFFFFF);
+		if (random(1,4) == 1) { A_GiveInventory("AcolyteShieldDefendExtra",1); } 
+	}
+ 
+	// Shielding Centaur
+	void A_CentaurShieldOff()
+	{
+		user_defendtimer = 0; user_defendcycles = 0;
+		bNOBLOOD = 0; bNOPAIN = 0; bREFLECTIVE = 0;
+		A_TakeInventory("CentaurShieldDefend",0x7FFFFFFF); // A_UnSetInvulnerable
+		A_TakeInventory("CentaurShieldDefendExtra",0x7FFFFFFF);
+	}
+	void A_CentaurShieldOn()
+	{
+		bNOBLOOD = 1; bNOPAIN = 1; bREFLECTIVE = 1;
+		A_GiveInventory("CentaurShieldDefend",1); // A_SetInvulnerable
+		A_TakeInventory("CentaurShieldDefendExtra",0x7FFFFFFF);
+		if (random(1,4) == 1) { A_GiveInventory("CentaurShieldDefendExtra",1); } 
+	}
+
+	// Shielding Slaughtaur
+	void A_SlaughtaurShieldOff()
+	{
+		user_defendtimer = 0; user_defendcycles = 0;
+		bNOBLOOD = 0; bNOPAIN = 0; bREFLECTIVE = 0;
+		A_TakeInventory("SlaughtaurShieldDefend",0x7FFFFFFF); // A_UnSetInvulnerable
+		A_TakeInventory("SlaughtaurShieldDefendExtra",0x7FFFFFFF);
+	}
+	void A_SlaughtaurShieldOn()
+	{
+		bNOBLOOD = 1; bNOPAIN = 1; bREFLECTIVE = 1;
+		A_GiveInventory("SlaughtaurShieldDefend",1); // A_SetInvulnerable
+		A_TakeInventory("SlaughtaurShieldDefendExtra",0x7FFFFFFF);
+		if (random(1,4) == 1) { A_GiveInventory("SlaughtaurShieldDefendExtra",1); } 
+	}
+
+	// Shielding Hell Warrior
+	void A_HellWarShieldOff()
+	{
+		bNOBLOOD = 0; bNOPAIN = 0; bREFLECTIVE = 0;
+		A_TakeInventory("EWShieldDefendMode",0x7FFFFFFF); // A_UnSetInvulnerable
+		A_TakeInventory("EWShieldDefendModeExtra",0x7FFFFFFF);
+	}
+	void A_HellWarShieldOn()
+	{
+		bNOBLOOD = 1; bNOPAIN = 1; bREFLECTIVE = 1;
+		A_GiveInventory("EWShieldDefendMode",1); // A_SetInvulnerable
+		A_TakeInventory("EWShieldDefendModeExtra",0x7FFFFFFF);
+		if (random(1,4) == 1) { A_GiveInventory("EWShieldDefendModeExtra",1); } 
+    }
+
+	// Nightmare Stuff
+	void A_NightmarePhaseOut()
+	{
+		bSHOOTABLE = 0; bNORADIUSDMG = 1; bNOPAIN = 1; bNOBLOOD = 1; 
+		A_GiveInventory("HightmarePhaseOutDefense",1); // A_SetInvulnerable
+	}
+	void A_NightmarePhaseIn()
+	{
+		bSHOOTABLE = 1; bNORADIUSDMG = 0; bNOPAIN = 0; bNOBLOOD = 0; 
+		A_TakeInventory("HightmarePhaseOutDefense",0x7FFFFFFF); // A_SetInvulnerable
+	}
+
+	int EXPCheck1;
+	void A_GetExpMultiFactor()
+	{
+		int debugexp = dvdsdebug_showexpdebugstuff;
+		int ClassicDoomType = CallACS("OtherVarCheckDECORATE",7);
+		int ModType = CallACS("OtherVarCheckDECORATE",8);
+		int PlayerLevel = CallACS("StatCheck",0);
+
+		int ExpMultiFactor, MapCheck, Exp2;
+		int deathkingsmapcalcmod = dvds_deathkingsmapcalcmod;
+		int mapcalcfactorexact = 0;
+		int mapcalcfactorpercent = 100;
+		
+		int mapdifficultyinflationEXP = dvds_mapdifficultyinflationEXP;
+		if (mapdifficultyinflationEXP < -50) mapdifficultyinflationEXP = -50;
+		if (mapdifficultyinflationEXP > 50) mapdifficultyinflationEXP = 50;
+		
+		int mapdifficultyinflationOVERALL = dvds_mapdifficultyinflationOVERALL;
+		if (mapdifficultyinflationOVERALL < -50) mapdifficultyinflationOVERALL = -50;
+		if (mapdifficultyinflationOVERALL > 50) mapdifficultyinflationOVERALL = 50;
+
+		int mapdifficultyinflationEXP2 = dvds_mapdifficultyinflationEXP2;
+		if (mapdifficultyinflationEXP2 < 1) mapdifficultyinflationEXP2 = 1;
+		if (mapdifficultyinflationEXP2 > 5000) mapdifficultyinflationEXP2 = 5000;
+		
+		int mapdifficultyinflationOVERALL2 = dvds_mapdifficultyinflationOVERALL2;
+		if (mapdifficultyinflationOVERALL2 < 1) mapdifficultyinflationOVERALL2 = 1;
+		if (mapdifficultyinflationOVERALL2 > 5000) mapdifficultyinflationOVERALL2 = 5000;
+
+		// Gets the Experience Multiplication Factor [Part 1]
+		ExpMultiFactor = Random(90,120);
+		if (PlayerLevel < 40) ExpMultiFactor += (PlayerLevel * 1.03125); // +6.25%
+		else
+		{
+			if (PlayerLevel < 80) ExpMultiFactor += (PlayerLevel * 1.0625); // +12.5%
+			else
+			{
+				if (PlayerLevel < 120) ExpMultiFactor += (PlayerLevel * 1.125); // +25%
+				else
+				{
+					if (PlayerLevel < 160) ExpMultiFactor += (PlayerLevel * 1.25); // +50%
+					else ExpMultiFactor += (PlayerLevel * 1.5); // +100%
+				}
+			}
+		}
+		
+		// Gets the Experience Multiplication Factor [Part 2]
+		MapCheck = level.levelnum;
+		if (ModType == 0) // Classic Doom 1/2 / Heretic / Hexen / Strife
+		{
+			if (ClassicDoomType == 1 || ClassicDoomType == 2) // Classic Doom 1 or Heretic
+			{
+				if (MapCheck != 1000 || MapCheck != 1010)
+				{
+					if (CallACS("MiscVarCheckDECORATE",259) > 0) MapCheck += deathkingsmapcalcmod;
+					MapCheck += mapdifficultyinflationEXP; // Map Inflation [EXP - Exact]
+					MapCheck += mapdifficultyinflationOVERALL; // Map Inflation [Overall - Exact]
+					MapCheck = MapCheck * mapdifficultyinflationEXP2 / 100; // Map Inflation [EXP - Percentile]
+					MapCheck = MapCheck * mapdifficultyinflationOVERALL2 / 100; // Map Inflation [Overall - Percentile]
+					if (MapCheck < 1) MapCheck = 1;
+					if (MapCheck > 75) MapCheck = 75;
+				}
+				if (MapCheck == 1000) Exp2 = 0; // E1M0 [Classic Doom 1]
+				if (MapCheck == 1010) Exp2 = 0; // E1MA [Heretic]
+				// Episode 1
+				if (MapCheck == 1) Exp2 = MapCheck * 1.00; // Monster Bonus [100%] [E1M1]
+				if (MapCheck == 2) Exp2 = MapCheck * 1.010; // Monster Bonus [100%] [E1M2]
+				if (MapCheck == 3) Exp2 = MapCheck * 1.020; // Monster Bonus [100%] [E1M3]
+				if (MapCheck == 9) Exp2 = MapCheck * 1.090; // Monster Bonus [100%] [E1M9]
+				if (MapCheck == 10) Exp2 = MapCheck * 1.100; // Monster Bonus [100%] [E1M10]
+				if (MapCheck == 4) Exp2 = MapCheck * 1.030; // Monster Bonus [100%] [E1M4]
+				if (MapCheck == 5) Exp2 = MapCheck * 1.040; // Monster Bonus [100%] [E1M5]
+				if (MapCheck == 6) Exp2 = MapCheck * 1.050; // Monster Bonus [100%] [E1M6]
+				if (MapCheck == 7) Exp2 = MapCheck * 1.060; // Monster Bonus [100%] [E1M7]
+				if (MapCheck == 8) Exp2 = MapCheck * 1.070; // Monster Bonus [100%] [E1M8]
+				// Episode 2
+				if (MapCheck == 11) Exp2 = MapCheck * 1.1125; // Monster Bonus [100%] [E2M1]
+				if (MapCheck == 12) Exp2 = MapCheck * 1.125; // Monster Bonus [100%] [E2M2]
+				if (MapCheck == 13) Exp2 = MapCheck * 1.1375; // Monster Bonus [100%] [E2M3]
+				if (MapCheck == 14) Exp2 = MapCheck * 1.150; // Monster Bonus [100%] [E2M4]
+				if (MapCheck == 15) Exp2 = MapCheck * 1.1625; // Monster Bonus [100%] [E2M5]
+				if (MapCheck == 19) Exp2 = MapCheck * 1.220; // Monster Bonus [100%] [E2M9]
+				if (MapCheck == 20) Exp2 = MapCheck * 1.240; // Monster Bonus [100%] [E2M10]
+				if (MapCheck == 16) Exp2 = MapCheck * 1.175; // Monster Bonus [100%] [E2M6]
+				if (MapCheck == 17) Exp2 = MapCheck * 1.1875; // Monster Bonus [100%] [E2M7]
+				if (MapCheck == 18) Exp2 = MapCheck * 1.200; // Monster Bonus [100%] [E2M8]
+				// Episode 3
+				if (MapCheck == 21) Exp2 = MapCheck * 1.280; // Monster Bonus [100%] [E3M1]
+				if (MapCheck == 22) Exp2 = MapCheck * 1.320; // Monster Bonus [100%] [E3M2]
+				if (MapCheck == 23) Exp2 = MapCheck * 1.360; // Monster Bonus [100%] [E3M3]
+				if (MapCheck == 24) Exp2 = MapCheck * 1.400; // Monster Bonus [100%] [E3M4]
+				if (MapCheck == 25) Exp2 = MapCheck * 1.440; // Monster Bonus [100%] [E3M5]
+				if (MapCheck == 26) Exp2 = MapCheck * 1.480; // Monster Bonus [100%] [E3M6]
+				if (MapCheck == 29) Exp2 = MapCheck * 1.600; // Monster Bonus [100%] [E3M9]
+				if (MapCheck == 30) Exp2 = MapCheck * 1.680; // Monster Bonus [100%] [E3M10]
+				if (MapCheck == 27) Exp2 = MapCheck * 1.520; // Monster Bonus [100%] [E3M7]
+				if (MapCheck == 28) Exp2 = MapCheck * 1.560; // Monster Bonus [100%] [E3M8]
+				// Episode 4
+				if (MapCheck == 31) Exp2 = MapCheck * 1.750; // Monster Bonus [100%] [E4M1]
+				if (MapCheck == 32) Exp2 = MapCheck * 1.825; // Monster Bonus [100%] [E4M2]
+				if (MapCheck == 39) Exp2 = MapCheck * 2.600; // Monster Bonus [100%] [E4M9]
+				if (MapCheck == 40) Exp2 = MapCheck * 2.875; // Monster Bonus [100%] [E4M10]
+				if (MapCheck == 33) Exp2 = MapCheck * 1.900; // Monster Bonus [100%] [E4M3]
+				if (MapCheck == 34) Exp2 = MapCheck * 2.000; // Monster Bonus [100%] [E4M4]
+				if (MapCheck == 35) Exp2 = MapCheck * 2.100; // Monster Bonus [100%] [E4M5]
+				if (MapCheck == 36) Exp2 = MapCheck * 2.225; // Monster Bonus [100%] [E4M6]
+				if (MapCheck == 37) Exp2 = MapCheck * 2.350; // Monster Bonus [100%] [E4M7]
+				if (MapCheck == 38) Exp2 = MapCheck * 2.475; // Monster Bonus [100%] [E4M8]
+				// Episode 5
+				if (MapCheck == 41) Exp2 = MapCheck * 2.750; // Monster Bonus [100%] [E5M1]
+				if (MapCheck == 42) Exp2 = MapCheck * 2.825; // Monster Bonus [100%] [E5M2]
+				if (MapCheck == 49) Exp2 = MapCheck * 3.600; // Monster Bonus [100%] [E5M9]
+				if (MapCheck == 50) Exp2 = MapCheck * 3.875; // Monster Bonus [100%] [E5M10]
+				if (MapCheck == 43) Exp2 = MapCheck * 2.900; // Monster Bonus [100%] [E5M3]
+				if (MapCheck == 44) Exp2 = MapCheck * 3.000; // Monster Bonus [100%] [E5M4]
+				if (MapCheck == 45) Exp2 = MapCheck * 3.100; // Monster Bonus [100%] [E5M5]
+				if (MapCheck == 46) Exp2 = MapCheck * 3.225; // Monster Bonus [100%] [E5M6]
+				if (MapCheck == 47) Exp2 = MapCheck * 3.350; // Monster Bonus [100%] [E5M7]
+				if (MapCheck == 48) Exp2 = MapCheck * 3.475; // Monster Bonus [100%] [E5M8]
+				// Episode 6
+				if (MapCheck == 51) Exp2 = MapCheck * 3.250; // Monster Bonus [100%] [E6M1]
+				if (MapCheck == 52) Exp2 = MapCheck * 3.450; // Monster Bonus [100%] [E6M2]
+				if (MapCheck == 53) Exp2 = MapCheck * 3.650; // Monster Bonus [100%] [E6M3]
+				if (MapCheck == 54) Exp2 = MapCheck * 3.850; // Monster Bonus [100%] [E6M4]
+				if (MapCheck == 55) Exp2 = MapCheck * 4.050; // Monster Bonus [100%] [E6M5]
+				if (MapCheck == 56) Exp2 = MapCheck * 4.250; // Monster Bonus [100%] [E6M6]
+				if (MapCheck == 57) Exp2 = MapCheck * 4.450; // Monster Bonus [100%] [E6M7]
+				if (MapCheck == 58) Exp2 = MapCheck * 4.650; // Monster Bonus [100%] [E6M8]
+				if (MapCheck == 59) Exp2 = MapCheck * 4.850; // Monster Bonus [100%] [E6M9]
+				if (MapCheck == 60) Exp2 = MapCheck * 5.050; // Monster Bonus [100%] [E6M10]
+				// Episode 7
+				if (MapCheck == 61) Exp2 = MapCheck * 5.275; // Monster Bonus [100%] [E7M1]
+				if (MapCheck == 62) Exp2 = MapCheck * 5.500; // Monster Bonus [100%] [E7M2]
+				if (MapCheck == 63) Exp2 = MapCheck * 5.725; // Monster Bonus [100%] [E7M3]
+				if (MapCheck == 64) Exp2 = MapCheck * 5.950; // Monster Bonus [100%] [E7M4]
+				if (MapCheck == 65) Exp2 = MapCheck * 6.175; // Monster Bonus [100%] [E7M5]
+				if (MapCheck == 66) Exp2 = MapCheck * 6.400; // Monster Bonus [100%] [E7M6]
+				if (MapCheck == 67) Exp2 = MapCheck * 6.625; // Monster Bonus [100%] [E7M7]
+				if (MapCheck == 68) Exp2 = MapCheck * 6.850; // Monster Bonus [100%] [E7M8]
+				if (MapCheck == 69) Exp2 = MapCheck * 7.075; // Monster Bonus [100%] [E7M9]
+				if (MapCheck >= 70) Exp2 = MapCheck * 7.300; // Monster Bonus [100%] [E7M10]
+					// Episode 8
+				if (MapCheck == 71) Exp2 = MapCheck * 7.550; // Monster Bonus [100%] [E8M1]
+				if (MapCheck == 72) Exp2 = MapCheck * 7.800; // Monster Bonus [100%] [E8M2]
+				if (MapCheck == 73) Exp2 = MapCheck * 8.050; // Monster Bonus [100%] [E8M3]
+				if (MapCheck == 74) Exp2 = MapCheck * 8.300; // Monster Bonus [100%] [E8M4]
+				if (MapCheck >= 75) Exp2 = MapCheck * 8.550; // Monster Bonus [100%] [E8M5]
+	
+							if (MapCheck == 9) Exp2 *= 2.50; // [250%]
+				else if (MapCheck == 19) Exp2 *= 3.75; // [375%]
+				else if (MapCheck == 29) Exp2 *= 5.00; // [500%]
+				else if (MapCheck == 39) Exp2 *= 6.25; // [625%]
+				else if (MapCheck == 49) Exp2 *= 7.50; // [750%]
+				else if (MapCheck == 59) Exp2 *= 8.75; // [875%]
+				else if (MapCheck == 69) Exp2 *= 10.00; // [1000%]
+														else Exp2 *= 1.25; // [125%]
+			}
+			else // Classic Doom 2 / Hexen / Strife / Doom64 / PSXDoom
+			{
+			if (MapCheck != 1050 || MapCheck != 1020 || MapCheck != 1030 || MapCheck != 1036 || MapCheck != 1037 || MapCheck != 1038 || MapCheck != 1039)
+			{
+					if (CallACS("MiscVarCheckDECORATE",259) > 0) MapCheck += deathkingsmapcalcmod;
+					MapCheck += mapdifficultyinflationEXP; // Map Inflation [EXP - Exact]
+					MapCheck += mapdifficultyinflationOVERALL; // Map Inflation [Overall - Exact]
+					MapCheck = MapCheck * mapdifficultyinflationEXP2 / 100; // Map Inflation [EXP - Percentile]
+					MapCheck = MapCheck * mapdifficultyinflationOVERALL2 / 100; // Map Inflation [Overall - Percentile]
+					if (MapCheck < 1) MapCheck = 1;
+					if (MapCheck > 75) MapCheck = 75;
+				}
+				if (MapCheck == 1050) Exp2 = 0; // MAP00 [Classic Doom 2]
+				if (MapCheck == 1020) Exp2 = 0; // MAP0A [Hexen]
+				if (MapCheck == 1030) Exp2 = 0; // MAPAA [Strife]
+				if (MapCheck >= 1036 && MapCheck <= 1038) Exp2 = 0; // [Doom64]
+				if (MapCheck == 1039) Exp2 = 0; // MAPP0 [PSXDoom]
+				// Main Game
+				if (MapCheck == 1) Exp2 = MapCheck * 1.000; // Monster Bonus [100%] [MAP01]
+				if (MapCheck == 2) Exp2 = MapCheck * 1.0125; // Monster Bonus [101.25%] [MAP02]
+				if (MapCheck == 3) Exp2 = MapCheck * 1.025; // Monster Bonus [102.5%] [MAP03]
+				if (MapCheck == 4) Exp2 = MapCheck * 1.0375; // Monster Bonus [103.75%] [MAP04]
+				if (MapCheck == 5) Exp2 = MapCheck * 1.050; // Monster Bonus [105%] [MAP05]
+		
+				if (MapCheck == 6) Exp2 = MapCheck * 1.069; // Monster Bonus [106.9%] [MAP06]
+				if (MapCheck == 7) Exp2 = MapCheck * 1.088; // Monster Bonus [108.8%] [MAP07]
+				if (MapCheck == 8) Exp2 = MapCheck * 1.107; // Monster Bonus [110.7%] [MAP08]
+				if (MapCheck == 9) Exp2 = MapCheck * 1.125; // Monster Bonus [112.5%] [MAP09]
+				if (MapCheck == 10) Exp2 = MapCheck * 1.144; // Monster Bonus [114.4%] [MAP10]
+		
+				if (MapCheck == 11) Exp2 = MapCheck * 1.169; // Monster Bonus [116.9%] [MAP11]
+				if (MapCheck == 12) Exp2 = MapCheck * 1.194; // Monster Bonus [119.4%] [MAP12]
+				if (MapCheck == 13) Exp2 = MapCheck * 1.219; // Monster Bonus [121.9%] [MAP13]
+				if (MapCheck == 14) Exp2 = MapCheck * 1.244; // Monster Bonus [124.4%] [MAP14]
+				if (MapCheck == 15) Exp2 = MapCheck * 1.269; // Monster Bonus [126.9%] [MAP15]
+		
+				if (MapCheck == 31) Exp2 = MapCheck * 1.519; // Monster Bonus [151.9%] [MAP31]
+				if (MapCheck == 32) Exp2 = MapCheck * 2.019; // Monster Bonus [201.9%] [MAP32]
+		
+				if (MapCheck == 16) Exp2 = MapCheck * 1.300; // Monster Bonus [130.0%] [MAP16]
+				if (MapCheck == 17) Exp2 = MapCheck * 1.331; // Monster Bonus [133.1%] [MAP17]
+				if (MapCheck == 18) Exp2 = MapCheck * 1.363; // Monster Bonus [136.3%] [MAP18]
+				if (MapCheck == 19) Exp2 = MapCheck * 1.394; // Monster Bonus [139.4%] [MAP19]
+				if (MapCheck == 20) Exp2 = MapCheck * 1.425; // Monster Bonus [142.5%] [MAP20]
+		
+				if (MapCheck == 21) Exp2 = MapCheck * 1.475; // Monster Bonus [147.5%] [MAP21]
+				if (MapCheck == 22) Exp2 = MapCheck * 1.525; // Monster Bonus [152.5%] [MAP22]
+				if (MapCheck == 23) Exp2 = MapCheck * 1.575; // Monster Bonus [157.5%] [MAP23]
+				if (MapCheck == 24) Exp2 = MapCheck * 1.625; // Monster Bonus [162.5%] [MAP24]
+				if (MapCheck == 25) Exp2 = MapCheck * 1.675; // Monster Bonus [167.5%] [MAP25]
+		
+				if (MapCheck == 26) Exp2 = MapCheck * 1.743; // Monster Bonus [174.3%] [MAP26]
+				if (MapCheck == 27) Exp2 = MapCheck * 1.819; // Monster Bonus [181.9%] [MAP27]
+				if (MapCheck == 28) Exp2 = MapCheck * 1.900; // Monster Bonus [190.0%] [MAP28]
+				if (MapCheck == 29) Exp2 = MapCheck * 1.998; // Monster Bonus [199.8%] [MAP29]
+				if (MapCheck == 30) Exp2 = MapCheck * 2.688; // Monster Bonus [268.8%] [MAP30]
+	
+				if (MapCheck == 33) Exp2 = MapCheck * 2.170; // Monster Bonus [217.0%] [MAP33]
+				if (MapCheck == 34) Exp2 = MapCheck * 2.270; // Monster Bonus [227.0%] [MAP34]
+				if (MapCheck == 35) Exp2 = MapCheck * 2.371; // Monster Bonus [237.1%] [MAP35]
+				if (MapCheck == 36) Exp2 = MapCheck * 2.473; // Monster Bonus [247.3%] [MAP36]
+				if (MapCheck == 37) Exp2 = MapCheck * 2.576; // Monster Bonus [257.6%] [MAP37]
+				if (MapCheck == 38) Exp2 = MapCheck * 2.680; // Monster Bonus [268.0%] [MAP38]
+				if (MapCheck == 39) Exp2 = MapCheck * 2.785; // Monster Bonus [278.5%] [MAP39]
+				if (MapCheck == 40) Exp2 = MapCheck * 2.891; // Monster Bonus [289.1%] [MAP40]
+	
+				if (MapCheck == 41) Exp2 = MapCheck * 3.000; // Monster Bonus [300.0%] [MAP41]
+				if (MapCheck == 42) Exp2 = MapCheck * 3.102; // Monster Bonus [310.2%] [MAP42]
+				if (MapCheck == 43) Exp2 = MapCheck * 3.206; // Monster Bonus [320.6%] [MAP43]
+				if (MapCheck == 44) Exp2 = MapCheck * 3.312; // Monster Bonus [331.2%] [MAP44]
+				if (MapCheck == 45) Exp2 = MapCheck * 3.420; // Monster Bonus [342.0%] [MAP45]
+				if (MapCheck == 46) Exp2 = MapCheck * 3.530; // Monster Bonus [353.0%] [MAP46]
+				if (MapCheck == 47) Exp2 = MapCheck * 3.642; // Monster Bonus [364.2%] [MAP47]
+				if (MapCheck == 48) Exp2 = MapCheck * 3.756; // Monster Bonus [375.6%] [MAP48]
+				if (MapCheck == 49) Exp2 = MapCheck * 3.872; // Monster Bonus [387.2%] [MAP49]
+				if (MapCheck == 50) Exp2 = MapCheck * 3.992; // Monster Bonus [399.2%] [MAP50]
+	
+				if (MapCheck == 51) Exp2 = MapCheck * 4.100; // Monster Bonus [410.0%] [MAP51]
+				if (MapCheck == 52) Exp2 = MapCheck * 4.204; // Monster Bonus [420.4%] [MAP52]
+				if (MapCheck == 53) Exp2 = MapCheck * 4.312; // Monster Bonus [431.2%] [MAP53]
+				if (MapCheck == 54) Exp2 = MapCheck * 4.424; // Monster Bonus [442.4%] [MAP54]
+				if (MapCheck == 55) Exp2 = MapCheck * 4.540; // Monster Bonus [454.0%] [MAP55]
+				if (MapCheck == 56) Exp2 = MapCheck * 4.660; // Monster Bonus [466.0%] [MAP56]
+				if (MapCheck == 57) Exp2 = MapCheck * 4.784; // Monster Bonus [478.4%] [MAP57]
+				if (MapCheck == 58) Exp2 = MapCheck * 4.902; // Monster Bonus [490.2%] [MAP58]
+				if (MapCheck == 59) Exp2 = MapCheck * 5.034; // Monster Bonus [503.0%] [MAP59]
+				if (MapCheck == 60) Exp2 = MapCheck * 5.170; // Monster Bonus [517.0%] [MAP60]
+	
+				if (MapCheck == 61) Exp2 = MapCheck * 5.200; // Monster Bonus [520.0%] [MAP61]
+				if (MapCheck == 62) Exp2 = MapCheck * 5.304; // Monster Bonus [530.4%] [MAP62]
+				if (MapCheck == 63) Exp2 = MapCheck * 5.412; // Monster Bonus [541.2%] [MAP63]
+				if (MapCheck == 64) Exp2 = MapCheck * 5.524; // Monster Bonus [552.4%] [MAP64]
+				if (MapCheck == 65) Exp2 = MapCheck * 5.640; // Monster Bonus [564.0%] [MAP65]
+				if (MapCheck == 66) Exp2 = MapCheck * 5.760; // Monster Bonus [576.0%] [MAP66]
+				if (MapCheck == 67) Exp2 = MapCheck * 5.884; // Monster Bonus [588.4%] [MAP67]
+				if (MapCheck == 68) Exp2 = MapCheck * 6.002; // Monster Bonus [600.2%] [MAP68]
+				if (MapCheck == 69) Exp2 = MapCheck * 6.134; // Monster Bonus [613.0%] [MAP69]
+				if (MapCheck == 70) Exp2 = MapCheck * 6.270; // Monster Bonus [627.0%] [MAP70]
+	
+				if (MapCheck == 71) Exp2 = MapCheck * 6.400; // Monster Bonus [640.0%] [MAP71]
+				if (MapCheck == 72) Exp2 = MapCheck * 6.504; // Monster Bonus [650.4%] [MAP72]
+				if (MapCheck == 73) Exp2 = MapCheck * 6.612; // Monster Bonus [661.2%] [MAP73]
+				if (MapCheck == 74) Exp2 = MapCheck * 6.724; // Monster Bonus [672.4%] [MAP74]
+				if (MapCheck >= 75) Exp2 = MapCheck * 6.840; // Monster Bonus [684.0%] [MAP75]
+	
+						 if (MapCheck == 31) Exp2 *= 2.50; // [250%]
+				else if (MapCheck == 32) Exp2 *= 3.75; // [375%]
+														else Exp2 *= 1.25; // [125%]
+			}
+		}
+		else
+		if (ModType == 1) // Deus Vult 1
+		{
+			if (MapCheck != 1100)
+			{
+				if (MapCheck < 1101) MapCheck = 1101;
+				if (MapCheck > 1104) MapCheck = 1104;
+			}
+			if (MapCheck == 1101) Exp2 = (MapCheck - 1100) * 1.00; // Monster Bonus [100%]
+			if (MapCheck == 1102) Exp2 = (MapCheck - 1100) * 1.20; // Monster Bonus [120%]
+			if (MapCheck == 1103) Exp2 = (MapCheck - 1100) * 1.44; // Monster Bonus [144%]
+			if (MapCheck == 1104) Exp2 = (MapCheck - 1100) * 1.92; // Monster Bonus [192%]
+		}
+		else
+		if (ModType == 2) // Deus Vult 2
+		{
+			if (MapCheck != 1200)
+			{
+				if (MapCheck < 1201) MapCheck = 1201;
+				if (MapCheck > 1212) MapCheck = 1212;
+			}
+			// Zendaria Levels
+			if (MapCheck == 1200) Exp2 = (MapCheck - 1200) * 1.04; // +4% Exp Bonus // Prolouge - The Mysterious Cave
+			// Earth-type Levels
+			if (MapCheck == 1201) Exp2 = (MapCheck - 1200) * 1.00; // Monster Bonus // MAP01 - Entryway Pass
+			if (MapCheck == 1202) Exp2 = (MapCheck - 1200) * 1.06; // Monster Bonus // MAP02 - Mutagen
+			if (MapCheck == 1203) Exp2 = (MapCheck - 1200) * 1.12; // Monster Bonus // MAP03 - Crouching Demon, Hidden Archvile
+			if (MapCheck == 1204) Exp2 = (MapCheck - 1200) * 1.20; // Monster Bonus // MAP04 - Minas Morgul
+			if (MapCheck == 1205) Exp2 = (MapCheck - 1200) * 1.26; // Monster Bonus // MAP05 - Eagle's Nest
+			if (MapCheck == 1206) Exp2 = (MapCheck - 1200) * 1.34; // Monster Bonus // MAP05B - The Manliest Level Ever
+			if (MapCheck == 1207) Exp2 = (MapCheck - 1200) * 1.42; // Monster Bonus // MAP06 - Stargate
+			if (MapCheck == 1208) Exp2 = (MapCheck - 1200) * 1.50; // Monster Bonus // MAP07 - The Desert Temple
+			// Hell Levels
+			if (MapCheck == 1209) Exp2 = (MapCheck - 1200) * 1.78; // Monster Bonus // MAP08 - The Unholy Cathedral
+			if (MapCheck == 1210) Exp2 = (MapCheck - 1200) * 2.10; // Monster Bonus // MAP09 - You Shall Not Pass!
+			if (MapCheck == 1211) Exp2 = (MapCheck - 1200) * 2.48; // Monster Bonus // MAP10 - Hell's Vendetta
+			if (MapCheck == 1212) Exp2 = (MapCheck - 1200) * 2.92; // Monster Bonus // MAP10B - attedneV s'lleH
+			// Extra Levels
+			if (MapCheck == 1213) Exp2 = 0; // NO Exp Bonus since it's Heaven, foo. :P // MAP11 - St. Peter's Gate
+			if (MapCheck == 1214) Exp2 = (MapCheck - 1200) * 1.40; // MAP12 - "The Wings of The Maiar" [DVI combined level remake]
+			if (MapCheck == 1215) Exp2 = (MapCheck - 1200) * 2.92; // MAP10C - attedneV s'lleH: The True End of All Things... [resurrected Sauron rematch] (if worser endings occur)
+			// Ending Levels
+			if (MapCheck == 1216) Exp2 = 0; // NO Exp Bonus in ending levels // MAP13 - The Return Home
+			if (MapCheck == 1217) Exp2 = 0; // NO Exp Bonus in ending levels // ENDMAP - Credits and Cast
+		}
+		ExpMultiFactor += Exp2;
+		if (debugexp) Console.Printf("\cxGetExpMultiFactor\c- - ClassicDoomType: %d, ModType: %d, \czMapCheck: %d\c-, Exp2: %d, ExpMultiFactor: %d", ClassicDoomType, ModType, MapCheck, Exp2, ExpMultiFactor);
+		
+		EXPCheck1 = ExpMultiFactor;
+	}
+
+	int EXPCheck2;
+	void A_GetExperience(int RealExpGain, int ExpMultiFactor)
+	{
+		int clearofmind = CallACS("MiscVarCheckDECORATE",10055);
+		int clearofmindex = CallACS("MiscVarCheckDECORATE",10056);
+		int TrueGameSkill = dvds_gendifficultycurve + Skill;
+		int debugexp = dvdsdebug_showexpdebugstuff;
+		int CharacterClass = CallACS("CheckCharacterClass");
+
+		int DeftnessExpBase = dvds_deftnessexpbase;
+		int ExpMultiplier = dvds_expmultiplier;
+		int OldExp1 = RealExpGain;
+		if (debugexp) Console.Printf("\cxGetExperience\c- - OldExp1: %d", OldExp1);
+
+		RealExpGain = RealExpGain * ExpMultiFactor / 100; // Randomizes some of the experience gained
+		int OldExp2 = RealExpGain;
+		if (debugexp) Console.Printf("\cxGetExperience\c- - OldExp2: %d, [ExpMultiFactor: %d%]", OldExp2, ExpMultiFactor);
+
+		RealExpGain = RealExpGain * (DeftnessExpBase + CallACS("MiscVarCheckDECORATE",33)) / DeftnessExpBase;
+		int OldExp3 = RealExpGain;
+		if (debugexp) Console.Printf("\cxGetExperience\c- - OldExp3: %d [DeftBonus: %d%]", OldExp3, (DeftnessExpBase + CallACS("MiscVarCheckDECORATE",33)), DeftnessExpBase);
+
+		RealExpGain = RealExpGain * ExpMultiplier / 100; // EXP Multiplier Option
+		int OldExp4 = RealExpGain;
+		if (debugexp) Console.Printf("\cxGetExperience\c- - OldExp4: %d, [ExpMultiOption: %d%]", OldExp4, ExpMultiplier);
+		
+		int perkfactor;
+		// "Cleared of Mind" Perk
+		perkfactor = 1.00;
+		if (clearofmind > 0)
+		{
+			if (clearofmind >= 1) perkfactor += 0.04;
+			if (clearofmind >= 2) perkfactor += 0.05;
+			if (clearofmind >= 3) perkfactor += 0.06;
+			if (clearofmind >= 4) perkfactor += 0.07;
+			if (clearofmind >= 5) perkfactor += 0.08;
+			if (clearofmindex >= 1) perkfactor += 0.15;
+			if (clearofmindex >= 2) perkfactor += 0.15;
+			RealExpGain *= perkfactor;
+		}
+		int OldExp5 = RealExpGain;
+		if (debugexp) Console.Printf("\cxGetExperience\c- - OldExp5: %d, [perkfactor: %8f]", OldExp5, perkfactor);
+
+		// "Higher Learning" Grand Mastery Perk
+		if (CallACS("MiscVarCheckDECORATE",11001) == 1)
+		{
+			if (CharacterClass == 0 | CharacterClass == 1) RealExpGain *= 1.225; // EXP Multiplier Option [122.5%]
+			if (CharacterClass == 2) RealExpGain *= 1.15; // EXP Multiplier Option [115%]
+		}
+		if (CallACS("MiscVarCheckDECORATE",11001) == 2)
+		{
+			if (CharacterClass == 0 | CharacterClass == 1) RealExpGain *= 1.45; // EXP Multiplier Option [145%]
+			if (CharacterClass == 2) RealExpGain *= 1.3; // EXP Multiplier Option [130%]
+		}
+		int OldExp6 = RealExpGain;
+		if (debugexp) Console.Printf("\cxGetExperience\c- - OldExp6: %d", OldExp6);
+
+		if (TrueGameSkill <= SKILL_VERY_EASY) RealExpGain *= 3.125; // 312.5%
+		else if (TrueGameSkill == SKILL_EASY) RealExpGain *= 2.5; // 250%
+		else if (TrueGameSkill == SKILL_NORMAL) RealExpGain *= 1.875; // 187.5%
+		else if (TrueGameSkill == SKILL_HARD) RealExpGain *= 1.25; // 125%
+		else if (TrueGameSkill == SKILL_VERY_HARD) RealExpGain *= 0.875; // 87.5%
+		else if (TrueGameSkill == SKILL_EXTREME) RealExpGain *= 0.8125; // 81.25%
+		else if (TrueGameSkill == SKILL_HORRIBLE) RealExpGain *= 0.75; // 75%
+		else if (TrueGameSkill == SKILL_IMPOSSIBLE) RealExpGain *= 0.6875; // 68.75%
+		else if (TrueGameSkill >= SKILL_OMEGA) RealExpGain *= 0.625; // 62.5%
+		int OldExp7 = RealExpGain;
+		if (debugexp) Console.Printf("\cxGetExperience\c- - OldExp7: %d", OldExp7);
+
+		double ArmorEXPMulti = 1.0;
+		if (CharacterClass == 2)
+		{
+			if (CountInv("SafeTeaShoes", AAPTR_PLAYER1)) { if (random(1,100) < 6) { ArmorEXPMulti += 0.05; } else { ArmorEXPMulti += 0.025; } }
+			if (CountInv("PearlyCorset", AAPTR_PLAYER1)) { if (random(1,100) < 6) { ArmorEXPMulti += 0.3; } else { ArmorEXPMulti += 0.2; } }
+			if (CountInv("DoveRibbon", AAPTR_PLAYER1)) { if (random(1,100) < 6) { ArmorEXPMulti += 0.05; } else { ArmorEXPMulti += 0.025; } }
+			RealExpGain *= ArmorEXPMulti;
+		}
+		int OldExp8 = RealExpGain;
+		if (debugexp) Console.Printf("\cxGetExperience\c- - OldExp8: %d, [ArmorEXPMulti: %8f]", OldExp8, ArmorEXPMulti);
+
+		if (CallACS("GetBuffTimer",7) > 0) { if (random(1,100) > 67) { RealExpGain *= 1.1667; } else { RealExpGain *= 1.08333; } } // Divine Avatar [+8.333% EXP, (33% chance of +16.67% EXP instead]
+		if (debugexp) Console.Printf("\cxGetExperience\c- - NewEXP: %d", RealExpGain);
+		
+		EXPCheck2 = RealExpGain;
+	}
+
+	void A_AddEXP(int baseamount = -2, int flags = 0, int incrementcombo = 1, int expfactor = 100)
+	{
+		int debugexp = dvdsdebug_showexpdebugstuff;
+		int debuguncurse = dvdsdebug_shielduncursedisplay;
+		int ClassicDoomType = CallACS("OtherVarCheckDECORATE",7);
+		int ModType = CallACS("OtherVarCheckDECORATE",8);
+		int TrueGameSkill = dvds_gendifficultycurve + Skill;
+		int CharacterClass = CallACS("CheckCharacterClass");
+		int PlayerLevel = CallACS("StatCheck",0);
+		int terminate;
+
+		int baseexp, finalexpamount, overkillhp, overkillhp2;
+		int Exp1, Exp2, ExpMultiFactor, RealExpGain;
+		int ComboMultiplier;
+		double KillExpMultiplier;
+		int KilledByPlayer = 1;
+		int fakedeath;
+		int random1;
+		string ActorClass = GetClassName();
+		string nm;
+
+		if (expfactor == 0) expfactor = 100;
+		if (flags & 2) fakedeath = 1;
+		int MapValue = level.levelnum;
+		//Console.Printf("MapNumber: %d", level.levelnum);
+		int MonsterX = pos.x;
+		int MonsterY = pos.y;
+		int MonsterZ = pos.z;
+
+		double RandomArmorDropChance;
+		double RandomArmorDropMulti;
+		
+		if (ClassicDoomType == 4) // Strife
+		{
+			nm = "DegninOrePickup";
+			MiscCheck = nm;
+			// Enemies in the Degnin Mines or levels in the factory HUB can sometimes drop Degnin Ore depending on the area
+			if (MapValue == 14) // Degnin Mines
+			{
+				if (random(1,768) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,384) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,192) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,96) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,72) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,48) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,24) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,12) == 1) A_DropItem(MiscCheck,1,256);
+				if (debugexp) Console.Printf("\cxAddEXP\c- - Degnin Ore Drop Attempt [MAP14]", debugexp);
+			}
+			if (MapValue == 20) // Factory: Receiving
+			{
+				if (random(1,4096) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,1024) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,256) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,64) == 1) A_DropItem(MiscCheck,1,256);
+				if (debugexp) Console.Printf("\cxAddEXP\c- - Degnin Ore Drop Attempt [MAP20]", debugexp);
+			}
+			if (MapValue == 21) // Factory: Manufacturing
+			{
+				if (random(1,4096) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,1024) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,256) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,64) == 1) A_DropItem(MiscCheck,1,256);
+				if (debugexp) Console.Printf("\cxAddEXP\c- - Degnin Ore Drop Attempt [MAP21]", debugexp);
+			}
+			if (MapValue == 22) // Factory: Forge
+			{
+				if (random(1,192) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,160) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,128) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,96) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,64) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,32) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,16) == 1) A_DropItem(MiscCheck,1,256);
+				if (debugexp) Console.Printf("\cxAddEXP\c- - Degnin Ore Drop Attempt [MAP22]", debugexp);
+			}
+			if (MapValue == 24) // Factory: Conversion Chapel
+			{
+				if (random(1,4096) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,1024) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,256) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,64) == 1) A_DropItem(MiscCheck,1,256);
+				if (debugexp) Console.Printf("\cxAddEXP\c- - Degnin Ore Drop Attempt [MAP24]", debugexp);
+			}
+			if (MapValue == 26) // Proving Grounds
+			{
+				if (random(1,7168) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,1536) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,384) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,96) == 1) A_DropItem(MiscCheck,1,256);
+				if (debugexp) Console.Printf("\cxAddEXP\c- - Degnin Ore Drop Attempt [MAP26]", debugexp);
+			}
+			if (MapValue == 27) // The Lab [Loremaster boss]
+			{
+				if (random(1,8192) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,2048) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,512) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,128) == 1) A_DropItem(MiscCheck,1,256);
+				if (debugexp) Console.Printf("\cxAddEXP\c- - Degnin Ore Drop Attempt [MAP27]", debugexp);
+			}
+			if (CountInv("QuestItem29", AAPTR_PLAYER1) > 0) // Destroying the Transmitter allows any other enemy in the game to have a chance to drop Degnin Ore [any level]
+			{
+				if (random(1,8192) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,2048) == 1) A_DropItem(MiscCheck,1,256);
+				if (random(1,512) == 1) A_DropItem(MiscCheck,1,256);
+				if (debugexp) Console.Printf("\cxAddEXP\c- - Degnin Ore Drop Attempt [Post-Transmitter]", debugexp);
+			}
+		}
+		
+		if (TrueGameSkill <= SKILL_VERY_EASY) RandomArmorDropMulti = 0.75;
+		else if (TrueGameSkill == SKILL_EASY) RandomArmorDropMulti = 0.90;
+		else if (TrueGameSkill == SKILL_NORMAL) RandomArmorDropMulti = 1.00;
+		else if (TrueGameSkill == SKILL_HARD) RandomArmorDropMulti = 1.10;
+		else if (TrueGameSkill == SKILL_VERY_HARD) RandomArmorDropMulti = 1.25;
+		else if (TrueGameSkill == SKILL_EXTREME) RandomArmorDropMulti = 1.35;
+		else if (TrueGameSkill == SKILL_HORRIBLE) RandomArmorDropMulti = 1.50;
+		else if (TrueGameSkill == SKILL_IMPOSSIBLE) RandomArmorDropMulti = 1.65;
+		else if (TrueGameSkill >= SKILL_OMEGA) RandomArmorDropMulti = 1.80;
+		
+		KilledByPlayer = 1;
+		KillExpMultiplier = 1.0; // 20 = 100% [1 = 5%]
+		string lastattackername; if (lastattacker) lastattackername = lastattacker.GetClassName();
+		playeriskiller = AetheriusPlayerPawn(lastattacker);
+		if (debugexp && lastattacker) Console.Printf("\cxAddEXP\c- - lastattacker: %s", lastattackername);
+		if (debugexp && playeriskiller) Console.Printf("\cxAddEXP\c- - playeriskiller");
+		if (GetCVar("dvds_exppropercredit") == 1)
+		{
+			if (!playeriskiller) // if (IsPointerEqual(AAPTR_TARGET, AAPTR_PLAYER1) == FALSE)
+			{
+				// TODO: Detect if a friendly monster/summon is the killer of the monster to give EXP credit to the player
+				if (lastattacker && lastattacker.bFRIENDLY)
+				{
+					KilledByPlayer = 0;
+					KillExpMultiplier = frandom(0.65,0.90); // [65 to 90%]
+					if (CountInv("AnubisCufflinks", AAPTR_PLAYER1) > 0) KillExpMultiplier += 0.10;
+					if (KillExpMultiplier >= 1.0) KillExpMultiplier = 1.0;
+					if (debugexp) Console.Printf("\cxAddEXP\c- - Passed Player/Friendly-Monster Credit Check: YES, KillMultiplier: %8f", KillExpMultiplier);
+				}
+				else
+				{
+					if (debugexp) Console.Printf("\cxAddEXP\c- - Passed Player/Friendly-Monster Credit Check: NO", debugexp);
+					terminate = 1;
+				}
+			}
+		}
+		
+		if (debugexp)
+		{
+			if (KilledByPlayer == 1) Console.Printf("\cxAddEXP\c- - Passed Player/Friendly-Monster Credit Check: YES (PLAYER), ExpMultiplier: %8f", debugexp, KillExpMultiplier);
+			else Console.Printf("\cxAddEXP\c- - Passed Player/Friendly-Monster Credit Check: YES (FRIENDLY ACTOR), ExpMultiplier: %8f", debugexp, KillExpMultiplier);
+		}
+		
+		if (playeriskiller && playeriskiller.health <= 0)  
+		{
+			if (debugexp) Console.Printf("\cxAddEXP\c- - Passed Player-Alive Check: NO", debugexp);
+			terminate = 1;
+		}
+		else
+		{
+			if (debugexp) Console.Printf("\cxAddEXP\c- - Passed Player-Alive Check: YES", debugexp);
+		}
+		
+		if (bFRIENDLY) // Any "FRIENDLY" flagged monster who runs the script will not get beyond this point UNLESS they have bit 1 enabled.
+		{
+			if (flags & 1) { }
+			else
+			{
+				if (debugexp) Console.Printf("\cxAddEXP\c- - Passed FRIENDLY Check: NO", debugexp);
+				terminate = 1;
+			}
+		}
+		else
+		{
+			if (debugexp) Console.Printf("\cxAddEXP\c- - Passed FRIENDLY Check: YES", debugexp);
+		}
+		
+		if (!terminate)
+		{
+			int HellCoreRuinousDropChance = 5;
+			if (CountInv("RuinousShield", AAPTR_PLAYER1) > 0) HellCoreRuinousDropChance *= 3; // Ruinous Shield triples drop rate
+			if (CallACS("DVDSSpecialArrayCheckDECORATE",3) > 0) HellCoreRuinousDropChance *= 4; // Playing Unloved sets this to drop 4x as often
+			if (CharacterClass != 2) HellCoreRuinousDropChance = 0;
+			// Monster Unique Drop Rates [Hellcore weapons]
+			if (ActorClass == "DSDoomImp")			A_DropItem("ImpClawCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "DarkImp")				A_DropItem("DarkImpClawCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "DSCacodemon")		A_DropItem("CacodemonEyeCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "Cacolantern")		A_DropItem("CacolanternEyeCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "Abaddon")				A_DropItem("AbaddonEyeCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "DSHellKnight")		A_DropItem("KnightFistCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "DSBaronofHell")	A_DropItem("BaronFistCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "Belphegor")			A_DropItem("BelphegorFistCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "BruiserDemon")		A_DropItem("BruiserFistCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "ArchonOfHell")		A_DropItem("ArchonFistCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "PyroDemon")			A_DropItem("PyroFistCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "DeathIncarnate")	A_DropItem("IncarnateSkullCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "DSArchvile")			A_DropItem("ArchvileHandCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "Diabloist")			A_DropItem("DiabloistHandCI",1,HellCoreRuinousDropChance);
+			if (ActorClass == "FlyingBalrog")		A_DropItem("BalrogFistCI",1,HellCoreRuinousDropChance);
+			if (debugexp) Console.Printf("\cxAddEXP\c- - HellCoreRuinousDropChance: %d / 256", HellCoreRuinousDropChance);
+			
+			double uncursethreshold;
+			double uncursethreshold2;
+			int uncursepts;
+			// Ruinous Shield Checks
+			if (playeriskiller) // if (IsPointerEqual(AAPTR_TARGET, AAPTR_PLAYER1) == TRUE) 
+			{
+				if (CharacterClass == 2 && CountInv("RuinousShield", AAPTR_PLAYER1) > 0) // Flora
+				{
+					if (debugexp) Console.Printf("\cxAddEXP\c- - UncursePts: %d", CallACS("MiscVarCheckDECORATE",202));
+					// Increase Ruinous Shield Counter by 1 or 2 pts [this allows the player to uncurse the shield slowly by killing enemies.
+					uncursethreshold = 0.9375;
+					uncursethreshold2 = 0.625;
+					if (CountInv("DoveRibbon", AAPTR_PLAYER1) > 0)
+					{
+						uncursethreshold -= 0.0625;
+						uncursethreshold2 -= 0.125;
+					}
+					if (CallACS("GetBuffTimer",7) > 0) 
+					{
+						uncursethreshold *= 0.9; 
+						uncursethreshold2 *= 0.9; 
+					}
+					if (frandom(0.0001,1.0000) <= uncursethreshold)
+					{
+						if (frandom(0.0001,1.0000) <= uncursethreshold2) uncursepts = 1; else uncursepts = 2;
+					}
+					else
+					{
+						if (frandom(0.0001,1.0000) <= uncursethreshold2) uncursepts = 4; else uncursepts = 8;
+					}
+					if (CountInv("DoveRibbon", AAPTR_PLAYER1) > 0) uncursepts *= (2 * random(1,2));
+					if (KilledByPlayer != 1) uncursepts /= 4;
+					if (uncursepts < 1) uncursepts = 1;
+					CallACS("MiscVarSetDECORATE",202,uncursepts,1); // Add // MiscellaneousVars[202] += uncursepts;
+					
+					if (debuguncurse) Console.Printf("Uncurse Pts: %d [+%d], Threshold1: %8f, Threshold2: %8f", CallACS("MiscVarCheckDECORATE",202), uncursepts, uncursethreshold, uncursethreshold2);
+				}
+				
+				int donotincreasekills = 0;
+				if (ActorClass == "DSBossBrain" || ActorClass == "ClayDevilNew") donotincreasekills = 1;
+				if (donotincreasekills == 0) 
+				{
+					CallACS("MiscVarSetDECORATE",167,1,1); // Add // KillCounter += 1; // Increases Player's actual total kill count by 1
+					if (debugexp) Console.Printf("\cxAddEXP\c- - Kills: %d", CallACS("MiscVarCheckDECORATE",167));
+				}
+			}
+			
+			int KillCounter = CallACS("MiscVarCheckDECORATE",167);
+			int KillThreshold1 = (20 * 5) / 2;
+			int KillThreshold2 = (200 * 5) / 2;
+			int KillThreshold3 = (800 * 5) / 2;
+			int KillThreshold4 = (1400 * 5) / 2;
+			int KillThreshold5 = (2000 * 5) / 2;
+			int KillThreshold6 = (2800 * 5) / 2;
+			int KillThreshold7 = (3600 * 5) / 2;
+			int KillThreshold8 = (4600 * 5) / 2;
+			int KillThreshold9 = (5600 * 5) / 2;
+			int KillThreshold10 = (6600 * 5) / 2;
+			int KillThreshold11 = (7600 * 5) / 2;
+			int KillThreshold12 = (8800 * 5) / 2;
+			int KillThreshold13 = (10000 * 5) / 2;
+			
+			if (ModType == 0) // Classic Doom 1-2/Heretic/Hexen/Strife mode :P
+			{
+				if (CharacterClass == 2) // Flora
+				{
+					if (KillCounter == KillThreshold1) // 20 enemies killed, high chance of spawning an armor item for Flora
+					{
+						// 75% chance
+						RandomArmorDropChance = 25.0 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold2) // 200 enemies killed, fair chance of spawning an armor item for Flora
+					{
+						// 50% chance
+						RandomArmorDropChance = 50.0 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold3) // 800 enemies killed, low chance of spawning an armor item for Flora
+					{
+						// 25% chance
+						RandomArmorDropChance = 75.0 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold4) // 1400 enemies killed, low chance of spawning an armor item for Flora
+					{
+						// 25% chance
+						RandomArmorDropChance = 75.0 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold5) // 2000 enemies killed, low chance of spawning an armor item for Flora
+					{
+						// 12.5% chance
+						RandomArmorDropChance = 87.5 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold6) // 2800 enemies killed, low chance of spawning an armor item for Flora
+					{
+						// 12.5% chance
+						RandomArmorDropChance = 87.5 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold7) // 3600 enemies killed, low chance of spawning an armor item for Flora
+					{
+						// 6.25% chance
+						RandomArmorDropChance = 93.75 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold8) // 4600 enemies killed, low chance of spawning an armor item for Flora
+					{
+						// 6.25% chance
+						RandomArmorDropChance = 93.75 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold9) // 5600 enemies killed, low chance of spawning an armor item for Flora
+					{
+						// 6.25% chance
+						RandomArmorDropChance = 93.75 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold10) // 6600 enemies killed, low chance of spawning an armor item for Flora
+					{
+						// 6.25% chance
+						RandomArmorDropChance = 93.75 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold11) // 7600 enemies killed, low chance of spawning an armor item for Flora
+					{
+						// 6.25% chance
+						RandomArmorDropChance = 93.75 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold12) // 8800 enemies killed, fair chance of spawning an armor item for Flora
+					{
+						// 36.25% chance
+						RandomArmorDropChance = 63.75 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+					if (KillCounter == KillThreshold13) // 10000 enemies killed, huge chance of spawning an armor item for Flora
+					{
+						// 92.5% chance
+						RandomArmorDropChance = 75.0 * RandomArmorDropMulti;
+						if (frandom(0.1,100.0) > RandomArmorDropChance) A_SpawnItemEx("FloraRandomArmorAlwaysDrop",0.0,0.0,8.0,0.0,0.0,0.0,0.0,SXF_NOCHECKPOSITION,0);
+					}
+				}
+			}
+			
+			int randomdropsallowed = 1;
+			int experiessencefactor = 1 + (CallACS("MiscVarCheckDECORATE",33) / 384);
+			int basedroprate = 1 + (CallACS("MiscVarCheckDECORATE",33) / 384);
+			// Drops
+			if (bBOSS) experiessencefactor *= random(8,16);
+			if (bFRIENDLY || 
+					ActorClass == "DSBossBrain" || 
+					ActorClass == "ClayDevilNew" || 
+					ActorClass == "FakeGoldLich" || 
+					ActorClass == "FireDemonQueenClone" ||
+					fakedeath > 0) 
+			{ 
+				randomdropsallowed = 0; 
+				experiessencefactor = 0;
+				basedroprate = 0;
+			}
+		
+			if (randomdropsallowed > 0)
+			{
+				if (random(1,256) <= experiessencefactor) A_DropItem("Experiessence",1,256);
+				if (random(1,1024) <= experiessencefactor) A_DropItem("Experiessence",1,256);
+				if (random(1,4096) <= experiessencefactor) A_DropItem("Experiessence",1,256);
+				if (random(1,1024) <= experiessencefactor) A_DropItem("LargeExperiessence",1,256);
+				if (random(1,4096) <= experiessencefactor) A_DropItem("LargeExperiessence",1,256);
+				if (random(1,16384) <= experiessencefactor) A_DropItem("LargeExperiessence",1,256);
+				if (random(1,4096) <= experiessencefactor) A_DropItem("HugeExperiessence",1,256);
+				if (random(1,16384) <= experiessencefactor) A_DropItem("HugeExperiessence",1,256);
+				if (random(1,65536) <= experiessencefactor) A_DropItem("HugeExperiessence",1,256);
+				
+				if (random(1,131072) <= basedroprate) A_DropItem("TheOneRing",1,256);
+				if (random(1,16384) <= basedroprate) A_DropItem("ElfinElixir",1,256);
+				if (random(1,16384) <= basedroprate) A_DropItem("MonsterMunchies",1,256);
+				if (random(1,16384) <= basedroprate) A_DropItem("RockBombShard",1,256);
+				if (random(1,16384) <= basedroprate && CharacterClass == 2) A_DropItem("SapphireWandNew",1,256);
+				if (random(1,8192) <= basedroprate) A_DropItem("RandomMagicSpawner",1,256);
+				if (random(1,8192) <= basedroprate) A_DropItem("RandomHerbSpawner",1,256);
+				if (random(1,8192) <= basedroprate) A_DropItem("GreaterVimstone",1,256);
+				if (random(1,8192) <= basedroprate) A_DropItem("LesserVimstone",1,256);
+				if (random(1,8192) <= basedroprate) A_DropItem("RockBombShard",1,256);
+				if (random(1,8192) <= basedroprate && CharacterClass == 2) A_DropItem("SapphireWandNew",1,256);
+				if (random(1,4096) <= basedroprate) A_DropItem("MonsterMunchies",1,256);
+				if (random(1,4096) <= basedroprate) A_DropItem("SageElixir",1,256);
+				if (random(1,4096) <= basedroprate) A_DropItem("PaxaPunch",1,256);
+				if (random(1,4096) <= basedroprate) A_DropItem("MercuryBandana",1,256);
+				if (random(1,4096) <= basedroprate) A_DropItem("RockBombShard",1,256);
+				if (random(1,4096) <= basedroprate) A_DropItem("RandomSeedDropAlways",1,256);
+				if (random(1,2048) <= basedroprate && CharacterClass == 2) A_DropItem("SapphireWandNew",1,256);
+				if (random(1,2048) <= basedroprate) A_DropItem("RandomHerbSpawner",1,256);
+				if (random(1,2048) <= basedroprate) A_DropItem("RandomMagicSpawner",1,256);
+				if (random(1,2048) <= basedroprate) A_DropItem("YggdrasilDew",1,256);
+				if (random(1,2048) <= basedroprate) A_DropItem("RockBombShard",1,256);
+				if (random(1,1024) <= basedroprate) A_DropItem("MonsterMunchies",1,256);
+				if (random(1,1024) <= basedroprate) A_DropItem("MagicWater",1,256);
+				if (random(1,1024) <= basedroprate) A_DropItem("RandomPowerupSpawner",1,256);
+				if (random(1,1024) <= basedroprate) A_DropItem("RockBombShard",1,256);
+				if (random(1,1024) <= basedroprate) A_DropItem("MiraclePotion",1,256);
+				if (random(1,512) <= basedroprate) A_DropItem("RandomHerbSpawner",1,256);
+				if (random(1,512) <= basedroprate) A_DropItem("RockBombShard",1,256);
+				if (random(1,256) <= basedroprate) A_DropItem("MonsterMunchies",1,256);
+				if (random(1,256) <= basedroprate) A_DropItem("RockBombShard",1,256);
+				if (ModType == 0) // Classic Mode
+				{
+					if (ClassicDoomType == 0 || ClassicDoomType == 1 || ClassicDoomType == 5 || ClassicDoomType == 6) // Doom 2, Doom 1, Doom64 or PSXDoom
+					{
+						if (random(1,16384) <= basedroprate) A_DropItem("Berserk2",1,256);
+						if (random(1,8192) <= basedroprate) A_DropItem("Berserk2",1,256);
+						if (random(1,4096) <= basedroprate) A_DropItem("MiniBerserk",1,256);
+						if (random(1,2048) <= basedroprate) A_DropItem("MiniBerserk",1,256);
+						if (random(1,1024) <= basedroprate) A_DropItem("Medikit2",1,256);
+						if (random(1,512) <= basedroprate) A_DropItem("Medikit2",1,256);
+						if (random(1,256) <= basedroprate) A_DropItem("Stimpack2",1,256);
+						if (random(1,128) <= basedroprate) A_DropItem("Stimpack2",1,256);
+						if (ActorClass == "HellCleric" && random(1,256) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "FlyingBalrog" && random(1,256) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "DSSpiderMastermind" && random(1,64) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "Demolisher" && random(1,48) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "DSCyberdemon" && random(1,64) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "Annihilator" && random(1,48) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (CharacterClass == 0 || CharacterClass == 1) // Deggaris & Illucia Specfic Drops
+						{
+							if (random(1,16384) <= basedroprate) A_DropItem("DiamondSkinGA",1,256);
+							if (random(1,8192) <= basedroprate) A_DropItem("StoneSkinGA",1,256);
+							if (random(1,4096) <= basedroprate) A_DropItem("DiamondSkin",1,256);
+							if (random(1,2048) <= basedroprate) A_DropItem("StoneSkin",1,256);
+							if (random(1,1024) <= basedroprate) A_DropItem("BlueArmorDS",1,256);
+							if (random(1,512) <= basedroprate) A_DropItem("GreenArmorDS",1,256);
+							if (random(1,256) <= basedroprate) A_DropItem("ArmorBonusDS2",1,256);
+							if (random(1,128) <= basedroprate) A_DropItem("ArmorBonusDS2",1,256);
+							if (random(1,64) <= basedroprate) A_DropItem("ArmorBonusDS2",1,256);
+							if (random(1,32) <= basedroprate) A_DropItem("ArmorBonusDS2",1,256);
+							if (random(1,16) <= basedroprate) A_DropItem("ArmorBonusDS2",1,256);
+							if (random(1,8) <= basedroprate) A_DropItem("ArmorBonusDS2",1,256);
+							if (random(1,512) <= basedroprate)
+							{
+								random1 = random(1,8);
+								if (random1 >= 1 && random1 <= 3) A_DropItem("ClipBoxNew",1,256);
+								if (random1 >= 4 && random1 <= 6) A_DropItem("ShellBoxNew",1,256);
+								if (random1 == 7) A_DropItem("RocketBoxNew",1,256);
+								if (random1 == 8) A_DropItem("CellPackNew",1,256);
+							}
+							if (random(1,256) <= basedroprate)
+							{
+								random1 = random(1,8);
+								if (random1 >= 1 && random1 <= 3) A_DropItem("ClipBoxNew",1,256);
+								if (random1 >= 4 && random1 <= 6) A_DropItem("ShellBoxNew",1,256);
+								if (random1 == 7) A_DropItem("RocketBoxNew",1,256);
+								if (random1 == 8) A_DropItem("CellPackNew",1,256);
+							}
+							if (random(1,128) <= basedroprate)
+							{
+								random1 = random(1,8);
+								if (random1 >= 1 && random1 <= 3) A_DropItem("ClipBoxNew",1,256);
+								if (random1 >= 4 && random1 <= 6) A_DropItem("ShellBoxNew",1,256);
+								if (random1 == 7) A_DropItem("RocketBoxNew",1,256);
+								if (random1 == 8) A_DropItem("CellPackNew",1,256);
+							}
+							if (random(1,64) <= basedroprate)
+							{
+								random1 = random(1,8);
+								if (random1 >= 1 && random1 <= 3) A_DropItem("ClipNew",1,256);
+								if (random1 >= 4 && random1 <= 6) A_DropItem("ShellNew",1,256);
+								if (random1 == 7) A_DropItem("RocketAmmoNew",1,256);
+								if (random1 == 8) A_DropItem("CellNew",1,256);
+							}
+							if (random(1,32) <= basedroprate)
+							{
+								random1 = random(1,8);
+								if (random1 >= 1 && random1 <= 3) A_DropItem("ClipNew",1,256);
+								if (random1 >= 4 && random1 <= 6) A_DropItem("ShellNew",1,256);
+								if (random1 == 7) A_DropItem("RocketAmmoNew",1,256);
+								if (random1 == 8) A_DropItem("CellNew",1,256);
+							}
+							if (random(1,16) <= basedroprate)
+							{
+								random1 = random(1,8);
+								if (random1 >= 1 && random1 <= 3) A_DropItem("ClipNew",1,256);
+								if (random1 >= 4 && random1 <= 6) A_DropItem("ShellNew",1,256);
+								if (random1 == 7) A_DropItem("RocketAmmoNew",1,256);
+								if (random1 == 8) A_DropItem("CellNew",1,256);
+							}
+						}
+					}
+					if (ClassicDoomType == 2 || ClassicDoomType == 3) // BOTH Heretic AND Hexen
+					{
+						nm = "ArtiSuperHealthNew"; MiscCheck = nm; if (random(1,2048) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						nm = "SapphireWandNew"; MiscCheck = nm; if (random(1,2048) <= basedroprate && CharacterClass == 2) A_DropItem(MiscCheck,1,256);
+						nm = "ArtiSuperHealthNew"; MiscCheck = nm; if (random(1,1024) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						nm = "ArtiHealthNew"; MiscCheck = nm; if (random(1,512) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						nm = "ArtiHealthNew"; MiscCheck = nm; if (random(1,256) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						nm = "CrystalVialNew"; MiscCheck = nm; if (random(1,256) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						nm = "CrystalVialNew"; MiscCheck = nm; if (random(1,128) <= basedroprate) A_DropItem(MiscCheck,1,256);
+					}
+					if (ClassicDoomType == 2) // Heretic Only
+					{
+						nm = "CrystalVialNew"; MiscCheck = nm; if (random(1,32768) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						if (random(1,8192) <= basedroprate) A_DropItem("RockBombShard",1,256);
+						if (random(1,2048) <= basedroprate) A_DropItem("RockBombShard",1,256);
+						if (random(1,512) <= basedroprate) A_DropItem("RockBombShard",1,256);
+						if (ActorClass == "IronlichNew" && random(1,96) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "IceLich" && random(1,96) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "GoldLich" && random(1,48) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "BloodLich" && random(1,48) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "MaulotaurNew" && random(1,48) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "DSparilMountedNew" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "DSparilUnmountedNew" && random(1,16) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+				
+						if (random(1,2048) <= basedroprate)
+						{
+							random1 = random(1,7);
+							nm = "GoldWandNew"; MiscCheck = nm; if (random1 == 1) A_DropItem(MiscCheck,1,256);
+							nm = "CrossbowNew"; MiscCheck = nm; if (random1 == 2) A_DropItem(MiscCheck,1,256);
+							nm = "DragonClawNew"; MiscCheck = nm; if (random1 == 3) A_DropItem(MiscCheck,1,256);
+							nm = "HellStaffNew"; MiscCheck = nm; if (random1 == 4) A_DropItem(MiscCheck,1,256);
+							nm = "PhoenixRodNew"; MiscCheck = nm; if (random1 == 5) A_DropItem(MiscCheck,1,256);
+							nm = "FiremaceNew"; MiscCheck = nm; if (random1 == 6) A_DropItem(MiscCheck,1,256);
+							nm = "SuperCrossbowNew"; MiscCheck = nm; if (random1 == 7) A_DropItem(MiscCheck,1,256);
+						}
+				
+						if (random(1,2048) <= basedroprate)
+						{
+							random1 = random(1,12);
+							nm = "GoldWandHeftyNew"; MiscCheck = nm; if (random1 >= 1 && random1 <= 3) A_DropItem(MiscCheck,1,256);
+							nm = "CrossbowHeftyNew"; MiscCheck = nm; if (random1 >= 4 && random1 <= 6) A_DropItem(MiscCheck,1,256);
+							nm = "BlasterHeftyNew"; MiscCheck = nm; if (random1 >= 7 && random1 <= 9) A_DropItem(MiscCheck,1,256);
+							nm = "PhoenixRodHeftyNew"; MiscCheck = nm; if (random1 == 10) A_DropItem(MiscCheck,1,256);
+							nm = "SkullRodHeftyNew"; MiscCheck = nm; if (random1 == 11) A_DropItem(MiscCheck,1,256);
+							nm = "MaceHeftyNew"; MiscCheck = nm; if (random1 == 12) A_DropItem(MiscCheck,1,256);
+						}
+						if (random(1,1024) <= basedroprate)
+						{
+							random1 = random(1,12);
+							nm = "GoldWandHeftyNew"; MiscCheck = nm; if (random1 >= 1 && random1 <= 3) A_DropItem(MiscCheck,1,256);
+							nm = "CrossbowHeftyNew"; MiscCheck = nm; if (random1 >= 4 && random1 <= 6) A_DropItem(MiscCheck,1,256);
+							nm = "BlasterHeftyNew"; MiscCheck = nm; if (random1 >= 7 && random1 <= 9) A_DropItem(MiscCheck,1,256);
+							nm = "PhoenixRodHeftyNew"; MiscCheck = nm; if (random1 == 10) A_DropItem(MiscCheck,1,256);
+							nm = "SkullRodHeftyNew"; MiscCheck = nm; if (random1 == 11) A_DropItem(MiscCheck,1,256);
+							nm = "MaceHeftyNew"; MiscCheck = nm; if (random1 == 12) A_DropItem(MiscCheck,1,256);
+						}
+						if (random(1,512) <= basedroprate)
+						{
+							random1 = random(1,12);
+							nm = "GoldWandHeftyNew"; MiscCheck = nm; if (random1 >= 1 && random1 <= 3) A_DropItem(MiscCheck,1,256);
+							nm = "CrossbowHeftyNew"; MiscCheck = nm; if (random1 >= 4 && random1 <= 6) A_DropItem(MiscCheck,1,256);
+							nm = "BlasterHeftyNew"; MiscCheck = nm; if (random1 >= 7 && random1 <= 9) A_DropItem(MiscCheck,1,256);
+							nm = "PhoenixRodHeftyNew"; MiscCheck = nm; if (random1 == 10) A_DropItem(MiscCheck,1,256);
+							nm = "SkullRodHeftyNew"; MiscCheck = nm; if (random1 == 11) A_DropItem(MiscCheck,1,256);
+							nm = "MaceHeftyNew"; MiscCheck = nm; if (random1 == 12) A_DropItem(MiscCheck,1,256);
+						}
+						if (random(1,256) <= basedroprate)
+						{
+							random1 = random(1,12);
+							nm = "GoldWandAmmoNew"; MiscCheck = nm; if (random1 >= 1 && random1 <= 3) A_DropItem(MiscCheck,1,256);
+							nm = "CrossbowAmmoNew"; MiscCheck = nm; if (random1 >= 4 && random1 <= 6) A_DropItem(MiscCheck,1,256);
+							nm = "BlasterAmmoNew"; MiscCheck = nm; if (random1 >= 7 && random1 <= 9) A_DropItem(MiscCheck,1,256);
+							nm = "PhoenixRodAmmoNew"; MiscCheck = nm; if (random1 == 10) A_DropItem(MiscCheck,1,256);
+							nm = "SkullRodAmmoNew"; MiscCheck = nm; if (random1 == 11) A_DropItem(MiscCheck,1,256);
+							nm = "MaceAmmoNew"; MiscCheck = nm; if (random1 == 12) A_DropItem(MiscCheck,1,256);
+						}
+						if (random(1,128) <= basedroprate)
+						{
+							random1 = random(1,12);
+							nm = "GoldWandAmmoNew"; MiscCheck = nm; if (random1 >= 1 && random1 <= 3) A_DropItem(MiscCheck,1,256);
+							nm = "CrossbowAmmoNew"; MiscCheck = nm; if (random1 >= 4 && random1 <= 6) A_DropItem(MiscCheck,1,256);
+							nm = "BlasterAmmoNew"; MiscCheck = nm; if (random1 >= 7 && random1 <= 9) A_DropItem(MiscCheck,1,256);
+							nm = "PhoenixRodAmmoNew"; MiscCheck = nm; if (random1 == 10) A_DropItem(MiscCheck,1,256);
+							nm = "SkullRodAmmoNew"; MiscCheck = nm; if (random1 == 11) A_DropItem(MiscCheck,1,256);
+							nm = "MaceAmmoNew"; MiscCheck = nm; if (random1 == 12) A_DropItem(MiscCheck,1,256);
+						}
+						if (random(1,64) <= basedroprate)
+						{
+							random1 = random(1,12);
+							nm = "GoldWandAmmoNew"; MiscCheck = nm; if (random1 >= 1 && random1 <= 3) A_DropItem(MiscCheck,1,256);
+							nm = "CrossbowAmmoNew"; MiscCheck = nm; if (random1 >= 4 && random1 <= 6) A_DropItem(MiscCheck,1,256);
+							nm = "BlasterAmmoNew"; MiscCheck = nm; if (random1 >= 7 && random1 <= 9) A_DropItem(MiscCheck,1,256);
+							nm = "PhoenixRodAmmoNew"; MiscCheck = nm; if (random1 == 10) A_DropItem(MiscCheck,1,256);
+							nm = "SkullRodAmmoNew"; MiscCheck = nm; if (random1 == 11) A_DropItem(MiscCheck,1,256);
+							nm = "MaceAmmoNew"; MiscCheck = nm; if (random1 == 12) A_DropItem(MiscCheck,1,256);
+						}
+					}
+					if (ClassicDoomType == 3) // Hexen Only
+					{
+						nm = "ArtiBoostManaNew"; MiscCheck = nm; if (random(1,8192) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						nm = "ArtiBoostManaNew"; MiscCheck = nm; if (random(1,4096) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						if (random(1,4096) <= basedroprate) A_DropItem("RockBombShard",1,256);
+						if (random(1,1024) <= basedroprate) A_DropItem("RockBombShard",1,256);
+						if (random(1,256) <= basedroprate) A_DropItem("RockBombShard",1,256);
+						if (ActorClass == "DragonNew" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "HeresiarchNew" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "FighterBossNew" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "ClericBossNew" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "MageBossNew" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "KoraxNew" && random(1,16) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+					}
+					if (ClassicDoomType == 4) // Strife
+					{
+						if (random(1,16384) <= basedroprate) A_DropItem("RandomSeedDropAlways",1,256);
+						if (random(1,8192) <= basedroprate) A_DropItem("RandomSeedDropAlways",1,256);
+						if (random(1,4096) <= basedroprate) A_DropItem("ElfinElixir",1,256);
+						nm = "PoisonBoltsNew"; MiscCheck = nm; if (random(1,4096) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						nm = "SurgeryKitNew"; MiscCheck = nm; if (random(1,4096) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						if (random(1,4096) <= basedroprate && CharacterClass == 2) A_DropItem("SapphireWandNew",1,256);
+						if (random(1,4096) <= basedroprate) A_DropItem("RandomSeedDropAlways",1,256);
+						if (random(1,2048) <= basedroprate) A_DropItem("RandomHerbSpawner",1,256);
+						nm = "ElectricBoltsNew"; MiscCheck = nm; if (random(1,2048) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						nm = "SurgeryKitNew"; MiscCheck = nm; if (random(1,2048) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						if (random(1,1024) <= basedroprate) A_DropItem("RandomSeedDropAlways",1,256);
+						if (random(1,1024) <= basedroprate) A_DropItem("RandomPowerupSpawner",1,256);
+						nm = "MedicalKitNew"; MiscCheck = nm; if (random(1,1024) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						if (random(1,1024) <= basedroprate) A_DropItem("SageElixir",1,256);
+						if (random(1,512) <= basedroprate) A_DropItem("RandomHerbSpawner",1,256);
+						nm = "MedicalKitNew"; MiscCheck = nm; if (random(1,512) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						nm = "MedPatchNew"; MiscCheck = nm; if (random(1,256) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						if (random(1,256) <= basedroprate) A_DropItem("MagicWater",1,256);
+						nm = "MedPatchNew"; MiscCheck = nm; if (random(1,128) <= basedroprate) A_DropItem(MiscCheck,1,256);
+						if (ActorClass == "ProgrammerNew" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "StrifeBishopNew" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "Macil2New" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "LoreMasterNew" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "AlienSpectre1New" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "AlienSpectre2New" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "AlienSpectre3New" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "AlienSpectre4New" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "AlienSpectre5New" && random(1,32) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "EntityBossNew" && random(1,16) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "EntitySecondNew" && random(1,16) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+						if (ActorClass == "EntityAscended" && random(1,8) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+					}
+				}
+				else // DVI/DVII mode
+				{
+					if (random(1,16384) <= basedroprate) A_DropItem("Berserk2",1,256);
+					if (random(1,8192) <= basedroprate) A_DropItem("Berserk2",1,256);
+					if (random(1,4096) <= basedroprate) A_DropItem("MiniBerserk",1,256);
+					if (random(1,2048) <= basedroprate) A_DropItem("MiniBerserk",1,256);
+					if (random(1,1024) <= basedroprate) A_DropItem("Medikit2",1,256);
+					if (random(1,512) <= basedroprate) A_DropItem("Medikit2",1,256);
+					if (random(1,256) <= basedroprate) A_DropItem("Stimpack2",1,256);
+					if (random(1,128) <= basedroprate) A_DropItem("Stimpack2",1,256);
+					if (ActorClass == "HellCleric" && random(1,256) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+					if (ActorClass == "FlyingBalrog" && random(1,256) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+					if (ActorClass == "DSSpiderMastermind" && random(1,64) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+					if (ActorClass == "Demolisher" && random(1,48) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+					if (ActorClass == "DSCyberdemon" && random(1,64) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+					if (ActorClass == "Annihilator" && random(1,48) <= basedroprate) A_DropItem("SeedofSkillForced",1,256);
+				}
+			}
+			
+			//**********************
+			//* START OF EXP GAINS *
+			//**********************
+			int EXPTimerIncrease;
+			if (ModType == 0 && dvds_noexpgains != 0) 
+			{
+				if (debugexp) Console.Printf("\cxAddEXP\c- - EXP Gains: STOPPED", debugexp);
+			}
+			else
+			{
+				// Increment the kill combo timer
+				if (dvds_expcombosystem == 1)
+				{
+					int EXPTimer = CallACS("MiscVarCheckDECORATE",157);
+					if (incrementcombo == 1)
+					{
+						if (EXPTimer <= 0) // If not set, set to 4 seconds, if already set, add 1 second
+						{
+							EXPTimerIncrease = 2800; // 140 tics [20 units / tic]
+							EXPTimerIncrease += (CallACS("MiscVarCheckDECORATE",31) * 16); // 1 point of Agility = 0.8 tics [or 16 units] [5 points = 4 tics (or 80 units)]
+							EXPTimerIncrease += (CallACS("MiscVarCheckDECORATE",33) * 4); // 1 point of Deftness = 0.2 tics [or 4 units] [20 points = 4 tics (or 80 units)]
+						}
+						else
+						{
+							EXPTimerIncrease = 700; // 35 tics [20 units / tic]
+							EXPTimerIncrease += (CallACS("MiscVarCheckDECORATE",31) * 4); // 1 point of Agility = 0.8 tics [or 16 units] [5 points = 4 tics (or 80 units)]
+							EXPTimerIncrease += (CallACS("MiscVarCheckDECORATE",33) * 1); // 1 point of Deftness = 0.2 tics [or 4 units] [20 points = 4 tics (or 80 units)]
+						}
+					
+						// "Higher Learning" Grand Mastery Perk
+						if (CallACS("MiscVarCheckDECORATE",11001) == 1) EXPTimerIncrease *= 1.15; 
+						if (CallACS("MiscVarCheckDECORATE",11001) == 2) EXPTimerIncrease *= 1.30; 
+					
+						if (CallACS("GetBuffTimer",7) > 0) EXPTimerIncrease *= 1.25;
+						EXPTimer += EXPTimerIncrease;
+						if (CallACS("GetBuffTimer",7) > 0) 
+						{
+							if (EXPTimer >= 7000) EXPTimer = 7000; // Combo Timer maxes at 10 seconds.
+						}
+						else
+						{
+							if (EXPTimer >= 5600) EXPTimer = 5600; // Combo Timer maxes at 8 seconds.
+						}
+						CallACS("MiscVarSetDECORATE",157,EXPTimer,0);
+						CallACS("MiscVarSetDECORATE",158,1,1); // combonumber += 1; // Increment Kill Combo Count by 1
+					}
+				}
+				
+				// Check Base Experience to see if it's a fixed amount or if it should be based on spawnhealth/user_MaxHP
+				if (baseamount == -2) // Base on the menu option
+				{
+					if (dvds_monsterexpbase == 1)
+					{
+						if (user_MaxHP <= 0) baseexp = SpawnHealth(); else baseexp = user_MaxHP;
+					}
+					else
+					{
+						baseexp = SpawnHealth();
+					}
+				}
+				else
+				if (baseamount == -1) // ALWAYS use SpawnHealth and not user_MaxHP [if you always want it based only on their base HP and not their recalculated HP]
+				{
+					baseexp = SpawnHealth();
+				}
+				else
+				if (baseamount == 0) // Checks for user_MaxHP first, but will use SpawnHealth if it's not been set
+				{
+					if (user_MaxHP <= 0) baseexp = SpawnHealth(); else baseexp = user_MaxHP;
+				}
+				else
+				if (baseamount > 0) // Sets the EXP to the defined value as a fixed amount
+				{
+					baseexp = baseamount;
+				}
+				if (debugexp) Console.Printf("\cxAddEXP\c- - EXP: %d [Base EXP]", finalexpamount);
+				double basemulti = frandompick(0.175,0.20,0.225,0.25,0.275,0.30,0.325);
+				double basemulti2 = (PlayerLevel * (basemulti * 0.02));
+				baseexp *= (basemulti + basemulti2);
+				if (baseexp < 1) baseexp = 1;
+				finalexpamount = baseexp;
+				if (debugexp) Console.Printf("\cxAddEXP\c- - EXP: %d [POST-Base EXP], %8f, %8f", finalexpamount, basemulti, basemulti2);
+				
+				finalexpamount = (finalexpamount * expfactor) / 100; 
+				if (debugexp) Console.Printf("\cxAddEXP\c- - EXP: %d [ExtraFactor: %d / 100]", finalexpamount, expfactor);
+				
+				// Special Calls
+				if (ActorClass == "ForgottenOne")
+				{
+					finalexpamount *= 2.5; 
+				}
+				if (ActorClass == "DSBossBrain")
+				{
+					finalexpamount *= random(3,5);
+				}
+				if (ActorClass == "Banshee" || ActorClass == "DeathKnight")
+				{
+					finalexpamount *= frandom(1.5,2.5);
+					if (random(1,4) <= basedroprate) A_DropItem("RandomSeedDropForcedAlways",1,256);
+					if (random(1,16) <= basedroprate) A_DropItem("RandomSeedDropForcedAlways",1,256);
+					if (random(1,64) <= basedroprate) A_DropItem("RandomSeedDropForcedAlways",1,256);
+				}
+				if (ActorClass == "Bormereth" || ActorClass == "EtherealChaosSerpentNew")
+				{
+					finalexpamount *= frandom(2.5,3.5);
+					if (random(1,1) <= basedroprate) A_DropItem("RandomSeedDropForcedAlways",1,256);
+					if (random(1,4) <= basedroprate) A_DropItem("RandomSeedDropForcedAlways",1,256);
+					if (random(1,16) <= basedroprate) A_DropItem("RandomSeedDropForcedAlways",1,256);
+				}
+				if (ActorClass == "IceGolem" || ActorClass == "IceGolemGhost" || ActorClass == "VampireDVDS")
+				{
+					finalexpamount *= frandom(1.0,2.0);
+					if (random(1,24) <= basedroprate) A_DropItem("RandomSeedDropForcedAlways",1,256);
+					if (random(1,96) <= basedroprate) A_DropItem("RandomSeedDropForcedAlways",1,256);
+					if (random(1,384) <= basedroprate) A_DropItem("RandomSeedDropForcedAlways",1,256);
+				}
+				if (debugexp) Console.Printf("\cxAddEXP\c- - EXP: %d [Actor Check]", finalexpamount);
+				
+				if (fakedeath > 0) // Fake deaths [Death Incarnate, etc] cut EXP gain by 75/87.5%
+				{
+					finalexpamount = finalexpamount * 0.25;
+					if (debugexp) Console.Printf("\cxAddEXP\c- - EXP: %d [Fake-Death]", finalexpamount);
+				}
+				
+				finalexpamount *= KillExpMultiplier;
+				if (debugexp) Console.Printf("\cxAddEXP\c- - EXP: %d [Multiplier: %8f]", finalexpamount, KillExpMultiplier);
+				
+				// Check for Fast Monsters setting
+				if (sv_fastmonsters == 1)
+				{
+					finalexpamount *= 1.375; // [+37.5%]
+					if (debugexp) Console.Printf("\cxAddEXP\c- - EXP: %d [Fast Monsters On]", finalexpamount);
+				}
+				
+				// Check Proper Flags
+				if (user_isstealth)
+				{
+					if (CountInv("TheOneRing", AAPTR_PLAYER1) > 0) finalexpamount *= 1.125;	// DV-DS Style Stealth = [+12.5%]
+					else finalexpamount *= 1.875;	// DV-DS Style Stealth = [+87.5%]
+					if (debugexp) Console.Printf("\cxAddEXP\c- - EXP: %d [Was Stealth]", finalexpamount);
+				}
+				if (bSTEALTH) // ZDoom Style STEALTH = [+100%]
+				{
+					finalexpamount = finalexpamount * 2;
+					if (debugexp) Console.Printf("\cxAddEXP\c- - EXP: %d [Has ZDoom(tm) Stealth]", finalexpamount);
+				}
+				if (debugexp) Console.Printf("\cxAddEXP\c- - EXP3: %d", finalexpamount);
+				
+				// If LEGENDARY [LDL Compatiblity]
+				If (user_legendaryevolved > 0 || CountInv(LDLCheck))
+				{
+					finalexpamount *= 2.5;
+					if (debugexp) Console.Printf("\cxAddEXP\c- - EXP: %d [Is a 'Legendary' Monster? (LDL)]", finalexpamount);
+				}
+				
+ 
+				if (user_MaxHP <= 0) { overkillhp = SpawnHealth() * -1; }
+				else { overkillhp = user_MaxHP * -1; }
+				
+				if (user_MaxHP <= 0) { overkillhp2 = SpawnHealth() * -4; }
+				else { overkillhp2 = user_MaxHP * -4; }
+				
+				if (health <= overkillhp) // Overkilled [+12.5%]
+				{
+					finalexpamount *= 1.125;
+					CallACS("MiscVarSetDECORATE",2022,1); // OVERKILL display color
+					CallACS("MiscVarSetDECORATE",2023,39); // OVERKILL Timer Tics
+				}
+				if (health <= overkillhp2) // Super-Overkilled [+12.5%]
+				{
+					finalexpamount *= 1.125; 
+					CallACS("MiscVarSetDECORATE",2022,2); // OVERKILL display color 
+					CallACS("MiscVarSetDECORATE",2023,52); // OVERKILL Timer Tics 
+				}
+				if (debugexp) Console.Printf("\cxAddEXP\c- - EXP4: %d", finalexpamount);
+				
+				A_GetExpMultiFactor(); // FUNCTION CALL
+				A_GetExperience(finalexpamount,ExpCheck1); // FUNCTION CALL
+				finalexpamount = ExpCheck2;
+				if (debugexp) Console.Printf("\cxAddEXP\c- - EXP5: %d", finalexpamount);
+				
+				int levelcheck = 1000 + (user_monsterlevel * 7); // Lvl 100 = +70% EXP (Lvl 200 = +140% EXP)
+				if (levelcheck < 1000) levelcheck = 1000;
+				if (levelcheck > 3000) levelcheck = 3000;
+				finalexpamount = finalexpamount * levelcheck / 1000;
+				if (debugexp) Console.Printf("\cxAddEXP\c- - EXP6: %d [levelcheck: %d / 1000]", finalexpamount, levelcheck);
+				
+				int PreComboEXP = finalexpamount;
+				// EXP Combo Counter
+				// [158] = number of enemies killed in current combo
+				// [159] = current multiplier amount [xxx.xx% format]
+				int combonumber = CallACS("MiscVarCheckDECORATE",158);
+				int combomultiplieramt = CallACS("MiscVarCheckDECORATE",159);
+				if (combonumber > 1)
+				{
+					if (combonumber < 11)
+					{
+						combomultiplieramt = combonumber * 16;
+						// Each enemy = +0.16% to the bonus multiplier [2-11 enemies killed]
+					}
+					else
+					if (combonumber > 10 && combonumber < 21)
+					{
+						combomultiplieramt = combonumber * 17;
+						// Each enemy = +0.17% to the bonus multiplier [11-20 enemies killed]
+					}
+					else
+					if (combonumber > 20 && combonumber < 36)
+					{
+						combomultiplieramt = combonumber * 20;
+						// Each enemy = +0.20% to the bonus multiplier [21-35 enemies killed]
+					}
+					else
+					if (combonumber > 35 && combonumber < 61)
+					{
+						combomultiplieramt = combonumber * 24;
+						// Each enemy = +0.24% to the bonus multiplier [36-60 enemies killed]
+					}
+					else
+					if (combonumber > 60 && combonumber < 101)
+					{
+						combomultiplieramt = combonumber * 28;
+						// Each enemy = +0.28% to the bonus multiplier [61-100 enemies killed]
+					}
+					else
+					if (combonumber > 100 && combonumber < 201)
+					{
+						combomultiplieramt = combonumber * 34;
+						// Each enemy = +0.34% to the bonus multiplier [101-200 enemies killed]
+					}
+					else
+					if (combonumber > 200 && combonumber < 501)
+					{
+						combomultiplieramt = combonumber * 40;
+						// Each enemy = +0.40% to the bonus multiplier [201-500 enemies killed]
+					}
+					else
+					if (combonumber > 500)
+					{
+						combomultiplieramt = combonumber * 52;
+						// Each enemy = +0.52% to the bonus multiplier [501+ enemies killed]
+					}
+					combomultiplieramt = combomultiplieramt * dvds_expcombobasemultiplier / 100;
+					if (combomultiplieramt < 1) combomultiplieramt = 1;
+					combomultiplieramt = combomultiplieramt + 10000;
+				
+					finalexpamount = (finalexpamount * combomultiplieramt) / 10000;
+					CallACS("MiscVarSetDECORATE",159,combomultiplieramt);
+					if (debugexp) Console.Printf("\cxAddEXP\c- - Combo %: %d, EXP7: %d", combomultiplieramt, finalexpamount);
+				}
+				
+				if (finalexpamount < 1) finalexpamount = 1;
+				CallACS("ExpCheat",finalexpamount,0,0); //Experience += finalexpamount;
+				if (debugexp) Console.Printf("\cxAddEXP\c- - LstHPAmt: %d / OverkillHP: %d, BaseEXP: %d / FinalEXP: %d, 'Friendly' Multiplier: %8f", health, overkillhp, baseexp, finalexpamount, KillExpMultiplier);
+				
+				CallACS("MiscVarSetDECORATE",2024,finalexpamount); // MiscellaneousVars[2024] = finalexpamount; // Total EXP for kill [for new HUD]
+				CallACS("MiscVarSetDECORATE",2025,PreComboEXP); // MiscellaneousVars[2025] = PreComboEXP; // Total EXP for kill [for new HUD]
+				CallACS("MiscVarSetDECORATE",2026,78); // MiscellaneousVars[2026] = 78;
+				
+				if (dvds_expcombosystem == 1 && incrementcombo == 1) CallACS("MiscVarSetDECORATE",160,finalexpamount,1); // MiscellaneousVars[160] += finalexpamount;
+			}
+		}
+	}
+
+	// Ice Death
+	void A_DVDSIceDeath(int baseamount = -2, int flags = 0, int incrementcombo = 1, int expfactor = 100)
+	{
+		A_AddEXP(baseamount, flags, incrementcombo, expfactor);
+		//CallACS("AddEXP", baseamount, flags, incrementcombo, expfactor);
+		bCANTSEEK = TRUE; // Prevents seeking missiles from going after frozen enemies
+		bICECORPSE = TRUE; // Prevents Frost spell missiles from impacting on frozen enemies
+	}
+	// Death
+	void A_DVDSNormalDeath(int baseamount = -2, int flags = 0, int incrementcombo = 1, int expfactor = 100)
+	{
+		A_AddEXP(baseamount, flags, incrementcombo, expfactor);
+		//CallACS("AddEXP", baseamount, flags, incrementcombo, expfactor);
+	}
+	
+	//**************************
+	//*HERETIC-UNIQUE FUNCTIONS*
+	//**************************
+	// Gargoyle
+	void A_ImpMsAttack()
+	{
+		if (!target || random[ImpMSAtk]() > 64)
+		{
+			SetState (SeeState);
+			return;
+		}
+		A_SkullAttack(12);
+	}
+
+	void A_ImpExplode()
+	{
+		Actor chunk;
+
+		bNoGravity = false;
+
+		chunk = Spawn("HereticImpChunk1", pos, ALLOW_REPLACE);
+		if (chunk != null)
+		{
+			chunk.vel.x = random2[ImpExplode]() / 64.;
+			chunk.vel.y = random2[ImpExplode]() / 64.;
+			chunk.vel.z = 9;
+		}
+
+		chunk = Spawn("HereticImpChunk2", pos, ALLOW_REPLACE);
+		if (chunk != null)
+		{
+			chunk.vel.x = random2[ImpExplode]() / 64.;
+			chunk.vel.y = random2[ImpExplode]() / 64.;
+			chunk.vel.z = 9;
+		}
+		
+		if (extremecrash)
+		{
+			SetStateLabel ("XCrash");
+		}
+	}
+
+ 	void A_ImpDeath()
+	{
+		bSolid = false;
+		bFloorClip = true;
+	}
+
+	void A_ImpXDeath1()
+	{
+		bSolid = false;
+		bFloorClip = true;
+		bNoGravity = true;
+		extremecrash = true;
+	}
+
+	// Knight
+	void A_KnightAttack ()
+	{
+		if (!target) return;
+		if (CheckMeleeRange ())
+		{
+			int damage = random[KnightAttack](1, 8) * 3;
+			int newdam = target.DamageMobj (self, self, damage, 'Melee');
+			target.TraceBleed (newdam > 0 ? newdam : damage, self);
+			A_PlaySound ("hknight/melee", CHAN_BODY);
+			return;
+		}
+		// Throw axe
+		A_PlaySound (AttackSound, CHAN_BODY);
+		if (self.bShadow || random[KnightAttack]() < 40)
+		{
+			// Red axe
+			SpawnMissileZ (pos.Z + 36, target, "RedAxe");
+		}
+		else
+		{
+			// Green axe
+			SpawnMissileZ (pos.Z + 36, target, "KnightAxe");
+		}
+	}
+
+	// Disciple
+	void A_GhostOff ()
+	{
+		A_SetRenderStyle(1.0, STYLE_Normal);
+		bGhost = false;
+	}
+
+	void A_WizAtk1 ()
+	{
+		A_FaceTarget ();
+		A_GhostOff();
+	}
+
+	void A_WizAtk2 ()
+	{
+		A_FaceTarget ();
+		A_SetRenderStyle(HR_SHADOW, STYLE_Translucent);
+		bGhost = true;
+	}
+
+	// Disciple Shot [Heretic]
+	void A_WizAtk3 (string missiletype = "WizardFX1New", string crisismissiletype = "WizardFX1Crisis", int meleedamage = 4, bool playcrisissound = 1)
+	{
+		A_GhostOff();
+		if (!target) return;
+		A_PlaySound (AttackSound, CHAN_WEAPON);
+		if (CheckMeleeRange())
+		{
+			if(user_canusecrisisatk == 1) { meleedamage *= CallACS("CrisisMultiplier"); if (playcrisissound == 1) { A_PlayCrisisAtkSound(); } }
+			int damage = meleedamage;
+			int newdam = target.DamageMobj (self, self, damage, 'Melee');
+			target.TraceBleed (newdam > 0 ? newdam : damage, self);
+			return;
+		}
+
+		if(user_canusecrisisatk == 1) 
+		{
+			if (playcrisissound == 1) { A_PlayCrisisAtkSound(); } 
+			Actor mo = SpawnMissile (target, crisismissiletype);
+			if (mo != null)
+			{
+				SpawnMissileAngle(crisismissiletype, mo.Angle - 45. / 8, mo.Vel.Z);
+				SpawnMissileAngle(crisismissiletype, mo.Angle + 45. / 8, mo.Vel.Z);
+			}
+		}
+		else
+		{
+			Actor mo = SpawnMissile (target, missiletype);
+			if (mo != null)
+			{
+				SpawnMissileAngle(missiletype, mo.Angle - 45. / 8, mo.Vel.Z);
+				SpawnMissileAngle(missiletype, mo.Angle + 45. / 8, mo.Vel.Z);
+			}
+		}
+	}
+
+	// Iron Lich
+	void A_LichAttack (int fireshots = 5, int tornados = 1, int meleedamage = 6, string icemissile = "HeadFX1New", string icemissilecrisis = "HeadFX1Crisis", string firemissile = "HeadFX3New", string firemissilecrisis = "HeadFX3Crisis", string twistermissile = "WhirlwindNew", string twistermissilecrisis = "WhirlwindCrisis", bool playcrisissound = 1)
+	{
+		static const int atkResolve1[] = { 50, 150 };
+		static const int atkResolve2[] = { 150, 200 };
+
+		// Ice ball		(close 20% : far 60%)
+		// Fire column	(close 40% : far 20%)
+		// Whirlwind	(close 40% : far 20%)
+		// Distance threshold = 8 cells
+
+		A_MonsterCrisisCheck();
+		if (target == null)
+		{
+			return;
+		}
+		A_FaceTarget ();
+		if (CheckMeleeRange ())
+		{
+			if(user_canusecrisisatk == 1) { meleedamage *= CallACS("CrisisMultiplier"); if (playcrisissound == 1) { A_PlayCrisisAtkSound(); } }
+			int damage = meleedamage;
+			int newdam = target.DamageMobj (self, self, damage, 'Melee');
+			target.TraceBleed (newdam > 0 ? newdam : damage, self);
+			return;
+		}
+		if(user_canusecrisisatk == 1) { if (playcrisissound == 1) { A_PlayCrisisAtkSound(); } }
+		int dist = Distance2D(target) > 8 * 64;
+		int randAttack = random[LichAttack]();
+		if (randAttack < atkResolve1[dist])
+		{
+			// Ice ball
+			if(user_canusecrisisatk == 1) 
+			{
+				SpawnMissile (target, icemissilecrisis); 
+			}
+			else 
+			{
+				SpawnMissile (target, icemissile); 
+			}
+			A_PlaySound ("ironlich/attack2", CHAN_BODY);
+		}
+		else if (randAttack < atkResolve2[dist])
+		{
+			// Fire column
+			string firetype = firemissile;
+			if(user_canusecrisisatk == 1) { firetype = firemissilecrisis; }
+			Actor baseFire = SpawnMissile (target, firetype);
+			if (baseFire != null)
+			{
+				baseFire.SetStateLabel("NoGrow");
+				for (int i = 0; i < fireshots; i++)
+				{
+					Actor fire = Spawn(firetype, baseFire.Pos, ALLOW_REPLACE);
+					if (i == 0)
+					{
+						A_PlaySound ("ironlich/attack1", CHAN_BODY);
+					}
+					if (fire != null)
+					{
+						fire.target = baseFire.target;
+						fire.angle = baseFire.angle;
+						fire.Vel = baseFire.Vel;
+						fire.SetDamage(0);
+						fire.health = (i+1) * 2;
+						fire.CheckMissileSpawn (radius);
+					}
+				}
+			}
+		}
+		else
+		{
+			// Whirlwind
+			for (int i = 0; i < tornados; i++)
+			{
+				string twistertype = twistermissile;
+				if(user_canusecrisisatk == 1) { twistertype = twistermissilecrisis; }
+				Actor mo = SpawnMissile (target, twistertype);
+				if (mo != null)
+				{
+					mo.AddZ(-32+(i*16));
+					mo.tracer = target;
+					mo.health = 20*TICRATE; // Duration
+					A_PlaySound ("ironlich/attack3", CHAN_BODY);
+				}
+			}
+		}
+	}
+
+	//************************
+	//*HEXEN-UNIQUE FUNCTIONS*
+	//************************
+	// Centaur
+	void A_CentaurDefend()
+	{
+		A_FaceTarget ();
+		if (CheckMeleeRange() && random[CentaurDefend]() < 32)
+		{
+			// This should unset REFLECTIVE as well
+			// (unless you want the Centaur to reflect projectiles forever!)
+			bReflective = false;
+			bInvulnerable = false;
+			SetState(MeleeState);
+		}
+	}
+
+    // Afrit
+	private void A_FiredSpawnRock ()
+	{
+		Actor mo;
+		class<Actor> rtype;
+
+		switch (random[FireDemonRock](0, 4))
+		{
+			case 0:
+				rtype = "FireDemonRock1";
+				break;
+			case 1:
+				rtype = "FireDemonRock2";
+				break;
+			case 2:
+				rtype = "FireDemonRock3";
+				break;
+			case 3:
+				rtype = "FireDemonRock4";
+				break;
+			case 4:
+			default:
+				rtype = "FireDemonRock5";
+				break;
+		}
+
+		double xo = (random[FireDemonRock]() - 128) / 16.;
+		double yo = (random[FireDemonRock]() - 128) / 16.;
+		double zo = random[FireDemonRock]() / 32.;
+		mo = Spawn (rtype, Vec3Offset(xo, yo, zo), ALLOW_REPLACE);
+		if (mo)
+		{
+			mo.target = self;
+			mo.Vel.X = (random[FireDemonRock]() - 128) / 64.;
+			mo.Vel.Y = (random[FireDemonRock]() - 128) / 64.;
+			mo.Vel.Z = (random[FireDemonRock]() / 64.);
+			mo.special1 = 2;		// Number bounces
+		}
+
+		// Initialize fire demon
+		fdstrafecount = 0;
+		bJustAttacked = false;
+	}
+
+	void A_FiredRocks()
+	{
+		A_FiredSpawnRock ();
+		A_FiredSpawnRock ();
+		A_FiredSpawnRock ();
+		A_FiredSpawnRock ();
+		A_FiredSpawnRock ();
+	}
+
+	void A_FiredAttack()
+	{
+		if (target == null)	return;
+		Actor mo = SpawnMissile (target, "FireDemonMissile");
+		if (mo) A_PlaySound ("FireDemonAttack", CHAN_BODY);
+	}
+
+	void A_FireDChase(int minheight = 64, int strafecnt = 3, int strafechance = 30, int atkchance = 20)
+	{
+		int weaveindex = special1;
+		double ang;
+		double dist;
+
+		if (reactiontime) reactiontime--;
+		if (threshold) threshold--;
+
+		// Float up and down
+		AddZ(BobSin(weaveindex));
+		special1 = (weaveindex + 2) & 63;
+
+		// Ensure it stays above certain height
+		if (pos.Z < floorz + minheight)
+		{
+			AddZ(2);
+		}
+
+		if(!target || !target.bShootable)
+		{
+			// Invalid target
+			LookForPlayers (true);
+			return;
+		}
+
+		// Strafe
+		if (fdstrafecount > 0)
+		{
+			fdstrafecount--;
+		}
+		else
+		{
+			fdstrafecount = 0;
+			Vel.X = Vel.Y = 0;
+			dist = Distance2D(target);
+			if (dist < FIREDEMON_ATTACK_RANGE)
+			{
+				if (random[FiredChase]() < strafechance)
+				{
+					ang = AngleTo(target);
+					if (random[FiredChase]() < 128)
+						ang += 90;
+					else
+						ang -= 90;
+					Thrust(8, ang);
+					fdstrafecount = strafecnt;	// strafe time
+				}
+			}
+		}
+
+		FaceMovementDirection ();
+
+		// Normal movement
+		if (!fdstrafecount)
+		{
+			if (--movecount<0 || !MonsterMove ())
+			{
+				NewChaseDir ();
+			}
+		}
+
+		// Do missile attack
+		if (!bJustAttacked)
+		{
+			if (CheckMissileRange () && (random[FiredChase]() < 20))
+			{
+				if(!target || !target.bShootable || target.health < 1)
+				{
+					// Invalid target
+					LookForPlayers (true);
+					return;
+				}
+				else
+				{
+					SetState (MissileState);
+					bJustAttacked = true;
+					return;
+				}
+			}
+		}
+		else
+		{
+			bJustAttacked = false;
+		}
+
+		// make active sound
+		if (random[FiredChase]() < 3)
+		{
+			PlayActiveSound ();
+		}
+	}
+
+	void A_FiredSplotch()
+	{
+		Actor mo;
+
+		mo = Spawn ("FireDemonSplotch1", Pos, ALLOW_REPLACE);
+		if (mo)
+		{
+			mo.Vel.X = (random[FireDemonSplotch]() - 128) / 32.;
+			mo.Vel.Y = (random[FireDemonSplotch]() - 128) / 32.;
+			mo.Vel.Z = (random[FireDemonSplotch]() / 64.) + 3;
+		}
+		mo = Spawn ("FireDemonSplotch2", Pos, ALLOW_REPLACE);
+		if (mo)
+		{
+			mo.Vel.X = (random[FireDemonSplotch]() - 128) / 32.;
+			mo.Vel.Y = (random[FireDemonSplotch]() - 128) / 32.;
+			mo.Vel.Z = (random[FireDemonSplotch]() / 64.) + 3;
+		}
+	}
+	
+	// Bishop
+	void A_BishopAttack(int meleedmg = 4, int missilenum = 5)
+	{
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) meleedmg *= CallACS("CrisisMultiplier");
+
+		if (!target)
+		{
+			return;
+		}
+		A_PlaySound (AttackSound, CHAN_BODY);
+		if (CheckMeleeRange())
+		{
+			if(user_canusecrisisatk == 1) A_PlayCrisisAtkSound();
+			int damage = meleedmg;
+			int newdam = target.DamageMobj (self, self, damage, 'Melee');
+			target.TraceBleed (newdam > 0 ? newdam : damage, self);
+			return;
+		}
+		missilecount = missilenum;
+	}
+
+	void A_BishopAttack2(string missiletype = "BishopFX", string crisismissiletype = "BishopFXCrisis")
+	{
+		string atktype = missiletype;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) { atktype = crisismissiletype; A_PlayCrisisAtkSound(); }
+
+		if (!target || !missilecount)
+		{
+			missilecount = 0;
+			SetState (SeeState);
+			return;
+		}
+		Actor mo = SpawnMissile (target, atktype);
+		if (mo != null)
+		{
+			mo.tracer = target;
+		}
+		missilecount--;
+		return;
+	}
+	
+	void A_BishopDecide()
+	{
+		if (random[BishopDecide]() >= 220)
+		{
+			SetStateLabel ("Blur");
+		}
+	}
+
+	void A_BishopDoBlur(int blurrand = 3, int blurnum = 3)
+	{
+		missilecount = (random[BishopDoBlur]() & blurrand) + blurnum; // Random number of blurs
+		if (random[BishopDoBlur]() < 120)
+		{
+			Thrust(11, Angle + 90);
+		}
+		else if (random[BishopDoBlur]() > 125)
+		{
+			Thrust(11, Angle - 90);
+		}
+		else
+		{
+			// Thrust forward
+			Thrust(11);
+		}
+		A_PlaySound ("BishopBlur", CHAN_BODY);
+	}
+
+	void A_BishopSpawnBlur(int seestatechance = 96)
+	{
+		if (!--missilecount)
+		{
+			Vel.XY = (0,0);// = Vel.Y = 0;
+			if (random[BishopSpawnBlur]() > seestatechance)
+			{
+				SetState (SeeState);
+			}
+			else
+			{
+				SetState (MissileState);
+			}
+		}
+		Actor mo = Spawn ("BishopBlur", Pos, ALLOW_REPLACE);
+		if (mo)
+		{
+			mo.angle = angle;
+		}
+	}
+
+	void A_BishopChase()
+	{
+		double newz = pos.z - BobSin(bobstate) / 2.;
+		bobstate = (bobstate + 4) & 63;
+		newz += BobSin(bobstate) / 2.;
+		SetZ(newz);
+	}
+
+	void A_BishopPainBlur(int chance = 64)
+	{
+		if (random[BishopPainBlur]() < chance)
+		{
+			SetStateLabel ("Blur");
+			return;
+		}
+		double xo = random2[BishopPainBlur]() / 16.;
+		double yo = random2[BishopPainBlue]() / 16.;
+		double zo = random2[BishopPainBlue]() / 32.;
+		Actor mo = Spawn ("BishopPainBlur", Vec3Offset(xo, yo, zo), ALLOW_REPLACE);
+		if (mo)
+		{
+			mo.angle = angle;
+		}
+	}
+
+	// Stalker
+	void A_SerpentUnHide()
+	{
+		bInvisible = false;
+		Floorclip = 24;
+	}
+	void A_SerpentHide()
+	{
+		bInvisible = true;
+		Floorclip = 0;
+	}
+
+	void A_SerpentRaiseHump()
+	{
+		Floorclip -= 4;
+	}
+	void A_SerpentLowerHump()
+	{
+		Floorclip += 4;
+	}
+	void A_SerpentHumpDecide()
+	{
+		if (MissileState != NULL)
+		{
+			if (random[SerpentHump]() > 30)
+			{
+				return;
+			}
+			else if (random[SerpentHump]() < 40)
+			{
+				// Missile attack
+				SetState (MeleeState);
+				return;
+			}
+		}
+		else if (random[SerpentHump]() > 3)
+		{
+			return;
+		}
+		if (!CheckMeleeRange ())
+		{
+			// The hump shouldn't occur when within melee range
+			if (MissileState != NULL && random[SerpentHump]() < 128)
+			{
+				SetState (MeleeState);
+			}
+			else
+			{
+				SetStateLabel("Hump");
+				A_PlaySound ("SerpentActive", CHAN_BODY);
+			}
+		}
+	}
+	
+	void A_SerpentCheckForAttack()
+	{
+		if (!target)
+		{
+			return;
+		}
+		if (MissileState != NULL)
+		{
+			if (!CheckMeleeRange ())
+			{
+				SetStateLabel ("Attack");
+				return;
+			}
+		}
+		if (CheckMeleeRange2 ())
+		{
+			SetStateLabel ("Walk");
+		}
+		else if (CheckMeleeRange ())
+		{
+			if (random[SerpentAttack]() < 32)
+			{
+				SetStateLabel ("Walk");
+			}
+			else
+			{
+				SetStateLabel ("Attack");
+			}
+		}
+	}
+
+	void A_SerpentChooseAttack()
+	{
+		if (!target || CheckMeleeRange())
+		{
+			return;
+		}
+		if (MissileState != NULL)
+		{
+			SetState (MissileState);
+		}
+	}
+
+	void A_SerpentMeleeAttack()
+	{
+		if (!target)
+		{
+			return;
+		}
+		if (CheckMeleeRange ())
+		{
+			int damage = random[SerpentAttack](1, 8) * 5;
+			int newdam = target.DamageMobj (self, self, damage, 'Melee');
+			target.TraceBleed (newdam > 0 ? newdam : damage, self);
+			A_PlaySound ("SerpentMeleeHit", CHAN_BODY);
+		}
+		if (random[SerpentAttack]() < 96)
+		{
+			A_SerpentCheckForAttack();
+		}
+	}
+
+	void A_SerpentSpawnGibs()
+	{
+		static const class<Actor> GibTypes[] =
+		{
+			"SerpentGib3",
+			"SerpentGib2",
+			"SerpentGib1"
+		};
+
+		for (int i = 2; i >= 0; --i)
+		{
+			double x = (random[SerpentGibs]() - 128) / 16.;
+			double y = (random[SerpentGibs]() - 128) / 16.;
+
+			Actor mo = Spawn (GibTypes[i], Vec2OffsetZ(x, y, floorz + 1), ALLOW_REPLACE);
+			if (mo)
+			{
+				mo.Vel.X = (random[SerpentGibs]() - 128) / 1024.f;
+				mo.Vel.Y = (random[SerpentGibs]() - 128) / 1024.f;
+				mo.Floorclip = 6;
+			}
+		}
+	}
+
+    // Reiver
+	void A_WraithInit()
+	{
+		AddZ(48);
+
+		// [RH] Make sure the wraith didn't go into the ceiling
+		if (pos.z + height > ceilingz)
+		{
+			SetZ(ceilingz - Height);
+		}
+
+		WeaveIndexZ = 0;			// index into floatbob
+	}
+
+	void A_WraithChase()
+	{
+		int weaveindex = WeaveIndexZ;
+		AddZ(BobSin(weaveindex));
+		WeaveIndexZ = (weaveindex + 2) & 63;
+		A_Chase ();
+		A_WraithFX4 ();
+	}
+
+	void A_WraithFX3()
+	{
+		int numdropped = random[WraithFX3](0,14);
+
+		while (numdropped-- > 0)
+		{
+			double xo = (random[WraithFX3]() - 128) / 32.;
+			double yo = (random[WraithFX3]() - 128) / 32.;
+			double zo = random[WraithFX3]() / 64.;
+
+			Actor mo = Spawn("WraithFX3", Vec3Offset(xo, yo, zo), ALLOW_REPLACE);
+			if (mo)
+			{
+				mo.floorz = floorz;
+				mo.ceilingz = ceilingz;
+				mo.target = self;
+			}
+		}
+	}
+
+	void A_WraithFX4 ()
+	{
+		int chance = random[WraithFX4]();
+		bool spawn4, spawn5;
+
+		if (chance < 10)
+		{
+			spawn4 = true;
+			spawn5 = false;
+		}
+		else if (chance < 20)
+		{
+			spawn4 = false;
+			spawn5 = true;
+		}
+		else if (chance < 25)
+		{
+			spawn4 = true;
+			spawn5 = true;
+		}
+		else
+		{
+			spawn4 = false;
+			spawn5 = false;
+		}
+
+		if (spawn4)
+		{
+			double xo = (random[WraithFX4]() - 128) / 16.;
+			double yo = (random[WraithFX4]() - 128) / 16.;
+			double zo = (random[WraithFX4]() / 64.);
+
+			Actor mo = Spawn ("WraithFX4", Vec3Offset(xo, yo, zo), ALLOW_REPLACE);
+			if (mo)
+			{
+				mo.floorz = floorz;
+				mo.ceilingz = ceilingz;
+				mo.target = self;
+			}
+		}
+		if (spawn5)
+		{
+			double xo = (random[WraithFX4]() - 128) / 32.;
+			double yo = (random[WraithFX4]() - 128) / 32.;
+			double zo = (random[WraithFX4]() / 64.);
+
+			Actor mo = Spawn ("WraithFX5", Vec3Offset(xo, yo, zo), ALLOW_REPLACE);
+			if (mo)
+			{
+				mo.floorz = floorz;
+				mo.ceilingz = ceilingz;
+				mo.target = self;
+			}
+		}
+	}
+	
+	void A_WraithMelee(int drainamount)
+	{
+		int maxdrain;
+		if (drainamount == 0) drainamount = random[StealHealth](1,8)*2;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) drainamount *= CallACS("CrisisMultiplier");
+
+		if (user_MaxHP <= 0) maxdrain = spawnhealth(); else maxdrain = user_MaxHP;
+		// Steal health from target and give to self
+		if (CheckMeleeRange() && (random[StealHealth]()<maxdrain))
+		{
+			if(user_canusecrisisatk == 1) A_PlayCrisisAtkSound(); 
+			int amount = drainamount;
+			target.DamageMobj (self, self, amount, 'Melee');
+			if (health < maxdrain && target.bINVULNERABLE == 0)
+			{
+				health += amount;
+				if (health > maxdrain) health = maxdrain;
+			}
+			
+		}
+	}
+
+	void A_WraithRaiseInit()
+	{
+		bInvisible = false;
+		bNonShootable = false;
+		bDontBlast = false;
+		bShootable = true;
+		bSolid = true;
+		Floorclip = Height;
+	}
+
+	void A_WraithRaise()
+	{
+		if (RaiseMobj (2))
+		{
+			// Reached it's target height
+			// [RH] Once a buried wraith is fully raised, it should be
+			// morphable, right?
+			bDontMorph = false;
+			bSpecialFloorClip = false;
+			SetStateLabel ("Chase");
+			// [RH] Reset PainChance to a normal wraith's.
+			PainChance = GetDefaultByType("Wraith").PainChance;
+		}
+
+		SpawnDirt (radius);
+	}
+
+	// Wendigo
+	private void SpawnWisp()
+	{
+		static const class<Actor> WispTypes[] = { "IceGuyWisp1", "IceGuyWisp2" };
+
+		double dist = (random[IceGuyLook]() - 128) * radius / 128.;
+		double an = angle + 90;
+		Actor mo = Spawn(WispTypes[random[IceGuyLook]() & 1], Vec3Angle(dist, an, 60.), ALLOW_REPLACE);
+		if (mo)
+		{
+			mo.Vel = Vel;
+			mo.target = self;
+		}
+	}
+
+	void A_IceGuyLook()
+	{
+		A_Look();
+		if (random[IceGuyLook]() < 64) SpawnWisp();
+	}
+
+	void A_IceGuyChase()
+	{
+		A_Chase();
+		if (random[IceGuyLook]() < 128) SpawnWisp();
+	}
+
+	void A_IceGuyAttack(string missiletype = "IceGuyFXNew", string crisismissiletype = "IceGuyFXCrisis", bool playcrisissound = 1)
+	{
+		if(!target) 
+		{
+			return;
+		}
+		
+		string specialmissile = missiletype;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1)
+		{
+			if (playcrisissound == 1) { A_PlayCrisisAtkSound(); A_PlayCrisisAtkSound(); } 
+			specialmissile = crisismissiletype;
+		}
+
+		SpawnMissileXYZ(Vec3Angle(radius / 2, angle + 90, 40.), target, specialmissile);
+		SpawnMissileXYZ(Vec3Angle(radius / 2, angle - 90, 40.), target, specialmissile);
+		A_PlaySound (AttackSound, CHAN_WEAPON);
+	}
+	
+    // Death Wyvern
+	private void DragonSeek (double thresh, double turnMax, int meleedamage, string missiletype = "DragonFireball", string crisismissiletype = "DragonFireballCrisis")
+	{
+		double dist;
+		double delta;
+		Actor targ;
+		int i;
+		double bestAngle;
+		double angleToSpot, angleToTarget;
+		Actor mo;
+
+		targ = tracer;
+		if(targ == null)
+		{
+			return;
+		}
+
+		double diff = deltaangle(angle, AngleTo(targ));
+		delta = abs(diff);
+
+		if (delta > thresh)
+		{
+			delta /= 2;
+			if (delta > turnMax)
+			{
+				delta = turnMax;
+			}
+		}
+		if (diff > 0)
+		{
+			// Turn clockwise
+			angle = angle + delta;
+		}
+		else
+		{
+			// Turn counter clockwise
+			angle = angle - delta;
+		}
+		VelFromAngle();
+
+		dist = DistanceBySpeed(targ, Speed);
+		if (pos.z + height < targ.pos.z || targ.pos.z + targ.height < pos.z)
+		{
+			Vel.Z = (targ.pos.z - pos.z) / dist;
+		}
+		if (targ.bShootable && random[DragonSeek]() < 64)
+		{
+			// attack the destination mobj if it's attackable
+			Actor oldTarget;
+			
+			if (absangle(angle, AngleTo(targ)) < 22.5)
+			{
+				oldTarget = target;
+				target = targ;
+				if (CheckMeleeRange ())
+				{
+					A_MonsterCrisisCheck();
+					int basedmg = meleedamage;
+					if(user_canusecrisisatk == 1) 
+					{
+						basedmg *= CallACS("CrisisMultiplier");	
+						A_PlayCrisisAtkSound();
+					}
+
+					int damage = basedmg;
+					int newdam = target.DamageMobj (self, self, damage, 'Melee');
+					target.TraceBleed (newdam > 0 ? newdam : damage, self);
+					A_PlaySound (AttackSound, CHAN_WEAPON);
+				}
+				else if (random[DragonSeek]() < 128 && CheckMissileRange())
+				{
+					string atktype = missiletype;
+					A_MonsterCrisisCheck();
+					if(user_canusecrisisatk == 1)
+					{
+						A_PlayCrisisAtkSound();
+						atktype = crisismissiletype;
+					}
+					SpawnMissile(targ, atktype);		
+					A_PlaySound (AttackSound, CHAN_WEAPON);
+				}
+				target = oldTarget;
+			}
+		}
+		if (dist < 4)
+		{
+			// Hit the target thing
+			if (target && random[DragonSeek]() < 200)
+			{
+				Actor bestActor = null;
+				bestAngle = 360.;
+				angleToTarget = AngleTo(target);
+				for (i = 0; i < 5; i++)
+				{
+					if (!targ.args[i])
+					{
+						continue;
+					}
+					ActorIterator iter = ActorIterator.Create(targ.args[i]);
+					mo = iter.Next ();
+					if (mo == null)
+					{
+						continue;
+					}
+					angleToSpot = AngleTo(mo);
+					double diff = absangle(angleToSpot, angleToTarget);
+					if (diff < bestAngle)
+					{
+						bestAngle = diff;
+						bestActor = mo;
+					}
+				}
+				if (bestActor != null)
+				{
+					tracer = bestActor;
+				}
+			}
+			else
+			{
+				// [RH] Don't lock up if the dragon doesn't have any
+				// targs defined
+				for (i = 0; i < 5; ++i)
+				{
+					if (targ.args[i] != 0)
+					{
+						break;
+					}
+				}
+				if (i < 5)
+				{
+					do
+					{
+						i = (random[DragonSeek]() >> 2) % 5;
+					} while(!targ.args[i]);
+					ActorIterator iter = ActorIterator.Create(targ.args[i]);
+					tracer = iter.Next ();
+				}
+			}
+		}
+	}
+
+	void A_DragonInitFlight()
+	{
+		ActorIterator iter = ActorIterator.Create(tid);
+
+		do
+		{
+			// find the first tid identical to the dragon's tid
+			tracer = iter.Next ();
+			if (tracer == null)
+			{
+				SetState (SpawnState);
+				return;
+			}
+		} while (tracer == self);
+		RemoveFromHash ();
+	}
+
+	void A_DragonFlight(double thresh = 4., double turnMax = 8., int meleedamage = 10, string missiletype = "DragonFireball", string crisismissiletype = "DragonFireballCrisis")
+	{
+		double ang;
+
+		DragonSeek (thresh, turnMax, meleedamage, missiletype, crisismissiletype);
+		if (target)
+		{
+			if(!target.bShootable)
+			{
+				// target died
+				target = null;
+				return;
+			}
+			ang = absangle(angle, AngleTo(target));
+			if (ang <22.5 && CheckMeleeRange())
+			{
+				int basedmg = meleedamage;
+				A_MonsterCrisisCheck();
+				if(user_canusecrisisatk == 1) 
+				{
+					basedmg *= CallACS("CrisisMultiplier");	
+					A_PlayCrisisAtkSound();
+				}
+
+				int damage = basedmg;
+				int newdam = target.DamageMobj (self, self, damage, 'Melee');
+				target.TraceBleed (newdam > 0 ? newdam : damage, self);
+				A_PlaySound (AttackSound, CHAN_WEAPON);
+			}
+			else if (ang <= 20)
+			{
+				SetState (MissileState);
+				A_PlaySound (AttackSound, CHAN_WEAPON);
+			}
+		}
+		else
+		{
+			LookForPlayers (true);
+		}
+	}
+
+	void A_DragonFlap(double thresh = 4., double turnMax = 8., int meleedamage = 10, string missiletype = "DragonFireball", string crisismissiletype = "DragonFireballCrisis")
+	{
+		A_DragonFlight(thresh,turnMax,meleedamage,missiletype,crisismissiletype);
+		if (random[DragonFlight]() < 240)
+		{
+			A_PlaySound ("DragonWingflap", CHAN_BODY);
+		}
+		else
+		{
+			PlayActiveSound ();
+		}
+	}
+
+	void A_DragonAttack(string missiletype = "DragonFireball", string crisismissiletype = "DragonFireballCrisis")
+	{
+		string atktype = missiletype;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1)
+		{
+			A_PlayCrisisAtkSound();
+			atktype = crisismissiletype;
+		}
+		SpawnMissile (target, atktype);
+	}
+
+	void A_DragonPain()
+	{
+		A_Pain();
+		if (!tracer)
+		{
+			// no destination spot yet
+			SetState (SeeState);
+		}
+	}
+
+	void A_DragonCheckCrash()
+	{
+		if (pos.z <= floorz)
+		{
+			SetStateLabel ("Crash");
+		}
+	}
+	
+	// Traductus
+	void A_ClericAttack(string missiletype = "HolyMissile", string crisismissiletype = "HolyMissileCrisis")
+	{
+		string atktype = missiletype;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) { atktype = crisismissiletype; A_PlayCrisisAtkSound(); }
+
+		if (!target) return;
+
+		Actor missile = SpawnMissileZ (pos.z + 40., target, atktype);
+		if (missile != null) missile.tracer = null;	// No initial target
+		A_PlaySound ("HolySymbolFire", CHAN_WEAPON);
+	}
+
+    // Menelkir	
+	void MStaffSpawn2 (double angle, string missiletype = "MageStaffFX2", string crisismissiletype = "MageStaffFX2Crisis")
+	{
+		string atktype = missiletype;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) { atktype = crisismissiletype; A_PlayCrisisAtkSound(); }
+
+		Actor mo = SpawnMissileAngleZ (pos.z + 40, atktype, angle, 0.);
+		if (mo)
+		{
+			mo.target = self;
+			mo.tracer = RoughMonsterSearch(10, true, true);
+		}
+	}
+	void A_MageAttack(string missiletype = "MageStaffFX2", string crisismissiletype = "MageStaffFX2Crisis")
+	{
+		if (target == NULL)
+		{
+			return;
+		}
+		MStaffSpawn2(angle,missiletype,crisismissiletype);
+		MStaffSpawn2(angle-5,missiletype,crisismissiletype);
+		MStaffSpawn2(angle+5,missiletype,crisismissiletype);
+		A_PlaySound("MageStaffFire", CHAN_WEAPON);
+	}
+
+	// Zedek
+	void A_FighterAttack(string missiletype = "FSwordMissile", string crisismissiletype = "FSwordMissileCrisis")
+	{
+		string atktype = missiletype;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) { atktype = crisismissiletype; A_PlayCrisisAtkSound(); }
+
+		if (!target) return;
+
+		SpawnMissileAngle(atktype, Angle + (45. / 4), 0);
+		SpawnMissileAngle(atktype, Angle + (45. / 8), 0);
+		SpawnMissileAngle(atktype, Angle, 0);
+		SpawnMissileAngle(atktype, Angle - (45. / 8), 0);
+		SpawnMissileAngle(atktype, Angle - (45. / 4), 0);
+		A_PlaySound ("FighterSwordFire", CHAN_WEAPON);
+	}
+
+
+
+	//*************************
+	//*STRIFE-UNIQUE FUNCTIONS*
+	//*************************
+	// Acolyte
+	void A_AcolyteDie ()
+	{
+		// [RH] Disable translucency here.
+		A_SetRenderStyle(1, STYLE_Normal);
+
+		// Only the Blue Acolyte does extra stuff on death.
+		if (self is "AcolyteBlue")
+		{
+			int i;
+			// Make sure somebody is still alive
+			for (i = 0; i < MAXPLAYERS; ++i)
+			{
+				if (playeringame[i] && players[i].health > 0)
+					break;
+			}
+			if (i == MAXPLAYERS)
+				return;
+
+			// Make sure all the other blue acolytes are dead, but do this only once in case of simultaneous kills.
+			if (CheckBossDeath() && !players[i].mo.FindInventory("QuestItem7"))
+			{
+				players[i].mo.GiveInventoryType ("QuestItem7");
+				players[i].SetLogNumber (14);
+				A_StopSound (CHAN_VOICE);
+				A_PlaySound ("svox/voc14", CHAN_VOICE);
+			}
+		}
+	}
+
+	void A_BeShadowyFoe()
+	{
+		A_SetRenderStyle(HR_SHADOW, STYLE_Translucent);
+		bFriendly = false;
+	}
+
+	void A_AcolyteBits()
+	{
+		if (SpawnFlags & MTF_SHADOW)
+		{
+			A_BeShadowyFoe();
+		}
+		if (SpawnFlags & MTF_ALTSHADOW)
+		{
+			if (bShadow)
+			{
+				// I dunno.
+			}
+			else
+			{
+				A_SetRenderStyle(0, STYLE_None);
+			}
+		}
+	}
+	
+	// Templar
+	void A_TemplarAttack()
+	{
+		if (target != null)
+		{
+			A_PlaySound ("templar/shoot", CHAN_WEAPON);
+			A_FaceTarget ();
+			double pitch = AimLineAttack (angle, MISSILERANGE);
+
+			for (int i = 0; i < 10; ++i)
+			{
+				int damage = (random[Templar]() & 4) * 2;
+				double ang = angle + random2[Templar]() * (11.25 / 256);
+				LineAttack (ang, MISSILERANGE+64., pitch + random2[Templar]() * (7.097 / 256), damage, 'Hitscan', "MaulerPuff");
+			}
+		}
+	}
+
+	// Inquisitor
+	void A_InquisitorWalk ()
+	{
+		A_PlaySound ("inquisitor/walk", CHAN_BODY);
+		A_Chase ();
+	}
+
+	private bool InquisitorCheckDistance ()
+	{
+		if (reactiontime == 0 && CheckSight (target))
+		{
+			return Distance2D (target) < 264.;
+		}
+		return false;
+	}
+
+	void A_InquisitorDecide ()
+	{
+		if (target == null)
+			return;
+
+		A_FaceTarget ();
+		if (!InquisitorCheckDistance ())
+		{
+			SetStateLabel("Grenade");
+		}
+		if (target.pos.z != pos.z)
+		{
+			if (pos.z + height + 54 < ceilingz)
+			{
+				SetStateLabel("Jump");
+			}
+		}
+	}
+
+	void A_InquisitorAttack (string missiletype = "InquisitorShot", string crisismissiletype = "InquisitorShotCrisis")
+	{
+		string atktype = missiletype;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) { atktype = crisismissiletype; A_PlayCrisisAtkSound(); }
+
+		if (target == null)
+			return;
+
+		A_FaceTarget ();
+
+		AddZ(32);
+		angle -= 45./32;
+		Actor proj = SpawnMissileZAimed (pos.z, target, atktype);
+		if (proj != null)
+		{
+			proj.Vel.Z += 9;
+		}
+		angle += 45./16;
+		proj = SpawnMissileZAimed (pos.z, target, atktype);
+		if (proj != null)
+		{
+			proj.Vel.Z += 16;
+		}
+		AddZ(-32);
+	}
+
+	void A_InquisitorJump ()
+	{
+		if (target == null)
+			return;
+
+		A_PlaySound ("inquisitor/jump", CHAN_ITEM, 1, true);
+		AddZ(64);
+		A_FaceTarget ();
+		let localspeed = Speed * (2./3);
+		VelFromAngle(localspeed);
+		double dist = DistanceBySpeed(target, localspeed);
+		Vel.Z = (target.pos.z - pos.z) / dist;
+		reactiontime = 60;
+		bNoGravity = true;
+	}
+
+	void A_InquisitorCheckLand ()
+	{
+		reactiontime--;
+		if (reactiontime < 0 ||
+			Vel.X == 0 ||
+			Vel.Y == 0 ||
+			pos.z <= floorz)
+		{
+			SetState (SeeState);
+			reactiontime = 0;
+			bNoGravity = false;
+			A_StopSound (CHAN_ITEM);
+			return;
+		}
+		A_PlaySound ("inquisitor/jump", CHAN_ITEM, 1, true);
+	}
+
+	void A_TossArm ()
+	{
+		Actor foo = Spawn("InquisitorArm", Pos + (0,0,24), ALLOW_REPLACE);
+		if (foo != null)
+		{
+			foo.angle = angle - 90. + Random2[Inquisitor]() * (360./1024.);
+			foo.VelFromAngle(foo.Speed / 8);
+			foo.Vel.Z = random[Inquisitor]() / 64.;
+		}
+	}
+	
+	// Reaver
+	void A_ReaverRanged ()
+	{
+		if (target != null)
+		{
+			A_FaceTarget ();
+			A_PlaySound ("reaver/attack", CHAN_WEAPON);
+			double bangle = Angle;
+			double pitch = AimLineAttack (bangle, MISSILERANGE);
+
+			for (int i = 0; i < 3; ++i)
+			{
+				double ang = bangle + Random2[ReaverAttack]() * (22.5 / 256);
+				int damage = ((random[ReaverAttack]() & 7) + 1) * 3;
+				LineAttack (ang, MISSILERANGE, pitch, damage, 'Hitscan', "StrifePuff");
+			}
+		}
+	}
+
+	// Crusader
+	private bool CrusaderCheckRange ()
+	{
+		if (reactiontime == 0 && CheckSight (target))
+		{
+			return Distance2D (target) < 264.;
+		}
+		return false;
+	}
+
+	void A_CrusaderChoose (string firemissile = "FastFlameMissile", string crisisfiremissile = "FastFlameMissileCrisis", string rockmissile = "CrusaderMissile", string crisisrockmissile = "CrusaderMissileCrisis")
+	{
+		string fireatktype = firemissile;
+		string missileatktype = rockmissile;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) { fireatktype = crisisfiremissile; missileatktype = crisisrockmissile; A_PlayCrisisAtkSound(); }
+
+		if (target == null)
+			return;
+
+		if (CrusaderCheckRange ())
+		{
+			A_FaceTarget ();
+			angle -= 180./16;
+			SpawnMissileZAimed (pos.z + 40, target, fireatktype);
+		}
+		else
+		{
+			if (CheckMissileRange ())
+			{
+				A_FaceTarget ();
+				SpawnMissileZAimed (pos.z + 56, target, missileatktype);
+				angle -= 45./32;
+				SpawnMissileZAimed (pos.z + 40, target, missileatktype);
+				angle += 45./16;
+				SpawnMissileZAimed (pos.z + 40, target, missileatktype);
+				angle -= 45./16;
+				reactiontime += 15;
+			}
+			SetState (SeeState);
+		}
+	}
+
+	void A_CrusaderSweepLeft (string firemissile = "FastFlameMissile", string crisisfiremissile = "FastFlameMissileCrisis")
+	{
+		string fireatktype = firemissile;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) { fireatktype = crisisfiremissile; A_PlayCrisisAtkSound(); }
+
+		angle += 90./16;
+		Actor misl = SpawnMissileZAimed (pos.z + 48, target, fireatktype);
+		if (misl != null)
+		{
+			misl.Vel.Z += 1;
+		}
+	}
+
+	void A_CrusaderSweepRight (string firemissile = "FastFlameMissile", string crisisfiremissile = "FastFlameMissileCrisis")
+	{
+		string fireatktype = firemissile;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) { fireatktype = crisisfiremissile; A_PlayCrisisAtkSound(); }
+
+		angle -= 90./16;
+		Actor misl = SpawnMissileZAimed (pos.z + 48, target, fireatktype);
+		if (misl != null)
+		{
+			misl.Vel.Z += 1;
+		}
+	}
+
+	void A_CrusaderRefire ()
+	{
+		if (target == null ||
+			target.health <= 0 ||
+			!CheckSight (target))
+		{
+			SetState (SeeState);
+		}
+	}
+
+	void A_CrusaderDeath ()
+	{
+		if (CheckBossDeath ())
+		{
+			Floor_LowerToLowest(667, 8);
+		}
+	}
+
+    // Sentinel
+	void A_SentinelAttack (string missiletype = "SentinelFX2", string crisismissiletype = "SentinelFX2Crisis", string trailtype = "SentinelFX1", int trailsize = 8)
+	{
+		string atktype = missiletype;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) { atktype = crisismissiletype; A_PlayCrisisAtkSound(); }
+		
+		// [BB] Without a target the P_SpawnMissileZAimed call will crash.
+		if (!target)
+		{
+			return;
+		}
+
+		Actor missile = SpawnMissileZAimed (pos.z + 32, target, atktype);
+
+		if (missile != NULL && (missile.Vel.X != 0 || missile.Vel.Y != 0))
+		{
+			for (int i = trailsize; i > 1; --i)
+			{
+				Actor trail = Spawn(trailtype, Vec3Angle(missile.radius*i, missile.angle, 32 + missile.Vel.Z / 4 * i), ALLOW_REPLACE);
+				if (trail != NULL)
+				{
+					trail.target = self;
+					trail.Vel = missile.Vel;
+					trail.CheckMissileSpawn (radius);
+				}
+			}
+			missile.AddZ(missile.Vel.Z / 4);
+		}
+	}
+
+	// Stalker
+	void A_StalkerChaseDecide ()
+	{
+		if (!bNoGravity)
+		{
+			SetStateLabel("SeeFloor");
+		}
+		else if (ceilingz > pos.z + height)
+		{
+			SetStateLabel("Drop");
+		}
+	}
+
+	void A_StalkerLookInit ()
+	{
+		State st;
+		if (bNoGravity)
+		{
+			st = FindState("LookCeiling");
+		}
+		else
+		{
+			st = FindState("LookFloor");
+		}
+		if (st != CurState.NextState)
+		{
+			SetState (st);
+		}
+	}
+
+	void A_StalkerDrop ()
+	{
+		bNoVerticalMeleeRange = false;
+		bNoGravity = false;
+	}
+
+	void A_StalkerAttack(int dmg = 2)
+	{
+		if (bNoGravity)
+		{
+			SetStateLabel("Drop");
+		}
+		else if (target != null)
+		{
+			A_FaceTarget ();
+			if (CheckMeleeRange ())
+			{
+				A_MonsterCrisisCheck();
+				if(user_canusecrisisatk == 1) { dmg *= CallACS("CrisisMultiplier"); A_PlayCrisisAtkSound(); }
+
+				int damage = dmg;
+				int newdam = target.DamageMobj (self, self, damage, 'Melee');
+				target.TraceBleed (newdam > 0 ? newdam : damage, self);
+			}
+		}
+	}
+
+	void A_StalkerWalk ()
+	{
+		A_PlaySound ("stalker/walk", CHAN_BODY);
+		A_Chase ();
+	}
+	
+	// Programmer
+	void A_ProgrammerMelee (int dmg = 6)
+	{
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) { dmg *= CallACS("CrisisMultiplier"); A_PlayCrisisAtkSound(); }
+
+		if (target == null)
+			return;
+
+		A_FaceTarget ();
+
+		if (!CheckMeleeRange ())
+			return;
+
+		A_PlaySound("programmer/clank", CHAN_WEAPON);
+
+		int damage = dmg;
+		int newdam = target.DamageMobj (self, self, damage, 'Melee');
+		target.TraceBleed (newdam > 0 ? newdam : damage, self);
+	}
+
+	void A_SpawnProgrammerBase ()
+	{
+		Actor foo = Spawn("ProgrammerBase", Pos + (0,0,24), ALLOW_REPLACE);
+		if (foo != null)
+		{
+			foo.Angle = Angle + 180. + Random2[Programmer]() * (360. / 1024.);
+			foo.VelFromAngle();
+			foo.Vel.Z = random[Programmer]() / 128.;
+		}
+	}
+
+	void A_ProgrammerDeath ()
+	{
+		if (!CheckBossDeath ())
+			return;
+
+		for (int i = 0; i < MAXPLAYERS; ++i)
+		{
+			if (playeringame[i] && players[i].health > 0)
+			{
+				players[i].mo.GiveInventoryType ("ProgLevelEnder");
+				break;
+			}
+		}
+		// the sky change scripts are now done as special actions in MAPINFO
+		A_BossDeath();
+	}
+
+	void A_SpotLightning(string missiletype = "SpectralLightningSpot", string crisismissiletype = "SpectralLightningSpotCrisis")
+	{
+		string atktype = missiletype;
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) 
+		{
+			atktype = crisismissiletype;
+			A_PlayCrisisAtkSound(); 
+		}
+
+		if (target == null) return;
+
+		Actor spot = Spawn(atktype, (target.pos.xy, target.floorz), ALLOW_REPLACE);
+		if (spot != null)
+		{
+			spot.threshold = 25;
+			spot.target = self;
+			spot.FriendPlayer = 0;
+			spot.tracer = target;
+		}
+	}
+
+	// Oracle
+	void A_WakeOracleSpectre (Class<Actor> spawntype)
+	{
+		ThinkerIterator it = ThinkerIterator.Create(spawntype);
+		Actor spectre = Actor(it.Next());
+
+		if (spectre != NULL && spectre.health > 0 && self.target != spectre)
+		{
+			spectre.CurSector.SoundTarget = spectre.LastHeard = self.LastHeard;
+			spectre.target = self.target;
+			spectre.SetState (spectre.SeeState);
+		}
+	}
+	
+	void A_DropFire(string missiletype = "FireDroplet", int expdmg = 64, int exprad = 64, int expflags = XF_NOSPLASH, string type = "Fire")
+	{
+		Actor drop = Spawn(missiletype, pos + (0,0,24), ALLOW_REPLACE);
+		if (drop != null)
+		{
+			drop.Vel.Z = -1.;
+		}
+		A_Explode(expdmg, exprad, expflags, damagetype: type);
+	}	
+
+	private static void BrainishExplosion(vector3 pos)
+	{
+		Actor boom = Actor.Spawn("Rocket", pos, NO_REPLACE);
+		if (boom)
+		{
+			boom.DeathSound = "misc/brainexplode";
+			boom.Vel.z = random[BrainScream](0, 255)/128.;
+
+			boom.SetStateLabel ("Brainexplode");
+			boom.bRocketTrail = false;
+			boom.SetDamage(0);	// disables collision detection which is not wanted here
+			boom.tics -= random[BrainScream](0, 7);
+			if (boom.tics < 1) boom.tics = 1;
+		}
+	}
+	void A_BrainScream(string dthsound = "brain/death")
+	{
+		for (double x = -196; x < +320; x += 8)
+		{
+			// (1 / 512.) is actually what the original value of 128 did, even though it probably meant 128 map units.
+			BrainishExplosion(Vec2OffsetZ(x, -320, (1 / 512.) + random[BrainExplode](0, 255) * 2));
+		}
+		A_PlaySound(dthsound, CHAN_VOICE, 1, false, ATTN_NONE);
+	}
+
+	void A_BrainSpit(class<Actor> spawntype = null)
+	{
+		SpotState spstate = SpotState.GetSpotState();
+		Actor targ;
+		Actor spit;
+		bool isdefault = false;
+
+		// shoot a cube at current target
+		targ = spstate.GetNextInList("BossTarget", G_SkillPropertyInt(SKILLP_EasyBossBrain));
+
+		if (targ)
+		{
+			if (spawntype == null) 
+			{
+				spawntype = "SpawnShot";
+				isdefault = true;
+			}
+
+			// spawn brain missile
+			spit = SpawnMissile (targ, spawntype);
+
+			if (spit)
+			{
+				// Boss cubes should move freely to their destination so it's
+				// probably best to disable all collision detection for them.
+				spit.bNoInteraction = spit.bNoClip;
+		
+				spit.target = targ;
+				spit.master = self;
+				// [RH] Do this correctly for any trajectory. Doom would divide by 0
+				// if the target had the same y coordinate as the spitter.
+				if (spit.Vel.xy == (0, 0))
+				{
+					spit.special2 = 0;
+				}
+				else if (abs(spit.Vel.y) > abs(spit.Vel.x))
+				{
+					spit.special2 = int((targ.pos.y - pos.y) / spit.Vel.y);
+				}
+				else
+				{
+					spit.special2 = int((targ.pos.x - pos.x) / spit.Vel.x);
+				}
+				// [GZ] Calculates when the projectile will have reached destination
+				spit.special2 += level.maptime;
+				spit.bBossCube = true;
+			}
+
+			if (!isdefault)
+			{
+				A_PlaySound(self.AttackSound, CHAN_VOICE, 1., false, ATTN_NONE);
+			}
+			else
+			{
+				// compatibility fallback
+				A_PlaySound("brain/spit", CHAN_VOICE, 1., false, ATTN_NONE);
+			}
+		}
+	}
+
+	States
+	{
+		Pain.Charm: 
+			TNT1 A 0 
+			{
+				if (user_charmchance <= 0) { user_charmchance = 256; }
+				if (random(1,256) <= user_charmchance)
+				{
+					if(bFRIENDLY != true)
+					{
+						ClearCounters();
+						bFRIENDLY = true; 
+						bCOUNTKILL = false; 
+						health = user_MaxHP * frandompick(1.0,1.25,1.5,1.75,2.0);
+						if (CountInv("CharmMonsterAttack") <= 0) A_GiveInventory("CharmMonsterAttack",1);
+						if (CountInv("CharmMonsterDefense") <= 0) A_GiveInventory("CharmMonsterDefense",1);
+						if (user_charmed <= 0) user_charmed = 1;
+						ChangeTID(1000);
+						//level.total_monsters--;
+						A_PlaySound("Munchies/Charmed");
+					}
+				}
+				SetStateLabel("See");
+			}
+		Pain.Heal1: 
+			TNT1 A 0 
+			{
+				ACS_NamedExecuteAlways("Healing_Actor",0,0); 
+				SetStateLabel("See");
+			}
+		Pain.Heal2: 
+			TNT1 A 0 
+			{
+				ACS_NamedExecuteAlways("Healing_Actor",0,1); 
+				SetStateLabel("See");
+			}
+		Pain.Heal3: 
+			TNT1 A 0 
+			{
+				ACS_NamedExecuteAlways("Healing_Actor",0,2); 
+				SetStateLabel("See");
+			}
+		Pain.Heal4: 
+			TNT1 A 0 
+			{
+				ACS_NamedExecuteAlways("Healing_Actor",0,3); 
+				SetStateLabel("See");
+			}
+		Pain.GravityHP:
+			TNT1 A 0 
+			{
+				ACS_NamedExecuteAlways("Hand-GravityAttack",0,0,0,0); 
+				SetStateLabel("See");
+			}
+		Pain.GravityMP:
+			TNT1 A 0
+			{
+				ACS_NamedExecuteAlways("Hand-GravityAttack",0,1,0,0); 
+				SetStateLabel("See");
+			}
+		Pain.GravityHPMP:
+			TNT1 A 0
+			{
+				ACS_NamedExecuteAlways("Hand-GravityAttack",0,2,0,0); 
+				SetStateLabel("See");
+			}
+	}
+}
+
+class AetheriusBossZSC : AetheriusMonsterZSC
+{
+}
+
+class MaulotaurBase : AetheriusMonsterZSC
+{
+ const MAULATORTICS = 25 * TICRATE;
+ const MNTR_CHARGE_SPEED =13.;
+ const MINOTAUR_LOOK_DIST = 16*54.;
+	
+	void MinotaurSlam (Actor target)
+	{
+		double ang = AngleTo(target);
+		double thrust = 16 + random[MinotaurSlam]() / 64.;
+		target.VelFromAngle(ang, thrust);
+		int damage = random[MinotaurSlam](1, 8) * (bSummonedMonster? 4 : 6);
+		int newdam = target.DamageMobj (null, null, damage, 'Melee');
+		target.TraceBleedAngle (newdam > 0 ? newdam : damage, ang, 0.);
+		if (target.player)
+		{
+			target.reactiontime = random[MinotaurSlam](14, 21);
+		}
+	}
+
+	override void Tick ()
+	{
+		Super.Tick ();
+		
+		// The unfriendly Minotaur (Heretic's) is invulnerable while charging
+		if (!bSummonedMonster)
+		{
+			bInvulnerable = bSkullFly;
+		}
+	}
+
+	override bool Slam (Actor thing)
+	{
+		// Slamming minotaurs shouldn't move non-creatures
+		if (!thing.bIsMonster && !thing.player)
+		{
+			return false;
+		}
+		return Super.Slam (thing);
+	}
+
+	override int DoSpecialDamage (Actor target, int damage, Name damagetype)
+	{
+		damage = Super.DoSpecialDamage (target, damage, damagetype);
+		if (damage != -1 && bSkullFly)
+		{
+			// Slam only when in charge mode
+			MinotaurSlam (target);
+			return -1;
+		}
+		return damage;
+	}
+
+	void A_MinotaurAtk1(int atkdamage = 4, int squishamount = -16)
+	{
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) atkdamage *= CallACS("CrisisMultiplier");
+
+		if (!target)
+		{
+			return;
+		}
+		A_PlaySound ("minotaur/melee", CHAN_WEAPON);
+		if (CheckMeleeRange())
+		{
+			if(user_canusecrisisatk == 1) A_PlayCrisisAtkSound(); 
+			int damage = atkdamage;
+			int newdam = target.DamageMobj (self, self, damage, 'Melee');
+			target.TraceBleed (newdam > 0 ? newdam : damage, self);
+			PlayerInfo player = target.player;
+			if (player != null && player.mo == target)
+			{
+				// Squish the player
+				player.deltaviewheight = squishamount;
+			}
+		}
+	}
+
+	void A_MinotaurDecide()
+	{
+		bool friendly = bSummonedMonster;
+
+		if (!target)
+		{
+			return;
+		}
+		if (!friendly)
+		{
+			A_PlaySound ("minotaur/sight", CHAN_WEAPON);
+		}
+		double dist = Distance2D(target);
+		if (target.pos.z + target.height > pos.z
+			&& target.pos.z + target.height < pos.z + height
+			&& dist < (friendly ? 16*64. : 8*64.)
+			&& dist > 1*64.
+			&& random[MinotaurDecide]() < 150)
+		{
+			// Charge attack
+			// Don't call the state function right away
+			SetStateLabel("Charge", true);
+			bSkullFly = true;
+			if (!friendly)
+			{
+				// Heretic's Minotaur is invulnerable during charge attack
+				// bInvulnerable = true;
+				A_GiveInventory("MaulotaurChargeDefense",1);
+				bNoPain = true;
+				bNoBlood = true;
+			}
+			A_FaceTarget ();
+			VelFromAngle(MNTR_CHARGE_SPEED);
+			special1 = TICRATE/2; // Charge duration
+		}
+		else if (target.pos.z == target.floorz
+				&& dist < 9*64.
+				&& random[MinotaurDecide]() < (friendly ? 100 : 220))
+		{
+			// Floor fire attack
+			SetStateLabel("Hammer");
+			special2 = 0;
+		}
+		else
+		{
+			// Swing attack
+			A_FaceTarget ();
+			// Don't need to call P_SetMobjState because the current state
+			// falls through to the swing attack
+		}
+	}
+	
+	void A_MinotaurCharge()
+	{
+		if (target == null)
+		{
+			return;
+		}
+		if (special1 > 0)
+		{
+			Class<Actor> type;
+
+			if (gameinfo.gametype == GAME_Heretic)
+			{
+				type = "PhoenixPuff";
+			}
+			else
+			{
+				type = "PunchPuff";
+			}
+			Actor puff = Spawn (type, Pos, ALLOW_REPLACE);
+			if (puff != null) puff.Vel.Z = 2;
+			special1--;
+		}
+		else
+		{
+			bSkullFly = false;
+			bInvulnerable = false;
+			bNoPain = false;
+			bNoBlood = false;
+			SetState (SeeState);
+		}
+	}
+
+	void A_MinotaurAtk2(string missiletype = "MinotaurFX1", string crisismissiletype = "MinotaurFX1Crisis", int meleedamage = 5, int friendlymeleedamage = 3)
+	{
+		bool friendly = bSummonedMonster;
+
+		int actualmeleedmg = meleedamage;
+		if (friendly == 1) actualmeleedmg = friendlymeleedamage;
+		string actualmissile = missiletype;
+
+		A_MonsterCrisisCheck();
+		if(user_canusecrisisatk == 1) 
+		{
+			actualmeleedmg *= CallACS("CrisisMultiplier");
+			actualmissile = crisismissiletype;
+		}
+		
+
+		if (target == null)
+		{
+			return;
+		}
+		A_PlaySound ("minotaur/attack2", CHAN_WEAPON);
+		if (CheckMeleeRange())
+		{
+			if(user_canusecrisisatk == 1) A_PlayCrisisAtkSound(); 
+			int damage = actualmeleedmg;
+			int newdam = target.DamageMobj (self, self, damage, 'Melee');
+			target.TraceBleed (newdam > 0 ? newdam : damage, self);
+			return;
+		}
+		double z = pos.z + 40;
+		Class<Actor> fx = actualmissile;
+		Actor mo = SpawnMissileZ (z, target, fx);
+		if (mo != null)
+		{
+			//S_Sound (mo, CHAN_WEAPON, "minotaur/attack2", 1, ATTN_NORM);
+			if(user_canusecrisisatk == 1) A_PlayCrisisAtkSound(); 
+			double vz = mo.Vel.Z;
+			double ang = mo.angle;
+			SpawnMissileAngleZ (z, fx, ang-(45./8), vz);
+			SpawnMissileAngleZ (z, fx, ang+(45./8), vz);
+			SpawnMissileAngleZ (z, fx, ang-(45./16), vz);
+			SpawnMissileAngleZ (z, fx, ang+(45./16), vz);
+		}
+	}
+
+	void A_MinotaurAtk3(int atkdamage = 4, int squishamount = -16, string missiletype = "MinotaurFX2New", string crisismissiletype = "MinotaurFX2Crisis")
+	{
+		A_MonsterCrisisCheck();
+		string attacktype = missiletype;
+		if(user_canusecrisisatk == 1) 
+		{
+			attacktype = crisismissiletype;
+			atkdamage *= CallACS("CrisisMultiplier");
+		}
+
+		if (!target)
+		{
+			return;
+		}
+		A_PlaySound ("minotaur/attack3", CHAN_VOICE);
+		if (CheckMeleeRange())
+		{
+			if(user_canusecrisisatk == 1) A_PlayCrisisAtkSound(); 
+			int damage = atkdamage;
+			int newdam = target.DamageMobj (self, self, damage, 'Melee');
+			target.TraceBleed (newdam > 0 ? newdam : damage, self);
+			PlayerInfo player = target.player;
+			if (player != null && player.mo == target)
+			{
+				// Squish the player
+				player.deltaviewheight = squishamount;
+			}
+		}
+		else
+		{
+			if (Floorclip > 0 && compat_minotaur)
+			{
+				// only play the sound. 
+				A_PlaySound ("minotaur/fx2hit", CHAN_WEAPON);
+			}
+			else
+			{
+				if(user_canusecrisisatk == 1) A_PlayCrisisAtkSound(); 
+				Actor mo = SpawnMissile (target, attacktype);
+				if (mo != null)
+				{
+					mo.A_PlaySound ("minotaur/attack1", CHAN_WEAPON);
+				}
+			}
+		}
+		if (random[MinotaurAtk3]() < 192 && special2 == 0)
+		{
+			SetStateLabel ("HammerLoop");
+			special2 = 1;
+		}
+	}
+
+	void A_MinotaurDeath()
+	{
+		if (Wads.CheckNumForName ("MNTRF1", Wads.ns_sprites) < 0 &&
+			Wads.CheckNumForName ("MNTRF0", Wads.ns_sprites) < 0)
+			SetStateLabel("FadeOut");
+	}
+
+	void A_MinotaurRoam()
+	{
+		// In case pain caused him to skip his fade in.
+		A_SetRenderStyle(1, STYLE_Normal);
+
+		let mf = MinotaurFriend(self);
+		if (mf)
+		{
+			if (mf.StartTime >= 0 && (level.maptime - mf.StartTime) >= MAULATORTICS)
+			{
+				DamageMobj (null, null, TELEFRAG_DAMAGE, 'None', 0, 0.0);
+				return;
+			}
+		}
+
+		if (random[MinotaurRoam]() < 30)
+			A_MinotaurLook();		// adjust to closest target
+
+		if (random[MinotaurRoam]() < 6)
+		{
+			//Choose new direction
+			movedir = random[MinotaurRoam]() % 8;
+			FaceMovementDirection ();
+		}
+		if (!MonsterMove())
+		{
+			// Turn
+			if (random[MinotaurRoam]() & 1)
+				movedir = (movedir + 1) % 8;
+			else
+				movedir = (movedir + 7) % 8;
+			FaceMovementDirection ();
+		}
+	}
+
+	void A_MinotaurLook()
+	{
+		if (!(self is "MinotaurFriend"))
+		{
+			A_Look();
+			return;
+		}
+
+		Actor mo = null;
+		PlayerInfo player;
+		double dist;
+		Actor master = tracer;
+
+		target = null;
+		if (deathmatch)					// Quick search for players
+		{
+			for (int i = 0; i < MAXPLAYERS; i++)
+			{
+				if (!playeringame[i]) continue;
+				player = players[i];
+				mo = player.mo;
+				if (mo == master) continue;
+				if (mo.health <= 0) continue;
+				dist = Distance2D(mo);
+				if (dist > MINOTAUR_LOOK_DIST) continue;
+				target = mo;
+				break;
+			}
+		}
+
+		if (!target)				// Near player monster search
+		{
+			if (master && (master.health > 0) && (master.player))
+				mo = master.RoughMonsterSearch(20);
+			else
+				mo = RoughMonsterSearch(20);
+			target = mo;
+		}
+
+		if (!target)				// Normal monster search
+		{
+			ThinkerIterator it = ThinkerIterator.Create("Actor");
+
+			while ((mo = Actor(it.Next())) != null)
+			{
+				if (!mo.bIsMonster) continue;
+				if (mo.health <= 0) continue;
+				if (!mo.bShootable) continue;
+				dist = Distance2D(mo);
+				if (dist > MINOTAUR_LOOK_DIST) continue;
+				if (mo == master || mo == self) continue;
+				if (mo.bSummonedMonster && mo.tracer == master) continue;
+				target = mo;
+				break;			// Found actor to attack
+			}
+		}
+
+		if (target)
+		{
+			SetState (SeeState, true);
+		}
+		else
+		{
+			SetStateLabel ("Roam", true);
+		}
+	}
+
+	void A_MinotaurChase()
+	{
+		let mf = MinotaurFriend(self);
+		if (!mf)
+		{
+			A_Chase();
+			return;
+		}
+
+
+		// In case pain caused him to skip his fade in.
+		A_SetRenderStyle(1, STYLE_Normal);
+
+		if (mf.StartTime >= 0 && (level.maptime - mf.StartTime) >= MAULATORTICS)
+		{
+			DamageMobj (null, null, TELEFRAG_DAMAGE, 'None', 0, 0.0);
+			return;
+		}
+
+		if (random[MinotaurChase]() < 30)
+			A_MinotaurLook();		// adjust to closest target
+
+		if (!target || (target.health <= 0) || !target.bShootable)
+		{
+			// look for a new target
+			SetIdle();
+			return;
+		}
+
+		FaceMovementDirection ();
+		reactiontime = 0;
+
+		// Melee attack
+		if (MeleeState && CheckMeleeRange ())
+		{
+			if (AttackSound)
+			{
+				A_PlaySound (AttackSound, CHAN_WEAPON);
+			}
+			SetState (MeleeState);
+			return;
+		}
+
+		// Missile attack
+		if (MissileState && CheckMissileRange())
+		{
+			SetState (MissileState);
+			return;
+		}
+
+		// chase towards target
+		if (!MonsterMove ())
+		{
+			NewChaseDir ();
+			FaceMovementDirection ();
+		}
+
+		// Active sound
+		if (random[MinotaurChase]() < 6)
+		{
+			PlayActiveSound ();
+		}
+	}	
+}
+

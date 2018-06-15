@@ -39,8 +39,10 @@ actor FloraBriscoletti : AetheriusPlayerPawn // DoomPlayer // PlayerPawn
 	DamageFactor "Thunder", 0.975 // 102.5% the thunder-elemental defense of a normal player
 	DamageFactor "Wind", 1.0
 	DamageFactor "Holy", 0
-	DamageFactor "Dark", 0.5
+	DamageFactor "Dark", 0.875
 	DamageFactor "Melee", 1.0
+	DamageFactor "Stomp", 1.0
+	DamageFactor "Trample", 1.0
 	DamageFactor "Sceptre", 0
 	DamageFactor "Slime", 1.0 // Damage Floors
 	DamageFactor "Magma", 0.900 // 111.1% the fire-elemental defense of a normal player
@@ -83,6 +85,7 @@ actor FloraBriscoletti : AetheriusPlayerPawn // DoomPlayer // PlayerPawn
 	Player.Portrait "NERPORT2"
 	//Player.StartItem "SceptreOfEmpyrea"
 	Player.StartItem "Resistances"
+	Player.StartItem "PlayerStatItem"
 	Player.StartItem "FistFlora"
 	Player.WeaponSlot 1, FistFlora, SauronGauntletsFlora, SceptreOfEmpyrea // Melee Weapons
 	Player.WeaponSlot 2, SapphireWandNew, DualSapphireWandsNew, StrifeCrossbow2New, StrifeCrossbowNew, GoldWandNew, DualGoldWandNew // Pistol2, DualPistols // Pistols
@@ -131,23 +134,27 @@ actor FloraBriscoletti : AetheriusPlayerPawn // DoomPlayer // PlayerPawn
 
 		Pain.Charm: Goto See  Pain.Heal1: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,0); } Goto See  Pain.Heal2: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,1); } Goto See  Pain.Heal3: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,2); } Goto See  Pain.Heal4: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,3); } Goto See Goto See  
 		Spawn:
-			NERA A 0
-			NERA A -1
-			Loop
+			NERA A 4 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
+			loop
 		See:
-			NERA AAAA 4
+			NERA AAAA 4 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
 			Loop
 		Missile:
-			NERA A 12
+			NERA AAA 4 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
 			Goto Spawn
 		Melee:
-			NERA A 6 BRIGHT
+			NERA A 6 BRIGHT { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
 			Goto Missile
 		Pain:
-			NERA A 4
-			NERA A 4 ACS_NamedExecuteAlways("FloraPainScreams") // A_Pain
+			NERA A 4 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
+			NERA A 4 
+			{
+				A_APPBreathe(1.0, 0.976471, 0.00214, 4);
+				ACS_NamedExecuteAlways("FloraPainScreams"); // A_Pain
+			}
 			Goto Spawn
 		Death:
+			NERA A 0 { A_APPBreatheReset; }
 			TNT1 A 0 A_PlayerSkinCheck("AltSkinDeath")
 		Death1:
 			TNT1 A 10
@@ -157,6 +164,7 @@ actor FloraBriscoletti : AetheriusPlayerPawn // DoomPlayer // PlayerPawn
 			TNT1 A -1
 			Stop
 		XDeath:
+			TNT1 A 0 { A_APPBreatheReset; }
 			TNT1 A 0 A_PlayerSkinCheck("AltSkinDeath")
 		XDeath1:
 			TNT1 A 5
@@ -168,6 +176,7 @@ actor FloraBriscoletti : AetheriusPlayerPawn // DoomPlayer // PlayerPawn
 			TNT1 A -1
 			Stop
 		AltSkinDeath:
+			TNT1 A 0 { A_APPBreatheReset; }
 			TNT1 A 6
 			TNT1 A 6 A_PlayerScream
 			TNT1 AA 6
@@ -176,6 +185,7 @@ actor FloraBriscoletti : AetheriusPlayerPawn // DoomPlayer // PlayerPawn
 			TNT1 A -1
 			Stop
 		AltSkinXDeath:
+			TNT1 A 0 { A_APPBreatheReset; }
 			TNT1 A 5 A_PlayerScream
 			TNT1 A 0 A_NoBlocking
 			TNT1 A 5 A_SkullPop
@@ -213,11 +223,13 @@ actor IlluciaHendershot : AetheriusPlayerPawn
 	DamageFactor "Dark", 0.67
 	DamageFactor "Wind", 1.0
 	DamageFactor "Melee", 1.0
+	DamageFactor "Stomp", 1.0
+	DamageFactor "Trample", 1.0
 	DamageFactor "Sceptre", 1.0
 	DamageFactor "Slime", 1.0 // Damage Floors
 	DamageFactor "Magma", 1.0 // Damage Floors
 	DamageFactor "Crush", 8
-	DamageFactor "Drowning", 0.75
+	DamageFactor "Drowning", 0.875
 	DamageFactor "Falling", 0.25
 	Damagefactor "Bullet", 1.0
 	Damagefactor "Explosive", 1.0
@@ -259,6 +271,7 @@ actor IlluciaHendershot : AetheriusPlayerPawn
 	Player.DisplayName "Illucia Hendershot"
 	Player.CrouchSprite TNT1
 	Player.Face ILL
+	Player.StartItem "PlayerStatItem"
 	//Player.StartItem "Resistances"
 	Player.StartItem "Pistol2"
 	Player.StartItem "FistIllucia"
@@ -306,23 +319,27 @@ actor IlluciaHendershot : AetheriusPlayerPawn
 
 		Pain.Charm: Goto See  Pain.Heal1: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,0); } Goto See  Pain.Heal2: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,1); } Goto See  Pain.Heal3: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,2); } Goto See  Pain.Heal4: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,3); } Goto See Goto See  
 		Spawn:
-			ILLP A 0
-			ILLP A -1
+			ILLP A 4 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
 			Loop
 		See:
-			ILLP ABCD 4
+			ILLP ABCD 4 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
 			Loop
 		Missile:
-			ILLP E 12
+			ILLP EEE 4 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
 			Goto Spawn
 		Melee:
-			ILLP F 6
+			ILLP F 6 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
 			Goto Missile
 		Pain:
-			ILLP G 4
-			ILLP G 4 A_Pain
+			ILLP G 4 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
+			ILLP G 4 
+			{
+				A_APPBreathe(1.0, 0.976471, 0.00214, 4);
+				A_Pain;
+			}
 			Goto Spawn
 		Death:
+			ILLP H 0 { A_APPBreatheReset; }
 			ILLP H 0 A_PlayerSkinCheck("AltSkinDeath")
 		Death1:
 			ILLP H 10
@@ -332,6 +349,7 @@ actor IlluciaHendershot : AetheriusPlayerPawn
 			ILLP N -1
 			Stop
 		XDeath:
+			ILLP O 0 { A_APPBreatheReset; }
 			ILLP O 0 A_PlayerSkinCheck("AltSkinXDeath")
 		XDeath1:
 			ILLP O 5
@@ -343,6 +361,7 @@ actor IlluciaHendershot : AetheriusPlayerPawn
 			ILLP W -1
 			Stop
 		AltSkinDeath:
+			ILLP H 0 { A_APPBreatheReset; }
 			ILLP H 6
 			ILLP I 6 A_PlayerScream
 			ILLP JK 6
@@ -351,6 +370,7 @@ actor IlluciaHendershot : AetheriusPlayerPawn
 			ILLP P -1
 			Stop
 		AltSkinXDeath:
+			ILLP Q 0 { A_APPBreatheReset; }
 			ILLP Q 5 A_PlayerScream
 			ILLP R 0 A_NoBlocking
 			ILLP R 5 A_SkullPop
@@ -388,11 +408,13 @@ actor DeggarisMontegger : AetheriusPlayerPawn
 	DamageFactor "Dark", 0.875
 	DamageFactor "Wind", 1.0
 	DamageFactor "Melee", 1.0
+	DamageFactor "Stomp", 1.0
+	DamageFactor "Trample", 1.0
 	DamageFactor "Sceptre", 1.0
 	DamageFactor "Slime", 1.0 // Damage Floors
 	DamageFactor "Magma", 1.0 // Damage Floors
 	DamageFactor "Crush", 8
-	DamageFactor "Drowning", 0.75
+	DamageFactor "Drowning", 0.875
 	DamageFactor "Falling", 0.25
 	Damagefactor "Bullet", 1.0
 	Damagefactor "Explosive", 1.0
@@ -433,6 +455,7 @@ actor DeggarisMontegger : AetheriusPlayerPawn
 	Player.InvulnerabilityMode "Ghost"
 	Player.DisplayName "Deggaris Montegger"
 	Player.CrouchSprite "PLYC"
+	Player.StartItem "PlayerStatItem"
 	//Player.StartItem "Resistances"
 	Player.StartItem "DualPistols"
 	Player.StartItem "Pistol2"
@@ -480,23 +503,27 @@ actor DeggarisMontegger : AetheriusPlayerPawn
 
 		Pain.Charm: Goto See  Pain.Heal1: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,0); } Goto See  Pain.Heal2: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,1); } Goto See  Pain.Heal3: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,2); } Goto See  Pain.Heal4: TNT1 A 0 { ACS_NamedExecuteAlways("Healing_Actor",0,3); } Goto See Goto See  
 		Spawn:
-			SENA A 0
-			SENA A -1
+			SENA A 4 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
 			Loop
 		See:
-			SENA ABCD 4
+			SENA ABCD 4 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
 			Loop
 		Missile:
-			SENA E 12
+			SENA E 12 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
 			Goto Spawn
 		Melee:
-			SENA F 6 BRIGHT
+			SENA F 6 BRIGHT { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
 			Goto Missile
 		Pain:
-			SENA G 4
-			SENA G 4 A_Pain
+			SENA G 4 { A_APPBreathe(1.0, 0.976471, 0.00214, 4); }
+			SENA G 4 
+			{
+				A_APPBreathe(1.0, 0.976471, 0.00214, 4);
+				A_Pain;
+			}
 			Goto Spawn
 		Death:
+			SENA H 0 { A_APPBreatheReset; }
 			SENA H 0 A_PlayerSkinCheck("AltSkinDeath")
 		Death1:
 			SENA H 10
@@ -506,6 +533,7 @@ actor DeggarisMontegger : AetheriusPlayerPawn
 			SENA N -1
 			Stop
 		XDeath:
+			SENA O 0 { A_APPBreatheReset; }
 			SENA O 0 A_PlayerSkinCheck("AltSkinXDeath")
 		XDeath1:
 			SENA O 5
@@ -517,6 +545,7 @@ actor DeggarisMontegger : AetheriusPlayerPawn
 			SENA W -1
 			Stop
 		AltSkinDeath:
+			SENA H 0 { A_APPBreatheReset; }
 			SENA H 6
 			SENA I 6 A_PlayerScream
 			SENA JK 6
@@ -525,6 +554,7 @@ actor DeggarisMontegger : AetheriusPlayerPawn
 			SENA P -1
 			Stop
 		AltSkinXDeath:
+			SENA Q 0 { A_APPBreatheReset; }
 			SENA Q 5 A_PlayerScream
 			SENA R 0 A_NoBlocking
 			SENA R 5 A_SkullPop
@@ -533,5 +563,3 @@ actor DeggarisMontegger : AetheriusPlayerPawn
 			Stop
 	}
 }
-
-actor DSDoomPlayer : DoomPlayer replaces DoomPlayer { DamageFactor "Magic", 1 species "Players" }

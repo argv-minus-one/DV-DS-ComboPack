@@ -94,7 +94,7 @@ class PowerShielded_Shield : Actor
 		+NOTELEPORT;
 	}
 	
-	override int DamageMobj(Actor inflictor, Actor source, int damage, Name damageType, int flags = 0, double angle = 0)
+	override int DamageMobj(Actor inflictor, Actor source, int damage, Name damageType, int flags, double angle)
 	{
 		// By default, don't take damage. Subclasses may override this to pass some damage through to the owner.
 		return 0;

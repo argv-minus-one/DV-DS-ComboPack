@@ -1,19 +1,24 @@
 // Main MAPINFO
 
+DoomEdNums
+{
+  21122 = FlyingBalrogSpawner
+}
+
 gameinfo
 {
  InfoPage = "HELP"
- AddInfoPage = "GENHELP", "STATHELP", "FLORA-1", "FLORA-2", "FLORA-3"
+ AddInfoPage = "GENHELP", "HINTHELP", "HINTHEL2", "STATHELP", "FLORA-1", "FLORA-2", "FLORA-3"
  TitlePage = "TITLEPI0"
  CreditPage = "CREDIT"
  borderflat = "FIGHT1"
  drawreadthis = true
  titletime = 10
  cursorpic = "SCPTCURS"
- AddEventHandlers = "TiltPlusPlusHandler", "SingleDamageRipperTracker"
+ AddEventHandlers = "TiltPlusPlusHandler", "SingleDamageRipperTracker", "FireFloorAdjuster"
 }
 
-clearskills
+clearskills	
 skill baby
 {
 	SpawnFilter = Baby

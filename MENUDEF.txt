@@ -1,4 +1,40 @@
+OptionValue "InventoryLimits"
+{
+	0, "No [DEFAULT]"
+	1, "Yes"
+}
+
+OptionValue "MonsterCrits"
+{
+	0, "No"
+	1, "Yes [DEFAULT]"
+}
+
+OptionValue "MonsterProjectileBoost"
+{
+	0, "No"
+	1, "Yes [DEFAULT]"
+}
+
+OptionValue "SceptreCrosshair"
+{
+	0, "Not Unique"
+	1, "Unique [DEFAULT]"
+}
+
 OptionValue "SceptreCanDrop"
+{
+	0, "No"
+	1, "Yes [DEFAULT]"
+}
+
+OptionValue "LongbowCanDrop"
+{
+	0, "No"
+	1, "Yes [DEFAULT]"
+}
+
+OptionValue "WandsCanDrop"
 {
 	0, "No"
 	1, "Yes [DEFAULT]"
@@ -28,16 +64,22 @@ OptionValue "TensionAuraType"
 	1, "Updated"
 }
 
-OptionValue "OldHUDQuickSpellList"
+OptionValue "NewHUDQuickSpellBar"
 {
 	0, "Off"
 	1, "On"
 }
 
-OptionValue "NewHUDQuickSpellBar"
+OptionValue "CompletionistBonuses"
 {
-	0, "Off"
-	1, "On"
+	0, "+20% EXP to Next Lvl [DEFAULT]"
+	1, "2 Aeon Points"
+}
+
+OptionValue "GiveFullCompetionBonus"
+{
+	0, "No [DEFAULT]"
+	1, "Yes"
 }
 
 OptionValue "SecretsCompletionBonuses"
@@ -390,17 +432,6 @@ OptionValue "TensionOverdriveDmg"
 	1, "Yes [DEFAULT]"
 }
 
-OptionValue "TensionSpeed"
-{
-	0, "0.125x"
-	1, "0.25x"
-	2, "0.5x"
-	3, "1x [DEFAULT]"
-	4, "2x"
-	5, "4x"
-	6, "8x"
-}
-
 OptionValue "PistolRestart_AllSauronItems"
 {
 	0, "No"
@@ -494,7 +525,25 @@ OptionValue "OTHER_DeathMusic"
 	9, "The Chaos Ends in Failure!!"
 }
 
-OptionValue "DEBUG_AttackDefenseDisplay"
+OptionValue "DEBUG_InventoryLimitDisplays"
+{
+	0, "No"
+	1, "Yes"
+}
+
+OptionValue "DEBUG_ShieldActorGhosts"
+{
+	0, "No"
+	1, "Yes"
+}
+
+OptionValue "DEBUG_SceptreRangeGhost"
+{
+	0, "No"
+	1, "Yes"
+}
+
+	OptionValue "DEBUG_AttackDefenseDisplay"
 {
 	0, "No"
 	1, "Yes"
@@ -519,6 +568,18 @@ OptionValue "DEBUG_AccuracyDisplay"
 }
 
 OptionValue "DEBUG_HellcoreHeatDisplay"
+{
+	0, "No"
+	1, "Yes"
+}
+
+OptionValue "DEBUG_CurseDegenDisplay"
+{
+	0, "No"
+	1, "Yes"
+}
+
+OptionValue "DEBUG_ShieldUncurseDisplay"
 {
 	0, "No"
 	1, "Yes"
@@ -695,43 +756,6 @@ OptionValue "GameHUDMode"
 	1, "DQH-ish Style"
 }
 
-OptionValue "OldHUDMeterNotchDetail"
-{
-	1, "Very High [100/1%]"
-	2, "High [50/2%]"
-	4, "Medium [25/4%]"
-}
-
-OptionValue "OldHUDEmptyNotches"
-{
-	0, "Off"
-	1, "On"
-}
-
-OptionValue "OldHUDEXPBar"
-{
-	0, "Off"
-	1, "On"
-}
-
-OptionValue "OldHUDManaBar"
-{
-	0, "Off"
-	1, "On"
-}
-
-OptionValue "OldHUDComboBar"
-{
-	0, "Off"
-	1, "On"
-}
-
-OptionValue "OldHUDTensionBars"
-{
-	0, "Off"
-	1, "On"
-}
-
 OptionValue "NewHUDMeterNotchDetail"
 {
 	1, "Very High [200/0.5%]"
@@ -783,6 +807,12 @@ OptionValue "NewHUDDamageBurstRatios"
 }
 
 OptionValue "NewHUDSecWeaponMeters"
+{
+	0, "Off"
+	1, "On"
+}
+
+OptionValue "ALLHUDLevelUpStatDisplay"
 {
 	0, "Off"
 	1, "On"
@@ -923,6 +953,9 @@ OptionMenu "OptionsMenu"
 OptionMenu "DVDS-SubMenu1"
 {
 	Title "AETHERIUS - Special Game Options"
+	StaticText ""
+	Option "Rapid casting", 					"dvds_rapidcast", 					"OnOff"
+	Option "Double-tap dashing", 				"dvds_doubledash", 					"OnOff"
 	StaticText " "
 	Option "Stat Gain Items Appear?", 				"dvds_canseedsappear", 				"SeedsAppear"
 	Option "Experiessence Can Appear?",			"dvds_allowexperiessence",				"AllowExperiessence"
@@ -932,23 +965,37 @@ OptionMenu "DVDS-SubMenu1"
 	Option "DVII Enemies in Classic?",				"dvds_classicdviimonsters",				"DVIIMonstersInClassic"
 	Option "Random Suicide Bomber Zombies",			"dvds_suicidebombers",				"SuicideBombers"
 	Option "Enemy Shotgun/Mauler Spreads", 			"dvds_shotgunnerspread", 				"ShotgunnerType"
-	Option "Hitscans vs. Tracers [Monsters]", 		"dvds_monsterbulletstracers",			"BulletTypesMonsters"
-	TextField "Tracer Speed [multiplier]", 			"dvds_tracervelmulti"
+	StaticText " "
 	Option "Actor Crisis Attacks?", 				"dvds_monstercrisisattacks", 			"CrisisAttacks"
 	TextField "Crisis Attack Multiplier",			"dvds_monstercrisismulti"
 	Option "BFG2704 Alt-Fire?", 				"dvds_BFG2704", 					"BFG2704"
 	Option "Can Dash/Air-Dash?",	 			"dvds_allowdashing", 				"DashOption"
 	Option "Can use Tension?",					"dvds_allowtension", 				"TensionOption"
 	Option "Tension OverPsyche Slowly Hurts?",		"dvds_allowtensionocdmg", 				"TensionOverdriveDmg"
-	Option "Tension Spd (affects Stam. use)",			"dvds_tensionspeed", 				"TensionSpeed"
+	TextField "Tension Spd (affects Stam. use)",			"dvds_tensionspeed"
 	StaticText " "
 	Slider "Adjust Movement Speed",				"dvds_speedmult", 					0.01, 2.0, 0.01, 2
 	Option "Stamina Affects Movement Speed",			"dvds_staminaaffectsspeed", 			"StaminaAffectsSpeed"
 	Option "Level Affects Movement Speed",			"dvds_levelaffectsspeed", 				"LevelAffectsSpeed"
 	StaticText " "
+	TextField "Evasion % Calculation Factor",			"dvds_evadecalcfactor"
+	TextField "Survive % Calculation Factor",			"dvds_survivecalcfactor"
+	TextField "Crit Rate % Calculation Factor",			"dvds_criticalcalcfactor"
+	StaticText " "
 	Option "Monsters Behavior Based on Level?",		"dvds_monsterlevelbehavior", 			"MonsterLevelBehavior"
 	Option "'Improved' Icon of Sin",				"dvds_improvediconofsin", 				"ImprovedIconOfSin"
 	StaticText " "
+	Option "Hitscans vs. Tracers [Monsters]", 		"dvds_monsterbulletstracers",			"BulletTypesMonsters"
+	TextField "Player Projectile Speed [multiplier]", 			"dvds_pprojectilevelmulti"
+	TextField "Enemy Projectile Speed [multiplier]", 			"dvds_mprojectilevelmulti"
+	TextField "Tracer Speed [multiplier]", 			"dvds_tracervelmulti"
+	StaticText " "
+	Option "Monsters' Speed Affects Projectiles", 	"dvds_monsterprojectileboost",		"MonsterProjectileBoost"
+	TextField "Monster Proj. Speed [multiplier]", 	"dvds_monsprojboostfactor"
+	TextField "Legendaries' Proj. Spd Multi.",      "dvds_LD_projspeedmulti"
+	StaticText " "
+	Option "Monsters Can Crit?", 	"dvds_monstercrits",		"MonsterCrits"
+	Option "Impose Inventory Limits", 	"dvds_imposeinventorylimits",		"InventoryLimits"
 	StaticText " "
 	Command "Restore Default Settings", 			"dvds_defaults1"
 }
@@ -958,13 +1005,15 @@ OptionMenu "DVDS-SubMenu2"
 	Title "AETHERIUS - Optimization/Visual Options"
 
 	Option "Damage Indicators", 				"dvds_dmgindicator", 				"DamageIndicators"
-	TextField "Dmg Ind. Delay [tics] (1-35)", 		"dvds_dmgind_delay"
+	TextField "Dmg Ind. Delay [tics] (1-140)", 		"dvds_dmgind_delay"
+	TextField "Dmg Ind. Delay Monster Divisor (1-10240)", 		"dvds_dmgind_monstdivisor"
+	StaticText " "
 	Option "Show Actor Lifebars on LOS", 			"dvds_actorlifebars", 				"ActorLifebars"
 	Option "Show Actor Names on Lifebars", 			"dvds_actorlifebarnames", 				"ActorLifebarNames"
 	Option "Show Actor HP Amount on Lifebars",	 	"dvds_actorlifebarhp", 				"ActorLifebarHP"
 	Option "Show Actor Stats on Lifebars",	 		"dvds_actorlifebarstats", 				"ActorLifebarStats"
 	StaticText " "
-      Option "Player's Tension Aura Appearance",		"dvds_tensionauratype", 				"TensionAuraType"
+  Option "Player's Tension Aura Appearance",		"dvds_tensionauratype", 				"TensionAuraType"
 	StaticText " "
 	Option "GFX Effect Level",	 				"dvds_gfxeffectlevel", 				"GFXEffectLevel"
 	StaticText " "
@@ -986,6 +1035,10 @@ OptionMenu "DVDS-SubMenu3"
 	TextField "Aeon Point [MultiX]", 				"dvds_aeonpointmultiplier"
 	TextField "Ruinous Shield Uncurse Rate [%]", 		"dvds_uncurserate"
 	StaticText " "
+	TextField "Powerup Time Given [%]", 		"dvds_poweruptimemultiplier"
+	TextField "Inventory Powerup Time Given [%]", 		"dvds_invpoweruptimemultiplier"
+	TextField "Spell Buff Time Given [%]", 		"dvds_spellbufftimemultiplier"
+	StaticText " "
 	TextField "Hellcore Heat [%]", 				"dvds_heatheatmultiplier"
 	TextField "Hellcore Cool [%]", 				"dvds_heatcoolmultiplier"
 	StaticText " "
@@ -1003,6 +1056,7 @@ OptionMenu "DVDS-SubMenu3"
 	TextField "Tension Cooldown [%]", 				"dvds_tension_cooldownmultiplier"
 	TextField "Tension Fail Rate Ratio [%]", 			"dvds_tension_failrateratio"
 	StaticText " "
+	TextField "Deathkings Map# Calc Mod", 					"dvds_deathkingsmapcalcmod"
 	StaticText " "
 	TextField "Deggaris/Illucia Lvl Cap [0-200]", 		"dvds_marines_maxlevel"
 	TextField "Flora Lvl Cap [0-200]", 			"dvds_flora_maxlevel"
@@ -1068,13 +1122,17 @@ OptionMenu "DVDS-SubMenu6"
 	Option "Actor Stats Based On Player Level", 		"dvds_monsterstatcalc_levels", 			"MonsterStatChangePlayerLevel"
 	Option "Actor Stats Error/Varience", 			"dvds_monsterstatcalc_varience", 			"MonsterStatChangeError"
 	StaticText " "
-	TextField "Map Difficulty Inflate [OVERALL]", 		"dvds_mapdifficultyinflationOVERALL"
-	TextField "Map Difficulty Inflate [EXP]", 		"dvds_mapdifficultyinflationEXP"
-	TextField "Map Difficulty Inflate [Stats]",		"dvds_mapdifficultyinflationStats"
-	TextField "Map Difficulty Inflate [Spwn/Stel]", 	"dvds_mapdifficultyinflationSpawnStealth"
+	TextField "Map Difficulty Inflate [OVERALL] (#)", 		"dvds_mapdifficultyinflationOVERALL"
+	TextField "Map Difficulty Inflate [OVERALL] (%)", 		"dvds_mapdifficultyinflationOVERALL2"
+	TextField "Map Difficulty Inflate [EXP] (#)", 		"dvds_mapdifficultyinflationEXP"
+	TextField "Map Difficulty Inflate [EXP] (%)", 		"dvds_mapdifficultyinflationEXP2"
+	TextField "Map Difficulty Inflate [Stats] (#)",		"dvds_mapdifficultyinflationStats"
+	TextField "Map Difficulty Inflate [Stats] (%)",		"dvds_mapdifficultyinflationStats2"
+	TextField "Map Difficulty Inflate [Spwn/Stel] (#)", 	"dvds_mapdifficultyinflationSpawnStealth"
+	TextField "Map Difficulty Inflate [Spwn/Stel] (%)", 	"dvds_mapdifficultyinflationSpawnStealth2"
 	StaticText " "
-	TextField "Level Difficulty Inflate [Exact]",		"dvds_leveldifficultyinflation"
-	TextField "Level Difficulty Inflate [Percentile]", 	"dvds_leveldifficultyinflation2"
+	TextField "Level Difficulty Inflate [#]",		"dvds_leveldifficultyinflation"
+	TextField "Level Difficulty Inflate [%]", 	"dvds_leveldifficultyinflation2"
 	TextField "Level Stats Factor", 				"dvds_monsterlevelstatfactor"
 	StaticText " "
 	TextField "Monster Atk Factor (Skill)",			"dvds_monsterattackratio_skill"
@@ -1111,9 +1169,6 @@ OptionMenu "DVDS-Other1"
 	Title "AETHERIUS - Misc Options"
 
 	Option "Death Music", 					"dvds_deathmusic", 					"OTHER_DeathMusic"
-	Option "Rapid casting", 					"dvds_rapidcast", 					"OnOff"
-	StaticText ""
-	Option "Double-click dashing", 				"dvds_doubledash", 					"OnOff"
 /*
 	StaticText "If this is on, you can dash by double-clicking"
 	StaticText "a movement button (forward, strafe left, strafe"
@@ -1128,39 +1183,62 @@ OptionMenu "DVDS-Other1"
 */
 }
 
-OptionMenu "DVDS-DebugMenu1"
+OptionMenu "DVDS-DebugMenuMain"
 {
 	Title "AETHERIUS - Debugging Options"
 
+	SubMenu "Debugging Options - Part 1 (Player)",		"DVDS-DebugMenu1"
+	SubMenu "Debugging Options - Part 2 (Actor)",			"DVDS-DebugMenu2"
+	SubMenu "Debugging Options - Part 3 (Misc)",			"DVDS-DebugMenu3"
+}
+OptionMenu "DVDS-DebugMenu1"
+{
+	Title "AETHERIUS - Debugging Options - Part 1 (Player)"
+
+	Option "Player's Damage Displays",				"dvdsdebug_playerdmgdisplays",			"DEBUG_PlayerDMGDisplay"
 	Option "Player Position Displays",				"dvdsdebug_showplayercoords", 			"DEBUG_PlayerPosDisplay"
 	Option "Spell Position Displays",				"dvdsdebug_showspellpos", 				"DEBUG_SpellPosDisplay"
 	Option "EXP Debug Displays", 				"dvdsdebug_showexpdebugstuff", 			"DEBUG_ExpDisplay"
-	Option "Melee-Attack Displays", 				"dvdsdebug_showmeleeinformation", 			"DEBUG_MeleeAtkDisplay"
 	Option "Player-Attack Displays", 				"dvdsdebug_showplayeratkinformation", 		"DEBUG_PlayerAtkDisplay"
-	Option "Misc-Attack Displays", 				"dvdsdebug_showmiscdmginformation", 		"DEBUG_MiscAtkDisplay"
 	Option "Tension Displays", 					"dvdsdebug_showtensioninformation", 		"DEBUG_TensionDisplay"
 	Option "Dashing Displays", 					"dvdsdebug_showdashinformation", 			"DEBUG_DashDisplay"
 	Option "Player Movement Displays", 			"dvdsdebug_showmoveinformation", 			"DEBUG_MoveDisplay"
 	Option "HP Regen/Degen Displays", 				"dvdsdebug_showhpregenstuff", 			"DEBUG_HPRegenDisplay"
 	Option "Mana Regen/Degen Displays", 			"dvdsdebug_showmanaregenstuff", 			"DEBUG_ManaRegenDisplay"
 	Option "Stamina Regen/Degen Displays", 			"dvdsdebug_showstaminaregenstuff", 		"DEBUG_StaminaRegenDisplay"
-	Option "Monster Stat Calc Displays",			"dvdsdebug_showstatcalcstuff",			"DEBUG_EnemyStatsDisplay"
 	Option "Player Critical Hit % Displays",			"dvdsdebug_showcriticalhitstuff",			"DEBUG_PlayerCritDisplay"
 	Option "Spell Cost Displays",				"dvdsdebug_showspellcoststuff",			"DEBUG_SpellCostDisplay"
 	Option "Survival Rate Displays",				"dvdsdebug_showsurvivalstuff",			"DEBUG_SurviveRateDisplay"
 	Option "Evade Rate Displays",				"dvdsdebug_showevadestuff",				"DEBUG_EvadeRateDisplay"
 	Option "Stamina Consumption Displays",			"dvdsdebug_showstaminausestuff",			"DEBUG_StaminaUseDisplay"
-	Option "Max HP Bonus/Seed/Fygg Displays",			"dvdsdebug_showseedstuff",				"DEBUG_SeedGrabDisplay"
-	Option "Monster Evol/Stel Chance Displays",		"dvdsdebug_evolvestealthstuff",			"DEBUG_EvolveStealthDisplay"
 	Option "Infinite Ammo Chance Displays",			"dvdsdebug_infiniteammostuff",			"DEBUG_InfiniteAmmoDisplay"
-	Option "Lifebar Displays",					"dvdsdebug_lifebardisplaystuff",			"DEBUG_LifebarDisplay"
-	Option "In-Game Menu Displays",				"dvdsdebug_ingamemenudisplay",			"DEBUG_InGameMenuDisplay"
 	Option "Hellcore Heat/Cool Displays",			"dvdsdebug_hellcoreheatdisplay",			"DEBUG_HellcoreHeatDisplay"
+	Option "Shield Uncurse Displays",				"dvdsdebug_shielduncursedisplay",			"DEBUG_ShieldUncurseDisplay"
+	Option "Curse Degen Displays",				"dvdsdebug_cursedmgdisplay",			"DEBUG_CurseDegenDisplay"
+	Option "Poison Ailment Displays",				"dvdsdebug_poisonailmentdisplays",			"DEBUG_PoisonDisplay"
+	Option "Show Ghost of Sceptre's Range?",				"dvdsdebug_sceptrerangeghost",			"DEBUG_SceptreRangeGhost"
+	Option "Show Ghosts of 'Shields'",				"dvdsdebug_shieldactorghosts",			"DEBUG_ShieldActorGhosts"
+	Option "Show Inventory Limit Displays",				"dvdsdebug_inventorylimits",			"DEBUG_InventoryLimitDisplays"
+}
+OptionMenu "DVDS-DebugMenu2"
+{
+	Title "AETHERIUS - Debugging Options - Part 2 (Actors)"
+	
+	Option "Actor's Damage Displays",				"dvdsdebug_actordmgdisplays",			"DEBUG_ActorDMGDisplay"
+	Option "Monster Stat Calc Displays",			"dvdsdebug_showstatcalcstuff",			"DEBUG_EnemyStatsDisplay"
+	Option "Monster Evol/Stel Chance Displays",		"dvdsdebug_evolvestealthstuff",			"DEBUG_EvolveStealthDisplay"
+	Option "Lifebar Displays",					"dvdsdebug_lifebardisplaystuff",			"DEBUG_LifebarDisplay"
+}
+OptionMenu "DVDS-DebugMenu3"
+{
+	Title "AETHERIUS - Debugging Options - Part 3 (Misc)"
+	
+	Option "Melee-Attack Displays", 				"dvdsdebug_showmeleeinformation", 			"DEBUG_MeleeAtkDisplay"
+	Option "Misc-Attack Displays", 				"dvdsdebug_showmiscdmginformation", 		"DEBUG_MiscAtkDisplay"
+	Option "In-Game Menu Displays",				"dvdsdebug_ingamemenudisplay",			"DEBUG_InGameMenuDisplay"
 	Option "Accuracy/Spread Displays",				"dvdsdebug_accuracyspreadisplay",			"DEBUG_AccuracyDisplay"
 	Option "Healing Item Displays",				"dvdsdebug_healitemdisplays",			"DEBUG_HealItemDisplay"
-	Option "Poison Ailment Displays",				"dvdsdebug_poisonailmentdisplays",			"DEBUG_PoisonDisplay"
-	Option "Player's Damage Displays",				"dvdsdebug_playerdmgdisplays",			"DEBUG_PlayerDMGDisplay"
-	Option "Actor's Damage Displays",				"dvdsdebug_actordmgdisplays",			"DEBUG_ActorDMGDisplay"
+	Option "Max HP Bonus/Seed/Fygg Displays",			"dvdsdebug_showseedstuff",				"DEBUG_SeedGrabDisplay"
 }
 
 OptionMenu "DVDS-MiscModCompat1"
@@ -1198,13 +1276,20 @@ OptionMenu "DVDS-FloraSpecfic"
 	Option "Starts w/ Sapphire Wand?",			"dvds_florastartsapphirewand", 			"SapphireWandFlora"
 	Option "Starts w/ Diaris Longbow?", 		"dvds_florastartdiarislongbow", 			"StartDiarisLongBow"
 	Option "Sceptre Can Be Dropped?", 			"dvds_florasceptrecandrop", 			"SceptreCanDrop"
+	Option "Sapphire Wands Can Be Dropped?", 			"dvds_florawandscandrop", 			"WandsCanDrop"
+	Option "Diaris Longbow Can Be Dropped?", 			"dvds_floralongbowcandrop", 			"LongbowCanDrop"
 	Option "Armor Randomized in DVII?", 		"dvds_dviiarmorspawn", 				"RandomizeDVIIArmor"
 	Option "Can Gain Sceptre EXP?", 			"dvds_noscexpgains", 				"SceptreEXPGains"
-      IfGame(Heretic)
-      { 
+  Option "Sceptre's Crosshair?",       "dvds_florasceptrecrosshair",       "SceptreCrosshair"
+	StaticText " "
+	Textfield "MP Cost per Shot [Wands]",			"dvds_florawandmpcost"
+	Textfield "MP Cost per Shot [HW Shield]",			"dvds_florahwshieldmpcost"
+
+  IfGame(Heretic)
+  { 
 		StaticText " "
 		SubMenu "FLORA SPECFIC OPTIONS (Heretic)",			"DVDS-FloraSpecficHeretic"
-      }
+  }
 	StaticText " "
 	Command "Restore Default Settings", 			"dvds_defaultsflora"
 }
@@ -1265,38 +1350,32 @@ OptionMenu "DVDS-HUDStuff"
 {
 	Title "AETHERIUS - HUD Options"
 
-	Option "Game HUD Mode?",					"dvds_newhud",					"GameHUDMode"
 	Option "ACS-Based HUD Elements?",	 			"dvds_showacshudelements", 				"ACSHUDElements"
 	StaticText " "
-	Option "[OLD] Meter Detail",				"dvdsoldhud_hudmeternotchdetail",			"OldHUDMeterNotchDetail"
-	Option "[OLD] Empty Notches",				"dvdsoldhud_showemptynotches",			"OldHUDEmptyNotches"
-	Option "[OLD] EXP Bar",					"dvdsoldhud_showexpbar",				"OldHUDEXPBar"
-	Option "[OLD] Mana Bar",					"dvdsoldhud_showmanabar",				"OldHUDManaBar"
-	Option "[OLD] Combo Bar",					"dvdsoldhud_showcombobar",				"OldHUDComboBar"
-	Option "[OLD] Tension Bars",				"dvdsoldhud_showtensionbars",			"OldHUDTensionBars"
-	Option "[OLD] Quickspell List",				"dvdsoldhud_showquickspells",			"OldHUDQuickSpellList"
-	TextField "[OLD] General Transperancy Ratio",		"dvdsoldhud_generaltransperancy"
+//	TextField "HUD Overall Width",          "dvdsnewhud_hudwidth"
+//	TextField "HUD Overall Height",          "dvdsnewhud_hudheight"
+//	StaticText " "
+	TextField "X-Offset [>4:3 Modes]",			"dvdsnewhud_widescreenxoffset"
+//	TextField "Y-Offset [>4:3 Modes]",			"dvdsnewhud_widescreenyoffset"
+//	StaticText " "
+	Option "Meter Detail",				"dvdsnewhud_hudmeternotchdetail",			"NewHUDMeterNotchDetail"
+	Option "Overlife Notches",				"dvdsnewhud_showoverlifenotches",			"NewHUDOverlifeNotches"
+	Option "Primary Meters",				"dvdsnewhud_showprimarymeters",			"NewHUDPrimaryMeters"
+	Option "Secondary Meters",				"dvdsnewhud_showsecondarymeters",			"NewHUDSecondaryMeters"
+	Option "Tension Bar...",				"dvdsnewhud_tensionmainbar",			"NewHUDTensionMainBar"
+	Option "Tension Cooldown Bar...",			"dvdsnewhud_tensioncooldownbar",			"NewHUDTensionCooldownBar"
+	Option "Quickspell Bar",				"dvdsnewhud_showquickspells",			"NewHUDQuickSpellBar"
+	Option "Ratios on Dmg/Heal Bursts?",		"dvdsnewhud_damageburstsratios",			"NewHUDDamageBurstRatios"
+	Option "2ndary Weapon Meter [HEAT/MP]",		"dvdsnewhud_showsecondaryweapmeter",		"NewHUDSecWeaponMeters"
+	Option "Level Stats",					"dvdsnewhud_showlevelstats",			"NewHUDLevelStats"
+	TextField "General Transperancy Ratio",		"dvdsnewhud_generaltransperancy"
 	StaticText " "
-	TextField "[NEW] X-Offset [>4:3 Modes]",			"dvdsnewhud_widescreenxoffset"
-	Option "[NEW] Meter Detail",				"dvdsnewhud_hudmeternotchdetail",			"NewHUDMeterNotchDetail"
-	Option "[NEW] Overlife Notches",				"dvdsnewhud_showoverlifenotches",			"NewHUDOverlifeNotches"
-	Option "[NEW] Primary Meters",				"dvdsnewhud_showprimarymeters",			"NewHUDPrimaryMeters"
-	Option "[NEW] Secondary Meters",				"dvdsnewhud_showsecondarymeters",			"NewHUDSecondaryMeters"
-	Option "[NEW] Tension Bar...",				"dvdsnewhud_tensionmainbar",			"NewHUDTensionMainBar"
-	Option "[NEW] Tension Cooldown Bar...",			"dvdsnewhud_tensioncooldownbar",			"NewHUDTensionCooldownBar"
-	Option "[NEW] Quickspell Bar",				"dvdsnewhud_showquickspells",			"NewHUDQuickSpellBar"
-	Option "[NEW] Ratios on Dmg/Heal Bursts?",		"dvdsnewhud_damageburstsratios",			"NewHUDDamageBurstRatios"
-	Option "[NEW] 2ndary Weapon Meter [HEAT/MP]",		"dvdsnewhud_showsecondaryweapmeter",		"NewHUDSecWeaponMeters"
-	Option "[NEW] Level Stats",					"dvdsnewhud_showlevelstats",			"NewHUDLevelStats"
-	TextField "[NEW] General Transperancy Ratio",		"dvdsnewhud_generaltransperancy"
-	StaticText " "
-	Option "[BOTH] Show Stat Values",				"dvdsallhuds_showstatinfo",				"ALLHUDSecondaryStatInfo"
-	TextField "[BOTH] HUD Refresh Delay [Tics]",		"dvdsallhuds_refreshdelay"
+	Option "Show Stat Values",				"dvdsallhuds_showstatinfo",				"ALLHUDSecondaryStatInfo"
+	Option "Show Level Up Results",	"dvdsallhuds_showlevelups",				"ALLHUDLevelUpStatDisplay"
+	TextField "HUD Refresh Delay [Tics]",		"dvdsallhuds_refreshdelay"
 	StaticText " "
 	StaticText " "
-	Command "Restore Default Settings [OLD]",			"dvds_huddefaultold"
-	Command "Restore Default Settings [NEW]",			"dvds_huddefaultnew"
-	Command "Restore Default Settings [BOTH]",		"dvds_huddefaultboth"
+	Command "Restore Default Settings",			"dvds_huddefault"
 }
 
 OptionMenu "DVDS-Voices"
@@ -1357,6 +1436,9 @@ OptionMenu "DVDS-OldCompletionBonuses"
 	TextField "Items to Increase Base Multi?",		"dvds_itemsfoundformulti"
 	TextField "Secrets to Increase Base Multi?",		"dvds_secretsfoundformulti"
 	StaticText " "
+	Option "Competionist Bonus?",				"dvds_getcompletionbonus", 		"GiveFullCompetionBonus"
+	Option "Competionist Type?",				"dvds_completionistbonus", 		"CompletionistBonuses"
+	StaticText " "
 	Command "Restore Default Settings", 			"dvds_defaultscompletion"
 }
 
@@ -1408,7 +1490,7 @@ OptionMenu "DVDSOptions"
 	StaticText " "
 	SubMenu "DOOMSPELLV2 COMPLETION BONUS OPTIONS",		"DVDS-OldCompletionBonuses"
 	StaticText " "
-	SubMenu "Debugging Options",				"DVDS-DebugMenu1"
+	SubMenu "Debugging Options",				"DVDS-DebugMenuMain"
 	StaticText " "
 	StaticText " "
 	SubMenu "Compatability with other Mods",			"DVDS-MiscModCompat1"
@@ -1522,7 +1604,7 @@ LISTMENU "MainMenu"
 	TextItem "New Game",			"n",	"PlayerclassMenu"
 	TextItem "AETHERIUS Options",	"s",	"DVDSOptions"
 	TextItem "Engine Options",		"o",	"OptionsMenu"
-	TextItem "Help",			"h",	"ReadThisMenu"
+	TextItem "READ THIS [HELP]",			"h",	"ReadThisMenu"
 	TextItem "Load Game",		"l",	"LoadGameMenu"
 	TextItem "Save Game",		"s",	"SaveGameMenu"
 	TextItem "Quit Game",		"q",	"QuitMenu"

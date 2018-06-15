@@ -68,7 +68,7 @@ class SceptreShield : PowerShielded_Shield
 		return block;
 	}
 	
-	override int DamageMobj(Actor inflictor, Actor source, int damage, Name damageType, int flags = 0, double angle = 0)
+	override int DamageMobj(Actor inflictor, Actor source, int damage, Name damageType, int flags, double angle)
 	{
 		let rang = absangle(master.AngleTo(inflictor), master.Angle);
 		let block = rang <= SceptreOfEmpyreaZSC.FullAttackAngle;
