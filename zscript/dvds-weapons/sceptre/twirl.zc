@@ -34,6 +34,13 @@ extend class SceptreOfEmpyreaZSC
 		TwirlStamCostAccum +=    SceptreTwirlStaminaCost[SceptreLevel];
 		Twirling.FullSpinRate =  TwirlSpinRate          [SceptreLevel];
 		Twirling.ActiveSound =   TwirlSound             [SceptreLevel];
+		Twirling.SpinAccelMult = 1. / (35. - min(SceptreLevel, 16));
+		Twirling.SpinDecelMult = Twirling.SpinAccelMult * 2.;
+		
+		if (ACS_NamedExecuteWithResult("GetBuffTimer", 7) > 0) {
+			Twirling.SpinAccelMult *= 2.;
+			Twirling.SpinDecelMult *= 2.;
+		}
 	}
 	
 	states
