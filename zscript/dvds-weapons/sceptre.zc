@@ -58,7 +58,10 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			SceptreLevel = CharLevel = 0;
 		
 		Crosshair = dvds_florasceptrecrosshair? 8 : 0;
+		
 		AnimSpeedFactor = SceptreAttackSpeeds[SceptreLevel];
+		if (ACS_NamedExecuteWithResult("GetBuffTimer", 7) > 0)
+			AnimSpeedFactor -= 1.;
 		
 		Super.Tick();
 	}
