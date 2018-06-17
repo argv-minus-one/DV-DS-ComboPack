@@ -84,6 +84,7 @@ class PowerShielded_Shield : Actor
 	default
 	{
 		Health 1;
+		+SOLID;
 		+SHOOTABLE;
 		+DONTRIP;
 		+NOTIMEFREEZE;
