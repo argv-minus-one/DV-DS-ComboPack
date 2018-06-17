@@ -18,25 +18,17 @@ class AetheriusBaseWeaponZSC : Weapon
 	const spread2height1 = 0.0;
 	const spread2height2 = 0.0;
 	
-	PSpriteSpeedScalerSet AnimSpeeds;
-	bool AnimSpeedsEnabled;
+	private PSpriteSpeedScalerSet AnimSpeeds;
 	
-	/**
-	 * Computes the animation speed for this tic. If negative, then for each tic of animation, that many tics will be skipped. If positive, then for each tic of animation, that many tics will be added. This can be a fraction; -0.5 makes the weapons fire at 1.5× of its normal rate.
-	 *
-	 * This method is called on every tic that this weapon is active, so make it quick!
-	 */
-	virtual float AnimSpeedFactor()
-	{
-		return 0;
-	}
+	/** Animation speed modifier, per tic. If negative, then for each tic of animation, that many tics will be skipped. If positive, then for each tic of animation, that many tics will be added. This can be a fraction; -0.5 makes the weapons fire at 1.5× of its normal rate. If zero, no effect on animation speed. */
+	protected float AnimSpeedFactor;
 	
 	override void Tick()
 	{
 		Super.Tick();
 		
-		if (AnimSpeedsEnabled && Owner && Owner.player && Owner.player.ReadyWeapon == self)
-			AnimSpeeds.Tick(self, AnimSpeedFactor());
+		if (AnimSpeedFactor != 0. && Owner && Owner.player && Owner.player.ReadyWeapon == self)
+			AnimSpeeds.Tick(self, AnimSpeedFactor);
 		else if (AnimSpeeds.first)
 			AnimSpeeds.Clear();
 	}

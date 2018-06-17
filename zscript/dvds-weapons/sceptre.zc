@@ -47,12 +47,6 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 	
 	protected int SceptreLevel, CharLevel;
 	
-	override void BeginPlay()
-	{
-		Super.BeginPlay();
-		AnimSpeedsEnabled = true;
-	}
-	
 	override void Tick()
 	{
 		if (Owner && Owner.player && Owner.player.ReadyWeapon == self)
@@ -64,15 +58,9 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			SceptreLevel = CharLevel = 0;
 		
 		Crosshair = dvds_florasceptrecrosshair? 8 : 0;
+		AnimSpeedFactor = SceptreAttackSpeeds[SceptreLevel];
 		
 		Super.Tick();
-	}
-	
-	override float AnimSpeedFactor()
-	{
-		// If you try to just return SceptreAttackSpeeds[SceptreLevel], you'll cause an error. Odd.
-		let f = SceptreAttackSpeeds[SceptreLevel];
-		return f;
 	}
 	
 	states
