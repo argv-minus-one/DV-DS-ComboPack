@@ -34,13 +34,10 @@ extend class SceptreOfEmpyreaZSC
 		TwirlStamCostAccum +=    SceptreTwirlStaminaCost[SceptreLevel];
 		Twirling.FullSpinRate =  TwirlSpinRate          [SceptreLevel];
 		Twirling.ActiveSound =   TwirlSound             [SceptreLevel];
-		Twirling.SpinAccelMult = 1. / (35. - min(SceptreLevel, 16));
-		Twirling.SpinDecelMult = Twirling.SpinAccelMult * 2.;
+		Twirling.SpinAccelMult = 2. / (35. - min(SceptreLevel, 16));
 		
-		if (ACS_NamedExecuteWithResult("GetBuffTimer", 7) > 0) {
+		if (ACS_NamedExecuteWithResult("GetBuffTimer", 7) > 0)
 			Twirling.SpinAccelMult *= 2.;
-			Twirling.SpinDecelMult *= 2.;
-		}
 	}
 	
 	states
@@ -114,15 +111,15 @@ class SceptreTwirling : Actor
 		Radius 40;
 		Scale .08888888888888889; // (40 / 450) in double precision
 		ActiveSound "SceptreTwirl1";
-		SceptreTwirling.SpinAccelMult (1./35.), (1./35.);
+		SceptreTwirling.SpinAccelMult (1./35.);
 		SceptreTwirling.SpinRate 3, 25;
 		SceptreTwirling.TouchPos 14, -6, 0;
 		SceptreTwirling.TouchAngle 180;
 		SceptreTwirling.TwirlPos 30, 0, 0;
 	}
 	
-	float SpinAccelMult, SpinDecelMult;
-	property SpinAccelMult: SpinAccelMult, SpinDecelMult;
+	float SpinAccelMult;
+	property SpinAccelMult: SpinAccelMult;
 	
 	float MinSpinRate, FullSpinRate;
 	// How fast the Sceptre spins initially and at full speed (in degrees per tic).
@@ -140,9 +137,9 @@ class SceptreTwirling : Actor
 	// Like TouchPos, but for when the Sceptre is out and twirling.
 	property TwirlPos: TwirlPosX, TwirlPosY, TwirlPosZ;
 	
-	protected float SpinRate, TargetSpinRate, SpinDeltaAngle, SpinDeltaAccel;
-	protected Vector3 PrevRelPos, CurrentRelPos, TargetRelPos;
 	bool ReadyToCatch;
+	protected ActorSpinner RotControl;
+	protected Vector3 PrevRelPos, CurrentRelPos, TargetRelPos;
 	private int SpawnTic;
 	
 	override void PostBeginPlay()
@@ -157,6 +154,7 @@ class SceptreTwirling : Actor
 		SpawnTic = gametic;
 		PrevRelPos = CurrentRelPos = TargetRelPos = (TouchPosX, TouchPosY, TouchPosZ);
 		Roll = TouchAngle;
+		RotControl.mo = self;
 	}
 	
 	override void Tick()
@@ -167,44 +165,15 @@ class SceptreTwirling : Actor
 			return;
 		}
 		
-		Super.Tick();
-		
-		// Actually spin.
+		RotControl.Accel = SpinAccelMult * FullSpinRate;
 		let prevRoll = Roll;
-		if (
-			SpinDeltaAngle != 0. &&
-			(SpinDeltaAngle < 0.? SpinRate <= SpinDeltaAngle : SpinRate >= SpinDeltaAngle)
-		)
-		{
-			// In delta angle mode, snap to the exact target angle.
-			Roll = Normalize180(Roll + SpinDeltaAngle);
-			SpinDeltaAngle = 0.;
-			SpinRate = TargetSpinRate;
-		}
-		else if (SpinRate != 0.)
-		{
-			// Normal spinning.
-			Roll = Normalize180(Roll + SpinRate);
-			
-			if (SpinDeltaAngle != 0.)
-				SpinDeltaAngle -= SpinRate;
-		}
+		RotControl.Tick();
 		
-		// Adjust the spin rate, as needed.
-		// This needs to happen *after* adjusting the roll for this tic. Otherwise, delta angle mode may not stop, if the spin rate is too high.
-		if (SpinDeltaAngle != 0.)
-			// Spinning in delta angle mode, so use the delta angle acceleration factor instead.
-			SpinRate += SpinDeltaAccel;
-		else if (TargetSpinRate > SpinRate)
-			// Accelerate.
-			SpinRate = min(SpinRate + (SpinAccelMult * FullSpinRate), TargetSpinRate);
-		else if (TargetSpinRate < SpinRate)
-			// Decelerate.
-			SpinRate = max(SpinRate - (SpinDecelMult * FullSpinRate), TargetSpinRate);
+		Super.Tick();
 		
 		// Play a sound when crossing angle 0 at speed.
 		if (
-			SpinRate > 15. && (
+			RotControl.Vel > 15. && (
 				((prevRoll < 0. && prevRoll > -90.) && (Roll >= 0. && Roll < 90.)) ||
 				((prevRoll > 0. && prevRoll < 90.) && (Roll <= 0. && Roll > -90.))
 			)
@@ -271,66 +240,14 @@ class SceptreTwirling : Actor
 	
 	protected action void A_SpinUp()
 	{
-		invoker.TargetSpinRate = invoker.FullSpinRate;
-	}
-	
-	/** Enters delta angle mode. This will cause the Sceptre to accelerate/decelerate such that it is spinning at the targetSpinRate when it crosses the targetAngle. */
-	protected action void A_SpinToAngle(float targetAngle, float targetSpinRate)
-	{
-		// Clear any previous delta angle mode, and set the new target spin rate.
-		invoker.SpinDeltaAngle = 0.;
-		invoker.TargetSpinRate = targetSpinRate;
-		
-		if (invoker.SpinRate == targetSpinRate)
-			// If already at the targetSpinRate, there's nothing to do. The Sceptre will indeed cross the targetAngle at the targetSpinRate.
-			return;
-		
-		// What's our maximum acceleration/deceleration rate? This will be positive if accelerating, or negative if decelerating.
-		let accel =
-			targetSpinRate > invoker.SpinRate?
-			invoker.FullSpinRate * invoker.SpinAccelMult :
-			invoker.FullSpinRate * -invoker.SpinDecelMult;
-		
-		// Can't do anything if the acceleration is zero!
-		if (accel == 0.)
-		{
-			Console.Printf("\cg%s has a zero FullSpinRate or SpinAccelMult!\n[\c-FullSpinRate=\cf%f \c-SpinAccelMult=\cf%f \c-SpinDecelMult=\cf%f\cg]", GetClassName(), invoker.FullSpinRate, invoker.SpinAccelMult, invoker.SpinDecelMult);
-			invoker.ReadyToCatch = true;
-			invoker.Destroy();
-			return;
-		}
-		
-		// Given the current acceleration rate, what's the minimum time (in tics) needed to reach the targetSpinRate from the current SpinRate?
-		// Credit to Carl Gauss for figuring out how to compute this part.
-		let minTics = (targetSpinRate - invoker.SpinRate + accel) / accel;
-		
-		// In that time, assuming constant acceleration at the current rate (but with the spin rate never dropping below MinSpinRate), how far will the Sceptre spin?
-		let minDeltaAngle = minTics * (
-			abs(
-				max(targetSpinRate, invoker.MinSpinRate)
-				- max(invoker.SpinRate, invoker.MinSpinRate)
-			) / 2.
-		);
-		
-		// That probably won't be equal to targetAngle. How much farther must the Sceptre spin to reach the targetAngle?
-		let remainingDeltaAngle = deltaangle(Normalize180(invoker.Roll + minDeltaAngle), targetAngle);
-		if (remainingDeltaAngle < 0.)
-			remainingDeltaAngle += 360.;
-		
-		// OK, now we have the full delta angle.
-		invoker.SpinDeltaAngle = minDeltaAngle + remainingDeltaAngle;
-		
-		// At what rate should the Sceptre's spinning accelerate/decelerate, in order to reach the targetAngle right when it reaches the targetSpinRate?
-		// FIXME: This is wrong! It causes the Sceptre to stop too soon when spinning down. It looks okayish, but not as good as it should.
-		invoker.SpinDeltaAccel = invoker.SpinDeltaAngle == 0.? 0. : accel * (minDeltaAngle / invoker.SpinDeltaAngle);
-		
-		// And we're done!
-		// Damn but this took me forever to figure out. [argv_minus_one]
+		invoker.RotControl.CancelLanding();
+		invoker.RotControl.DesVel = invoker.FullSpinRate;
 	}
 	
 	protected action void A_SpinDown()
 	{
-		A_SpinToAngle(invoker.TouchAngle, 0.);
+		invoker.RotControl.DesVel = 0;
+		invoker.RotControl.LandAt(invoker.TouchAngle);
 	}
 	
 	protected double ProgressTowardTargetRelPos()
@@ -361,7 +278,7 @@ class SceptreTwirling : Actor
 			
 			// The frames of the animation are under the FancyTwirlFrames label. +0 is with no blur, +1 is with a little blur, and so on.
 			// So, for every degrees/tic of spin rate, increase blur by 1/25 (up to 4).
-			uint f = min(abs(SpinRate) / 25, 3);
+			uint f = min(abs(RotControl.Vel) / 25, 3);
 			st = FindState("FancyTwirlFrames") + f;
 		}
 		else
@@ -369,7 +286,7 @@ class SceptreTwirling : Actor
 			// Fall back to the legacy style.
 			bRollSprite = false;
 			
-			if (abs(deltaangle(Roll, TouchAngle)) < 45. && abs(SpinRate) < 10.)
+			if (abs(deltaangle(Roll, TouchAngle)) < 45. && abs(RotControl.Vel) < 10.)
 			{
 				// Use the regular unblurred sprite in this situation.
 				st = FindState("Spawn");
@@ -377,7 +294,7 @@ class SceptreTwirling : Actor
 			else
 			{
 				// First of all, choose the correct sprite set. There are two blur levels in this animation, so we'll go to the blurrier one at ≥50°/tic.
-				if (abs(SpinRate) >= 50.)
+				if (abs(RotControl.Vel) >= 50.)
 					st = FindState("LegacyTwirlFramesSuper");
 				else
 					st = FindState("LegacyTwirlFrames");
@@ -410,14 +327,26 @@ class SceptreTwirling : Actor
 			wait;
 		
 		Recall:
+			// Don't start spinning down until reaching at least half of full angular velocity.
+			#### # 1 {
+				if (invoker.RotControl.Vel >= invoker.FullSpinRate * .5)
+					return ResolveState(1);
+				else
+				{
+					A_SpinUp();
+					return ResolveState(null);
+				}
+			}
+			wait;
+			
 			// Start spinning down.
 			#### # 0 A_SpinDown;
-			#### # 1 A_JumpIf(invoker.SpinRate * 4. > invoker.SpinDeltaAngle, 1);
+			#### # 1 A_JumpIf(invoker.RotControl.Vel <= invoker.FullSpinRate * .25, 1);
 			wait;
 			
 			// Get into catch distance.
 			#### # 0 A_MoveToTouchPos;
-			#### # 1 A_JumpIf(invoker.SpinDeltaAngle == 0. && invoker.ProgressTowardTargetRelPos() > .99, 1);
+			#### # 1 A_JumpIf(!invoker.RotControl.IsLandingInProgress() && invoker.ProgressTowardTargetRelPos() > .99, 1);
 			wait;
 			
 			// Recall finished.
