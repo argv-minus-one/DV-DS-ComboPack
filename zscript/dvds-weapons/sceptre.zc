@@ -1,6 +1,5 @@
 /*
 TODO:
-• Implement the spin attack.
 • Make all moves cost stamina.
 • Apply damage modifiers: berserk, debuffs, strength stat, etc.
 • Port the FloraWeapon class to ZScript, then derive this class from it.

@@ -30,6 +30,13 @@ extend class SceptreOfEmpyreaZSC
 		"SceptreSwingLvl15", "SceptreSwingLvl16"
 	};
 	
+	static const float SceptreSpinAttackSpeeds[] =
+	{
+		21.6, 22.800001, 24.0, 25.2, 26.400002, 27.6,
+		28.800001, 30.0, 31.2, 32.4, 33.6, 34.800003,
+		36.0, 42.0, 48.0, 54.0, 60.0
+	};
+	
 	static const float SceptreTwirlStaminaCost[] =
 	{
 		1, 1, 1, 1, 1, 1,

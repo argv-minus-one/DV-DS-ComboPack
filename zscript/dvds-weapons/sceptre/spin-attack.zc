@@ -8,33 +8,59 @@ extend class SceptreOfEmpyreaZSC
 	};
 	
 	const SpinAttackButtons = BT_MOVELEFT | BT_MOVERIGHT;
+	private float SpinAttackRotation;
 	
 	bool CheckSpinAttack()
 	{
 		return
 			Owner && Owner.player &&
 			(Owner.player.cmd.buttons & SpinAttackButtons) == SpinAttackButtons &&
+			CallACS("UseStaminaAttack", SceptreSpinAttackStaminaCost[SceptreLevel] / 3, 1) &&
 			CallACS("GetMiscellaneousVar", 244);
 	}
 	
 	states
 	{
 		SpinAttack:
-			// TODO
-			/*
-			TNT1 A 0
+			#### # 0
 			{
-				if (!CallACS("UseStaminaAttack", SceptreSpinAttackStaminaCost[SceptreLevel]))
-					return ResolveState("Ready");
-				
 				// Strife mode makes the punch work like the Punch Dagger where it NEVER makes sound
 				if (!(gameinfo.gametype & GAME_Strife) && (random() & 255) >= 248)
 					// Sometimes a swing will be enough to wake up all monsters in the area.
 					A_AlertMonsters();
 				
 				A_Kiai(31);
+				invoker.SpinAttackRotation = 360;
 			}
-			*/
-			goto Hold;
+			SESN A 1
+			{
+				let turn = min(SceptreOfEmpyreaZSC.SceptreSpinAttackSpeeds[invoker.SceptreLevel], invoker.SpinAttackRotation);
+				let stamCost = SceptreOfEmpyreaZSC.SceptreSpinAttackStaminaCost[invoker.SceptreLevel];
+				if (ACS_NamedExecuteWithResult("BuffTimerCheck", 10) > 0) // Oomph
+					stamCost = stamCost * 19 / 20;
+				if (ACS_NamedExecuteWithResult("BuffTimerCheck", 23) > 0) // Berserk
+					stamCost = stamCost * 7 / 8;
+				stamCost = stamCost * turn / 360;
+				
+				if (!ACS_NamedExecuteWithResult("UseStaminaAttack", stamCost, 2))
+					return ResolveState(1);
+				
+				invoker.Owner.Angle += turn;
+				invoker.SpinAttackRotation -= turn;
+				A_SceptreAttack(
+					range: invoker.SceptreRange[invoker.SceptreLevel],
+					damageMin: invoker.SceptreDamageMin[invoker.SceptreLevel],
+					damageMax: invoker.SceptreDamageMax[invoker.SceptreLevel],
+					puffType: "SceptrePuff",
+					swingAngle: -(turn * .5),
+					swingWidth: turn
+				);
+				
+				return invoker.SpinAttackRotation <= 0.? ResolveState(1) : ResolveState(null);
+			}
+			wait;
+			
+			#### # 0;
+			goto Ready;
 	}
 }

@@ -98,6 +98,17 @@ Show(
 		),
 		
 		ConstantTable(
+			"float SceptreSpinAttackSpeeds", 6,
+			for {
+				lv <- 0 to 16
+				speed = {
+					if (lv >= 12) 36f + ((lv - 12) * 6f)
+					else 21.6f + (lv * 1.2f)
+				}
+			} yield speed
+		),
+		
+		ConstantTable(
 			"float SceptreTwirlStaminaCost", 6,
 			for {
 				lv <- 0 to 16
