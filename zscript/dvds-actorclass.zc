@@ -34,6 +34,37 @@ class AetheriusBaseZSC : Actor
 	int user_charmchance, user_charmed;
 	int user_summoned;
 	int user_regencycles, user_regencyclemax;
+	
+	/**
+	 * Checks if an attack from an actor can hit and damage a target actor with a given projectile or puff.
+	 *
+	 * This doesn't check whether the source actor *should* attack the target. Use you.isHostile(target) for that.
+	 *
+	 * @param you The potentially attacking actor.
+	 * @param target The actor that “you” is potentially attacking.
+	 * @param projectile The class of projectile or puff to attack with.
+	 * @param wep The weapon to attack with, if any. Null by default.
+	 * @param includingCheckSight If true, a line-of-sight check will also be performed.
+	 */
+	static bool CanHitWith(Actor you, Actor target, Class<Actor> projectile, Weapon wep = null, bool includingCheckSight = true)
+	{
+		let defaults = GetDefaultByType(projectile);
+		
+		return
+			you != target &&
+			target.bShootable &&
+			!target.bDormant &&
+			(!defaults.bAllowThruFlags || (
+				!defaults.bThruActors &&
+				(!defaults.bMThruSpecies || defaults.Species != target.Species)
+			)) &&
+			(!target.bGhost || (
+				!defaults.bThruGhost &&
+				(wep == null || !wep.bThruGhost)
+			)) &&
+			(defaults.bSpectral || !target.bSpectral) &&
+			(!includingCheckSight || you.CheckSight(target));
+	}
 }
 
 class AetheriusCustomInventory : CustomInventory

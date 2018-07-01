@@ -87,6 +87,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			TNT1 A 0
 			{
 				invoker.ActorsHitThisSwing.Clear();
+				invoker.puffs.Puffs.Clear();
 				A_SceptreRaiseReset();
 				
 				if (invoker.Twirling)

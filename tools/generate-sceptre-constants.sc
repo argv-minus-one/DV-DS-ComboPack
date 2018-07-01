@@ -214,6 +214,14 @@ Show(
 				lv <- 0 to 16
 				tr = 0.5f + (lv * (0.833333f - 0.5f) / 16f)
 			} yield tr
+		),
+		
+		ConstantTable(
+			"float AnimSpeedScales", 6,
+			for {
+				lv <- 0 to 16
+				ss = -(lv * (3f / 13f))
+			} yield ss
 		)
 	)
 )

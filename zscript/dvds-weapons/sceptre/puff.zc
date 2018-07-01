@@ -9,6 +9,7 @@ class SceptrePuff : AetheriusMeleePuff
 		+PUFFONACTORS;
 		+FORCEPAIN;
 		+SPECTRAL;
+		+BRIGHT;
 		-ALLOWPARTICLES;
 	}
 	
@@ -22,39 +23,38 @@ class SceptrePuff : AetheriusMeleePuff
 		SPFX_SOUND_HITPROJECTILE = 1 << 4,
 		SPFX_SOUND_HITACTOR = 1 << 5,
 		SPFX_SOUND_ALL = (SPFX_SOUND_HITWALL | SPFX_SOUND_HITPROJECTILE | SPFX_SOUND_HITACTOR),
-		SPFX_ALL_HITWALL = (SPFX_QUAKE_HITWALL | SPFX_SOUND_HITWALL),
-		SPFX_ALL_HITPROJECTILE = (SPFX_QUAKE_HITPROJECTILE | SPFX_SOUND_HITPROJECTILE),
-		SPFX_ALL_HITACTOR = (SPFX_QUAKE_HITACTOR | SPFX_SOUND_HITACTOR)
+		SPFX_IMPACT = 1 << 6,
+		SPFX_ALL_HITWALL = (SPFX_QUAKE_HITWALL | SPFX_SOUND_HITWALL | SPFX_IMPACT),
+		SPFX_ALL_HITPROJECTILE = (SPFX_QUAKE_HITPROJECTILE | SPFX_SOUND_HITPROJECTILE | SPFX_IMPACT),
+		SPFX_ALL_HITACTOR = (SPFX_QUAKE_HITACTOR | SPFX_SOUND_HITACTOR | SPFX_IMPACT)
 	};
 	
 	static EEffectFlags GetEffectFlagsFor(Actor a)
 	{
 		if (!a)
-			return SPFX_ALL_HITWALL;
+			return SPFX_ALL_HITWALL | SPFX_IMPACT;
 		else if (a.bMissile)
-			return SPFX_ALL_HITPROJECTILE;
+			return SPFX_ALL_HITPROJECTILE | SPFX_IMPACT;
 		else if (a.player || a.bShootable || a.bIsMonster || a.bTouchy || a.bVulnerable)
-			return SPFX_ALL_HITACTOR;
+			return SPFX_ALL_HITACTOR | SPFX_IMPACT;
 		else
 			return 0;
 	}
 	
-	const FadeRate = 1. / 7.;
-	
 	EEffectFlags EnabledEffects;
 	property EnabledEffects: EnabledEffects;
-	
-	State FadeState;
 	
 	/**
 	 * Level of the Sceptre that generated this puff. This should be set externally (by the Sceptre class) when this puff is spawned.
 	 */
 	int SceptreLevel;
 	
+	protected AnimSpeedScaler animSpeed;
+	
 	override void BeginPlay()
 	{
+		animSpeed.Target = self;
 		Super.BeginPlay();
-		FadeState = FindState("Fade", exact: true);
 	}
 	
 	override void PostBeginPlay()
@@ -66,9 +66,7 @@ class SceptrePuff : AetheriusMeleePuff
 	override void Tick()
 	{
 		Super.Tick();
-		
-		if (InStateSequence(CurState, FadeState))
-			A_FadeOut(Alpha * FadeRate, FTF_REMOVE);
+		animSpeed.Tick();
 	}
 	
 	/**
@@ -82,7 +80,9 @@ class SceptrePuff : AetheriusMeleePuff
 	 */
 	virtual void Refresh()
 	{
-		Scale.X = Scale.Y = Scales[SceptreLevel];
+		animSpeed.Scale = AnimSpeedScales[SceptreLevel];
+		A_HitSparkGetSize2();
+		Scale *= Scales[SceptreLevel];
 		Alpha = Opacities[SceptreLevel];
 		
 		let effectFlags = GetEffectFlagsFor(tracer);
@@ -102,32 +102,90 @@ class SceptrePuff : AetheriusMeleePuff
 				slot: CHAN_WEAPON
 			);
 		
-		if (InStateSequence(CurState, FadeState))
-			SetState(SpawnState);
+		if (SPFX_IMPACT & effectFlags & EnabledEffects)
+		{
+			let sw = SceptreShockwave(Spawn("SceptreShockwave", Pos));
+			sw.EnabledEffects = 0;
+			sw.SceptreLevel = SceptreLevel;
+		}
+		
+		SetState(SpawnState);
 	}
 	
 	states
 	{
 		Spawn:
+			TNT1 A 0 nodelay
+			{
+				{
+					let secondary = Spawn("SceptreShockwave", Pos, replace: ALLOW_REPLACE);
+					let ssp = SceptrePuff(secondary);
+					if (ssp)
+					{
+						ssp.EnabledEffects = 0;
+						ssp.SceptreLevel = invoker.SceptreLevel;
+					}
+				}
+			}
+			
+			SCIM ABCDE 1 A_FadeOut(Alpha / 10.);
+			stop;
+			
 		Melee:
-		Crash:
-			SCSK A 3 bright;
-		
-		Fade:
-			SCSK GHIJKJIH 3 bright;
+			// Override the Melee state defined by BulletPuff.
+			TNT1 A 0 { return SpawnState; }
+	}
+}
+
+class SceptreShockwave : SceptrePuff
+{
+	states
+	{
+		Spawn:
+			SCIM GHIJKLM 1 nodelay A_FadeOut(Alpha / 12.);
 			stop;
 	}
 }
 
-class SceptrePuffTracker : Inventory
+class SceptreDefenseHit : SceptrePuff
 {
-	override void Tick()
+	default
 	{
-		Super.Tick();
+		Scale 0;
+	}
+	
+	private int BobStartTic;
+	protected double BaseScale;
+	
+	override void Refresh()
+	{
+		Alpha = Opacities[SceptreLevel];
 		
-		if (Owner && (!target || target.bDestroyed))
-			Owner.RemoveInventory(self);
-		if (!Owner)
-			Destroy();
+		// Same as A_HitSparkGetSize2, but without changing the actual scale field.
+		BaseScale = Scales[SceptreLevel] * (1. + (CallACS("MiscVarCheckDECORATE",10005) * .05) + (CallACS("MiscVarCheckDECORATE",10006) * .125));
+	}
+	
+	states
+	{
+		Spawn:
+			// Wait for PostBeginPlay to run.
+			TNT1 A 1;
+			
+			SCSK J 1
+			{
+				Scale.X += BaseScale / 17.5;
+				Scale.Y = Scale.X;
+				return A_JumpIf(Scale.X >= BaseScale, 1);
+			}
+			wait;
+			
+			#### # 0 { invoker.BobStartTic = gametic; }
+			
+			#### # 1
+			{
+				A_FadeOut(SceptrePuff.Opacities[invoker.SceptreLevel] / 12., FTF_REMOVE);
+				Scale.Y = Scale.X = BaseScale + (sin((gametic - invoker.BobStartTic) * (360. / 17.5)) * (Scales[SceptreLevel] * .25));
+			}
+			wait;
 	}
 }

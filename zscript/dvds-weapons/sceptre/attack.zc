@@ -23,6 +23,8 @@ extend class SceptreOfEmpyreaZSC
 	
 	const FullAttackAngle = 120.;
 	
+	protected PuffTracker puffs;
+	
 	action void A_SceptreAttack(
 		int range = -1,
 		int damageMin = -1,
@@ -45,25 +47,17 @@ extend class SceptreOfEmpyreaZSC
 		let puffDefaults = GetDefaultByType(replacedPuffType);
 		bool actorsHit = false;
 		
-		let it = ThinkerIterator.Create("Actor");
-		for (let mo = Actor(it.Next()); mo; mo = Actor(it.Next()))
+		let it = BlockThingsIterator.Create(self, range);
+		while (it.Next())
 		{
+			let mo = it.thing;
+			
 			if (
-				mo == self || mo.master == self ||
-				(mo.bMissile && mo.target == self) ||
-				mo.bDormant ||
-				(
-					puffDefaults.bAllowThruFlags &&
-					(
-						puffDefaults.bThruActors ||
-						(puffDefaults.bMThruSpecies && puffDefaults.Species == mo.Species)
-					)
-				) ||
-				((invoker.bThruGhost || puffDefaults.bThruGhost) && mo.bGhost) ||
-				(mo.bSpectral && !puffDefaults.bSpectral) ||
-				!(mo.bShootable || mo.bMissile) ||
-				Distance3D(mo) > range ||
-				(mo.CurSector.PortalGroup != CurSector.PortalGroup && !CheckSight(mo))
+				(mo.bMissile && (
+					mo.target == self ||
+					(mo.target != null && !self.isHostile(mo.target))
+				)) ||
+				!AetheriusBaseZSC.CanHitWith(self, mo, replacedPuffType, invoker)
 			)
 				continue;
 			
@@ -108,65 +102,20 @@ extend class SceptreOfEmpyreaZSC
 			
 			Actor puff;
 			bool puffIsNew;
+			
+			[puff, puffIsNew] = invoker.puffs.PlaceAtNearestPoint(
+				self, mo, replacedPuffType,
+				flags: PF_HITTHING | PF_MELEERANGE |
+				(shouldBleed? PF_HITTHINGBLEED : 0) |
+				(shouldPuff? 0 : PF_TEMPORARY),
+				wep: invoker
+			);
+			
+			if (!puff.CanCollideWith(mo, false) || !mo.CanCollideWith(puff, true))
 			{
-				let puffAngle = Normalize180(angle - 180.);
-				let puffPos = mo.Vec3Offset(
-					(mo.radius + 1) * cos(puffAngle),
-					(mo.radius + 1) * sin(puffAngle),
-					(mo.Height / 2) - mo.Floorclip
-				);
-				
-				Inventory pt;
-				if (
-					shouldPuff && // puff needs to be tracked at all
-					(pt = mo.FindInventory("SceptrePuffTracker")) && // there is a puff tracker
-					pt.target && // there is already a tracked puff
-					(pt.target.Pos - puffPos).Length() < max(pt.Owner.Radius, pt.Owner.Height) * .55 // the tracked puff is close enough
-				)
-				{
-					puff = pt.target;
-					
-					if (!puff.CanCollideWith(mo, false) || !mo.CanCollideWith(puff, true))
-						continue;
-					
-					puffIsNew = false;
-					puff.SetXYZ(puffPos);
-					puff.Angle = puffAngle;
-				}
-				else
-				{
-					puff = SpawnPuff(
-						replacedPuffType,
-						puffPos,
-						puffAngle,
-						puffAngle,
-						0,
-						flags: PF_HITTHING | PF_MELEERANGE |
-						(shouldBleed? PF_HITTHINGBLEED : 0) |
-						(shouldPuff? 0 : PF_TEMPORARY),
-						victim: mo
-					);
-					puffIsNew = true;
-					puff.tracer = mo;
-					
-					if (!puff.CanCollideWith(mo, false) || !mo.CanCollideWith(puff, true))
-					{
-						puff.Destroy();
-						continue;
-					}
-					
-					if (shouldPuff)
-					{
-						// If we found a tracker already, but decided its puff isn't eligible, then delete it.
-						if (pt && pt.Owner)
-							pt.Owner.RemoveInventory(pt);
-						if (pt)
-							pt.Destroy();
-						
-						pt = mo.GiveInventoryType("SceptrePuffTracker");
-						pt.target = puff;
-					}
-				}
+				if (puffIsNew)
+					puff.Destroy();
+				continue;
 			}
 			
 			{

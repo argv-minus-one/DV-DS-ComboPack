@@ -12,9 +12,10 @@ extend class SceptreOfEmpyreaZSC
 		A_SceptreAttack(
 			damageMin: 0,
 			damageMax: 0,
+			puffType: "SceptreDefenseHit",
 			puffWalls: false,
 			rememberAlreadyHitActors: false,
-			enabledEffects: SceptrePuff.SPFX_QUAKE_ALL | SceptrePuff.SPFX_SOUND_HITPROJECTILE
+			enabledEffects: SceptrePuff.SPFX_SOUND_HITPROJECTILE
 		);
 	}
 }
