@@ -60,7 +60,10 @@ extend class SceptreOfEmpyreaZSC
 			}
 			wait;
 			
-			#### # 0;
+			#### # 0
+			{
+				ACS_NamedExecuteWithResult("AddSceptreEXP", 0, 1, 1);
+			}
 			goto Ready;
 	}
 }
