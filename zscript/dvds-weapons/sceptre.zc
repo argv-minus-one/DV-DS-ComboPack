@@ -38,7 +38,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		+WEAPON.NOAUTOAIM;
 		+WEAPON.NOALERT;
 		+WEAPON.MELEEWEAPON;
-		Inventory.PickupMessage "What a sight... Simplistic in its majesty...";
+		Inventory.PickupMessage "What a sight... Simplistic in its majesty... \cx[Slot 1]\c-";
 		Obituary "%o was smacked out of the ballpark by %k's \cjSceptre of Empyrea\c-.";
 	}
 	
