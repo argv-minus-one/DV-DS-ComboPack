@@ -30,6 +30,8 @@ extend class SceptreOfEmpyreaZSC
 					A_AlertMonsters();
 				
 				A_Kiai(31);
+				A_PlaySound(SceptreOfEmpyreaZSC.SceptreSpinAttackSounds[invoker.SceptreLevel], CHAN_WEAPON);
+				ACS_NamedExecuteWithResult("StartTensionCountDown");
 				invoker.SpinAttackRotation = 360;
 			}
 			SESN A 1
