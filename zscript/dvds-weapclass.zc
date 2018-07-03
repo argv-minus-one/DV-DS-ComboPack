@@ -111,12 +111,14 @@ class AetheriusBaseWeaponZSC : Weapon
 		// Karasawa
 		if (type == 16 || 
 				type == 17)
-				perkfactor += ((KarasawaAttunementPerkLevel * 0.25) + (KarasawaAttunementEXPerkLevel * 0.375));
+				perkfactor += ((PlasmaAccuracyPerkLevel * 0.02) + (PlasmaAccuracyEXPerkLevel * 0.10));
+				perkfactor += ((KarasawaAttunementPerkLevel * 0.5) + (KarasawaAttunementEXPerkLevel * 0.75));
 		// BFG
 		if (type == 12 || 
 				type == 13 || 
 				type == 14 || 
 				type == 15)
+				perkfactor += ((PlasmaAccuracyPerkLevel * 0.02) + (PlasmaAccuracyEXPerkLevel * 0.10));
 				perkfactor += ((BFGAttunementPerkLevel * 0.025) + (BFGAttunementEXPerkLevel * 0.125));
 		// Diaris Arrows
 		if (type >= 18 && type <= 20)
@@ -293,11 +295,11 @@ class AetheriusBaseWeaponZSC : Weapon
 		}
 		if (type == 16 || type == 17) // KSawBolt
 		{
-			baserand1 = 1 + PlasmaAccuracyPerkLevel;
-			baserand2 = 8 + (PlasmaAccuracyPerkLevel * 0.5) + ((PlasmaAccuracyEXPerkLevel * 1.25));
-			damage = random(baserand1,baserand2) * 12; // 12 to 96
-			extradmg1 = (PlayerAGL * 2.2); // 220% of Agility
-			extradmg2 = (PlayerSTR * 1); // 100% of Strength 
+			baserand1 = 1 + (PlasmaAccuracyPerkLevel * 0.5) + (PlasmaAccuracyEXPerkLevel * 1.25);
+			baserand2 = 8 + (PlasmaAccuracyPerkLevel * 1.0) + (PlasmaAccuracyEXPerkLevel * 2.5);
+			damage = random(baserand1,baserand2) * 15; // 15 to 120
+			extradmg1 = (PlayerAGL * 4.4); // 440% of Agility
+			extradmg2 = (PlayerSTR * 2); // 200% of Strength
 		}
 		if (type >= 18 && type <= 20) // DiarisHolyArrows
 		{
@@ -1219,7 +1221,53 @@ class AetheriusBaseWeaponZSC : Weapon
 		}
 		A_TakeInventory(ammousetype,ammouseamount,TIF_NOTAKEINFINITE,AAPTR_DEFAULT);
 	}
-
+	
+	// Used to Create Multiple "Shields" for Punches/Melee when Spreader Aura is active
+	void A_MeleeShieldPiece(string attackname = "", int spawnheight = 32, int spawndistance = 0)
+	{
+		if (CountInv("SpreaderAura2") > 0)
+		{
+			// Angle + 15, Pitch + 0
+			A_SetAngle(angle+spread1angle2);
+			A_SpawnItemEx(attackname, cos(-pitch) * CallACS("SetShieldPieceDist",spawndistance), 0, CallACS("SetShieldPieceDist",spawnheight) + (sin(-pitch) * CallACS("SetShieldPieceDist",spawndistance)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+			// Angle + 7.5, Pitch + 7.5
+			A_SetAngle(angle-spread2angle2); A_SetPitch(pitch+spread2pitch2);
+			A_SpawnItemEx(attackname, cos(-pitch) * CallACS("SetShieldPieceDist",spawndistance), 0, CallACS("SetShieldPieceDist",spawnheight) + (sin(-pitch) * CallACS("SetShieldPieceDist",spawndistance)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+			// Angle + 7.5, Pitch - 7.5
+			A_SetPitch(pitch-spread1angle2); 
+			A_SpawnItemEx(attackname, cos(-pitch) * CallACS("SetShieldPieceDist",spawndistance), 0, CallACS("SetShieldPieceDist",spawnheight) + (sin(-pitch) * CallACS("SetShieldPieceDist",spawndistance)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+			// Angle + 0, Pitch + 0
+			A_SetPitch(pitch+spread2pitch2); A_SetAngle(angle-spread2angle2);
+			A_SpawnItemEx(attackname, cos(-pitch) * CallACS("SetShieldPieceDist",spawndistance), 0, CallACS("SetShieldPieceDist",spawnheight) + (sin(-pitch) * CallACS("SetShieldPieceDist",spawndistance)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+			// Angle - 7.5, Pitch - 7.5
+			A_SetAngle(angle-spread2angle2); A_SetPitch(pitch-spread2pitch2);
+			A_SpawnItemEx(attackname, cos(-pitch) * CallACS("SetShieldPieceDist",spawndistance), 0, CallACS("SetShieldPieceDist",spawnheight) + (sin(-pitch) * CallACS("SetShieldPieceDist",spawndistance)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+			// Angle - 7.5, Pitch + 7.5
+			A_SetPitch(pitch+spread1angle2);
+			A_SpawnItemEx(attackname, cos(-pitch) * CallACS("SetShieldPieceDist",spawndistance), 0, CallACS("SetShieldPieceDist",spawnheight) + (sin(-pitch) * CallACS("SetShieldPieceDist",spawndistance)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+			// Angle - 15, Pitch + 0
+			A_SetPitch(pitch-spread2pitch2); A_SetAngle(angle-spread2angle2);
+			A_SpawnItemEx(attackname, cos(-pitch) * CallACS("SetShieldPieceDist",spawndistance), 0, CallACS("SetShieldPieceDist",spawnheight) + (sin(-pitch) * CallACS("SetShieldPieceDist",spawndistance)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+			// Reset
+			A_SetAngle(angle+spread1angle2);
+		}
+		else
+		if (CountInv("SpreaderAura1") > 0)
+		{
+			A_SetAngle(angle+spread1angle2);
+			A_SpawnItemEx(attackname, cos(-pitch) * CallACS("SetShieldPieceDist",spawndistance), 0, CallACS("SetShieldPieceDist",spawnheight) + (sin(-pitch) * CallACS("SetShieldPieceDist",spawndistance)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+			A_SetAngle(angle-spread1angle2);
+			A_SpawnItemEx(attackname, cos(-pitch) * CallACS("SetShieldPieceDist",spawndistance), 0, CallACS("SetShieldPieceDist",spawnheight) + (sin(-pitch) * CallACS("SetShieldPieceDist",spawndistance)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+			A_SetAngle(angle-spread1angle2);
+			A_SpawnItemEx(attackname, cos(-pitch) * CallACS("SetShieldPieceDist",spawndistance), 0, CallACS("SetShieldPieceDist",spawnheight) + (sin(-pitch) * CallACS("SetShieldPieceDist",spawndistance)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+			A_SetAngle(angle+spread1angle2);
+		}
+		else
+		{
+			A_SpawnItemEx(attackname, cos(-pitch) * CallACS("SetShieldPieceDist",spawndistance), 0, CallACS("SetShieldPieceDist",spawnheight) + (sin(-pitch) * CallACS("SetShieldPieceDist",spawndistance)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+		}
+	}
+	
 	// Used for Hellcore weapons to allow them to shoot Crisis attacks when the player's health is low. :V
 	void A_HellCoreCrisisCheck (void)
 	{

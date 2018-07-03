@@ -515,7 +515,7 @@ actor DiarisArrowQuiver : DiarisArrow 27336
 		Spawn:
 			TNT1 A 0 NoDelay ACS_NamedExecuteAlways("CheckFloraItems",0,0,0,0)
 		Idle:
-			ARQU A 2
+			ARQU B 2
 			{
 				if (GetCVar("dvds_floralongbowcandrop") <= 0)
 				{
@@ -1482,19 +1482,15 @@ actor FistDeggaris : MarineWeapon
 				if (CallACS("MiscVarCheckDECORATE",10051) >= 5 && random(1,1) == 1) { A_GiveInventory("MeleeDestroyProjectiles",1,AAPTR_PLAYER1); }
 				if (CountInv("MeleeDestroyProjectiles",AAPTR_PLAYER1) > 0)
 				{
-					if (random(1,8) == 1)
+					if (random(1,8) <= 1)
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,16);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,48);
 					}
 					else
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,16);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,48);
 					}
 				}
 				A_TakeInventory("MeleeDestroyProjectiles",9999,0,AAPTR_PLAYER1);
@@ -1542,19 +1538,15 @@ actor FistDeggaris : MarineWeapon
 				if (CallACS("MiscVarCheckDECORATE",10051) >= 5 && random(1,1) == 1) { A_GiveInventory("MeleeDestroyProjectiles",1,AAPTR_PLAYER1); }
 				if (CountInv("MeleeDestroyProjectiles",AAPTR_PLAYER1) > 0)
 				{
-					if (random(1,8) == 1)
+					if (random(1,8) <= 1)
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,16);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,48);
 					}
 					else
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,16);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,48);
 					}
 				}
 				A_TakeInventory("MeleeDestroyProjectiles",9999,0,AAPTR_PLAYER1);
@@ -1627,27 +1619,19 @@ actor FistDeggaris : MarineWeapon
 				if (CallACS("MiscVarCheckDECORATE",10051) >= 5 && random(1,1) == 1) { A_GiveInventory("MeleeDestroyProjectiles",1,AAPTR_PLAYER1); }
 				if (CountInv("MeleeDestroyProjectiles",AAPTR_PLAYER1) > 0)
 				{
-					if (random(1,8) == 1)
+					if (random(1,8) <= 1)
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-										 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-										 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,10);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",52,10);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,42);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",52,42);
 					}
 					else
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-											 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-											 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,10);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",52,10);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,42);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",52,42);
 					}
 				}
 				A_TakeInventory("MeleeDestroyProjectiles",9999,0,AAPTR_PLAYER1);
@@ -1908,19 +1892,15 @@ actor FistIllucia : MarineWeapon
 				if (CallACS("MiscVarCheckDECORATE",10051) >= 5 && random(1,1) == 1) { A_GiveInventory("MeleeDestroyProjectiles",1,AAPTR_PLAYER1); }
 				if (CountInv("MeleeDestroyProjectiles",AAPTR_PLAYER1) > 0)
 				{
-					if (random(1,8) == 1)
+					if (random(1,8) <= 1)
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-										 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-										 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",26,16);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",26,48);
 					}
 					else
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-											 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-											 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",26,16);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",26,48);
 					}
 				}
 				A_TakeInventory("MeleeDestroyProjectiles",9999,0,AAPTR_PLAYER1);
@@ -1968,19 +1948,15 @@ actor FistIllucia : MarineWeapon
 				if (CallACS("MiscVarCheckDECORATE",10051) >= 5 && random(1,1) == 1) { A_GiveInventory("MeleeDestroyProjectiles",1,AAPTR_PLAYER1); }
 				if (CountInv("MeleeDestroyProjectiles",AAPTR_PLAYER1) > 0)
 				{
-					if (random(1,8) == 1)
+					if (random(1,8) <= 1)
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-										 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-										 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",26,16);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",26,48);
 					}
 					else
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-											 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-											 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",26,16);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",26,48);
 					}
 				}
 				A_TakeInventory("MeleeDestroyProjectiles",9999,0,AAPTR_PLAYER1);
@@ -2055,27 +2031,19 @@ actor FistIllucia : MarineWeapon
 				if (CallACS("MiscVarCheckDECORATE",10051) >= 5 && random(1,1) == 1) { A_GiveInventory("MeleeDestroyProjectiles",1,AAPTR_PLAYER1); }
 				if (CountInv("MeleeDestroyProjectiles",AAPTR_PLAYER1) > 0)
 				{
-					if (random(1,8) == 1)
+					if (random(1,8) <= 1)
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-										 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-										 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,10);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",52,10);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,42);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",52,42);
 					}
 					else
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-											 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-											 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,10);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",52,10);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,42);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",52,42);
 					}
 				}
 				A_TakeInventory("MeleeDestroyProjectiles",9999,0,AAPTR_PLAYER1);
@@ -2365,34 +2333,26 @@ actor FistFlora : FloraWeapon
 					{
 						if (random(1,8) <= 3)
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,16);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,48);
 						}
 						else
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,16);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,48);
 						}
 					}
 					else
 					{
-						if (random(1,8) == 1)
+						if (random(1,8) <= 1)
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,16);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,48);
 						}
 						else
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,16);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,48);
 						}
 					}
 				}
@@ -2446,34 +2406,26 @@ actor FistFlora : FloraWeapon
 					{
 						if (random(1,8) <= 3)
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,16);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,48);
 						}
 						else
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,16);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,48);
 						}
 					}
 					else
 					{
-						if (random(1,8) == 1)
+						if (random(1,8) <= 1)
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,16);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,48);
 						}
 						else
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",16)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",16)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",48)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",48)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,16);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,48);
 						}
 					}
 				}
@@ -2560,50 +2512,34 @@ actor FistFlora : FloraWeapon
 					{
 						if (random(1,8) <= 3)
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-											 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-											 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,10);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",52,10);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,42);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",52,42);
 						}
 						else
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-												 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-												 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-												 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-												 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,10);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",52,10);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,42);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",52,42);
 						}
 					}
 					else
 					{
-						if (random(1,8) == 1)
+						if (random(1,8) <= 1)
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-											 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-											 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,10);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",52,10);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,42);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",52,42);
 						}
 						else
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-												 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",10)), 
-												 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",10)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-												 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",42)), 
-												 0, CallACS("SetShieldPieceDist",52) + (sin(-pitch) * CallACS("SetShieldPieceDist",42)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,10);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",52,10);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,42);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",52,42);
 						}
 					}
 				}
@@ -3003,7 +2939,7 @@ actor SauronGauntlets : MarineWeapon 27330
 	+WEAPON.NOALERT
 	Weapon.SelectionOrder 3400
 	Weapon.KickBack 210
-	Inventory.PickupMessage "\cqWhat the feck are these things...?!\c-"
+	Inventory.PickupMessage "'\cqWhat the feck are these things...?!\c-' \cx[Slot 1]\c-"
 	Obituary "$o was decked to the curb by %k's gauntlets of Sauron."
 	AttackSound "GauntletHit"
 
@@ -3118,19 +3054,15 @@ actor SauronGauntlets : MarineWeapon 27330
 				if (CallACS("MiscVarCheckDECORATE",10051) >= 5 && random(1,1) == 1) { A_GiveInventory("MeleeDestroyProjectiles",1,AAPTR_PLAYER1); }
 				if (CountInv("MeleeDestroyProjectiles",AAPTR_PLAYER1) > 0)
 				{
-					if (random(1,8) == 1)
+					if (random(1,8) <= 1)
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",24)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",24)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",56)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",56)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,24);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,56);
 					}
 					else
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",24)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",24)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",56)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",56)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,24);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,56);
 					}
 				}
 				A_TakeInventory("MeleeDestroyProjectiles",9999,0,AAPTR_PLAYER1);
@@ -3189,19 +3121,15 @@ actor SauronGauntlets : MarineWeapon 27330
 				if (CallACS("MiscVarCheckDECORATE",10051) >= 5 && random(1,1) == 1) { A_GiveInventory("MeleeDestroyProjectiles",1,AAPTR_PLAYER1); }
 				if (CountInv("MeleeDestroyProjectiles",AAPTR_PLAYER1) > 0)
 				{
-					if (random(1,8) == 1)
+					if (random(1,8) <= 1)
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",32)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",32)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",64)), 
-										 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",64)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,32);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,64);
 					}
 					else
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",32)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",32)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",64)), 
-											 0, CallACS("SetShieldPieceDist",28) + (sin(-pitch) * CallACS("SetShieldPieceDist",64)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,32);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,64);
 					}
 				}
 				A_TakeInventory("MeleeDestroyProjectiles",9999,0,AAPTR_PLAYER1);
@@ -3262,7 +3190,7 @@ actor SauronGauntletsIllucia : MarineWeapon 27331
 	+WEAPON.NOALERT
 	Weapon.SelectionOrder 3400
 	Weapon.KickBack 175
-	Inventory.PickupMessage "'\cdThe hell are these things supposed to be?!\c-'"
+	Inventory.PickupMessage "'\cdThe hell are these things supposed to be?!\c-' \cx[Slot 1]\c-"
 	Obituary "$o was decked to the curb by %k's gauntlets of Sauron."
 	AttackSound "GauntletHit"
 
@@ -3372,19 +3300,15 @@ actor SauronGauntletsIllucia : MarineWeapon 27331
 				if (CallACS("MiscVarCheckDECORATE",10051) >= 5 && random(1,1) == 1) { A_GiveInventory("MeleeDestroyProjectiles",1,AAPTR_PLAYER1); }
 				if (CountInv("MeleeDestroyProjectiles",AAPTR_PLAYER1) > 0)
 				{
-					if (random(1,8) == 1)
+					if (random(1,8) <= 1)
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",24)), 
-										 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",24)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",56)), 
-										 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",56)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,24);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",28,56);
 					}
 					else
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",24)), 
-											 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",24)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",56)), 
-											 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",56)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,24);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",28,56);
 					}
 				}
 				A_TakeInventory("MeleeDestroyProjectiles",9999,0,AAPTR_PLAYER1);
@@ -3427,19 +3351,15 @@ actor SauronGauntletsIllucia : MarineWeapon 27331
 				if (CallACS("MiscVarCheckDECORATE",10051) >= 5 && random(1,1) == 1) { A_GiveInventory("MeleeDestroyProjectiles",1,AAPTR_PLAYER1); }
 				if (CountInv("MeleeDestroyProjectiles",AAPTR_PLAYER1) > 0)
 				{
-					if (random(1,8) == 1)
+					if (random(1,8) <= 1)
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",32)), 
-										 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",32)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",64)), 
-										 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",64)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",26,32);
+						A_MeleeShieldPiece("ShieldPartPunchAttackReflect",26,64);
 					}
 					else
 					{
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",32)), 
-											 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",32)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-						A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",64)), 
-											 0, CallACS("SetShieldPieceDist",26) + (sin(-pitch) * CallACS("SetShieldPieceDist",64)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",26,32);
+						A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",26,64);
 					}
 				}
 				A_TakeInventory("MeleeDestroyProjectiles",9999,0,AAPTR_PLAYER1);
@@ -3467,7 +3387,7 @@ actor SauronGauntletsFlora : FloraWeapon 27332
 	+FLOATBOB
 	+WEAPON.BFG
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "'\cnHmmm... these look like they'll be of use...\c-'"
+	Inventory.PickupMessage "'\cnHmmm... these look like they'll be of use...\c-' \cx[Slot 1]\c-"
 	AttackSound "GauntletHit"
 
 	States
@@ -3591,34 +3511,26 @@ actor SauronGauntletsFlora : FloraWeapon 27332
 					{
 						if (random(1,8) <= 3)
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",24)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",24)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",56)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",56)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,24);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,56);
 						}
 						else
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",24)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",24)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",56)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",56)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,24);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,56);
 						}
 					}
 					else
 					{
-						if (random(1,8) == 1)
+						if (random(1,8) <= 1)
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",24)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",24)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",56)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",56)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,24);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,56);
 						}
 						else
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",24)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",24)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",56)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",56)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,24);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,56);
 						}
 					}
 				}
@@ -3688,34 +3600,26 @@ actor SauronGauntletsFlora : FloraWeapon 27332
 					{
 						if (random(1,8) <= 3)
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",32)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",32)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",64)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",64)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,32);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,64);
 						}
 						else
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",32)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",32)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",64)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",64)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,32);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,64);
 						}
 					}
 					else
 					{
-						if (random(1,8) == 1)
+						if (random(1,8) <= 1)
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",32)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",32)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",64)), 
-											 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",64)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,32);
+							A_MeleeShieldPiece("ShieldPartPunchAttackReflect",33,64);
 						}
 						else
 						{
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",32)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",32)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
-							A_SpawnItemEx ("ShieldPartPunchAttackNoReflect", (cos(-pitch) * CallACS("SetShieldPieceDist",64)), 
-												 0, CallACS("SetShieldPieceDist",33) + (sin(-pitch) * CallACS("SetShieldPieceDist",64)), 0, 0, 0, 0, SXF_NOCHECKPOSITION);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,32);
+							A_MeleeShieldPiece("ShieldPartPunchAttackNoReflect",33,64);
 						}
 					}
 				}
@@ -3878,7 +3782,7 @@ Actor Chainsaw2 : MarineWeapon
 	Tag "$TAG_CHAINSAW"
 	Decal "BulletChip"
 	+WEAPON.MELEEWEAPON
-	Inventory.PickupMessage "A \caChainsaw\c-! Find some meat!"
+	Inventory.PickupMessage "A \caChainsaw\c-! Find some meat! \cx[Slot 1]\c-"
 	States
 	{
 		Spawn:
@@ -4004,7 +3908,7 @@ Actor DoubleBladedChainsaw : MarineWeapon 27033
 	Weapon.SelectionOrder 2200
 	Weapon.UpSound "weapons/saw2up"
 	Weapon.ReadySound "weapons/saw2idle"
-	Inventory.PickupMessage "A \cadouble-bladed Chainsaw\c-!  This was obviously made with killing in mind!"
+	Inventory.PickupMessage "A \cadouble-bladed Chainsaw\c-! This was obviously made with killing in mind! \cx[Slot 1]\c-"
 	Tag "Double-Bladed Chainsaw"
 	Obituary "%o was mowed twice-over by %k's double-bladed chainsaw."
 	Decal "BulletChip"
@@ -4178,7 +4082,7 @@ Actor DualPistols : MarineWeapon 27037
 	Weapon.AmmoUse 1
 	Weapon.AmmoGive 20
 	Weapon.AmmoType "Clip"
-	Inventory.PickupMessage "You got an extra \cuPistol\c-!"
+	Inventory.PickupMessage "You got an extra \cuPistol\c-! \cx[Slot 2]\c-"
 	Obituary "%o got pecked by %k's twin peashooters!"
 	Tag "Dual Pistols"
 	States
@@ -4384,7 +4288,7 @@ Actor Pistol2 : MarineWeapon
 	Obituary "$OB_MPPISTOL"
 	+WEAPON.WIMPY_WEAPON
 	Tag "$TAG_PISTOL"
-	Inventory.PickupMessage "Picked up a \cupistol\c-!"
+	Inventory.PickupMessage "Picked up a \cupistol\c-! \cx[Slot 2]\c-"
 	States
 	{
 		Spawn:
@@ -4554,7 +4458,7 @@ Actor Shotgun2 : MarineWeapon
 	Weapon.AmmoType "Shell"
 	Obituary "$OB_MPSHOTGUN"
 	Tag "$TAG_SHOTGUN"
-	Inventory.PickupMessage "Picked up a \cushotgun\c-!"
+	Inventory.PickupMessage "Picked up a \cushotgun\c-! \cx[Slot 3]\c-"
 	States
 	{
 		Spawn:
@@ -4831,7 +4735,7 @@ Actor SuperShotgun2 : MarineWeapon
 	Weapon.AmmoType "Shell"
 	Obituary "$OB_MPSSHOTGUN"
 	Tag "$TAG_SUPERSHOTGUN"
-	Inventory.PickupMessage "Picked up a \cusuper shotgun\c-!"
+	Inventory.PickupMessage "Picked up a \cusuper shotgun\c-! \cx[Slot 3]\c-"
 	States
 	{
 		Spawn:
@@ -5136,7 +5040,7 @@ Actor Chaingun2 : MarineWeapon
 	Weapon.AmmoType "Clip"
 	Obituary "$OB_MPCHAINGUN" // "%o was mowed down by %k's chaingun."
 	Tag "$TAG_CHAINGUN"
-	Inventory.PickupMessage "Picked up a \cuchaingun\c-!"
+	Inventory.PickupMessage "Picked up a \cuchaingun\c-! \cx[Slot 4]\c-"
 	States
 	{
 		Spawn:
@@ -5270,7 +5174,7 @@ actor Minigun : MarineWeapon 27036
 	Weapon.AmmoGive 20
 	Weapon.AmmoUse 1
 	Inventory.PickupSound "misc/w_pkup"
-	Inventory.PickupMessage "Picked up a \cuminigun\c-!"
+	Inventory.PickupMessage "Picked up a \cuminigun\c-! \cx[Slot 4]\c-"
 	Obituary "%o was shredded by %k's minigun."
 	States
 	{
@@ -5707,7 +5611,7 @@ Actor RocketLauncher2 : MarineWeapon
 	Weapon.AmmoType2 "RocketAmmo"
 	+WEAPON.NOAUTOFIRE
 	Tag "$TAG_ROCKETLAUNCHER"
-	Inventory.PickupMessage "Picked up a \carocket launcher\c-!"
+	Inventory.PickupMessage "Picked up a \carocket launcher\c-! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -5938,7 +5842,7 @@ Actor Railgun2 : MarineWeapon
 	Weapon.AmmoGive 40
 	Weapon.AmmoType "Cell"
 	Weapon.KickBack 0
-	Inventory.Pickupmessage "You got the railgun!"
+	Inventory.Pickupmessage "You got the railgun! \cx[Slot 6]\c-"
 	Obituary "%o was railed by %k."
 	Decal RailScorch
 	Tag "Railgun"
@@ -6219,7 +6123,7 @@ Actor PlasmaRifle2 : MarineWeapon
 	Weapon.AmmoType1 "Cell"
 	Weapon.AmmoType2 "Cell"
 	Tag "$TAG_PLASMARIFLE"
-	Inventory.PickupMessage "Picked up a \cvplasma rifle\c-!"
+	Inventory.PickupMessage "Picked up a \cvplasma rifle\c-! \cx[Slot 6]\c-"
 	States
 	{
 		Spawn:
@@ -6519,7 +6423,7 @@ Actor PlasmaRifleChecker : AetheriusCustomInventory replaces PlasmaRifle
 Actor Repeater2 : MarineWeapon 27034
 {
 	Inventory.PickupSound "misc/w_pkup"
-	Inventory.PickupMessage "You got a \cvplasma repeater\c-!"
+	Inventory.PickupMessage "You got a \cvplasma repeater\c-! \cx[Slot 6]\c-"
 	Obituary "%o was disintegrated by %k's repeater."
 	Weapon.AmmoType1 "Cell"
 	Weapon.AmmoGive 8
@@ -6922,12 +6826,12 @@ Actor RepeaterPuffCrisis : RepeaterPuff
 Actor KaraSawa2 : MarineWeapon 27035
 {
 	Inventory.PickupSound "Misc/W_PkUp"
-	Inventory.PickupMessage "You got a \cv'Karasawa' High-Density Plasma Cannon\c-!"
+	Inventory.PickupMessage "You got a \cv'Karasawa' High-Density Plasma Cannon\c-! \cx[Slot 6]\c-"
 	Obituary "%o was fried by %k's Karasawa!"
 	Tag "'Karasawa' High-Density Plasma Cannon"
 	Weapon.AmmoType "Cell"
 	Weapon.AmmoGive 32
-	Weapon.AmmoUse 4 // changed due to attunement perk
+	Weapon.AmmoUse 8 // changed due to attunement perk
 	Weapon.KickBack 0
 	states
 	{
@@ -6970,18 +6874,18 @@ Actor KaraSawa2 : MarineWeapon 27035
 				{
 					if (CallACS("MiscVarCheckDECORATE",10027) >= 2)
 					{
-						if (CountInv("Cell",AAPTR_PLAYER1) >= 4) { return state("FireSuccess2"); } else { return state("DeSelect"); }
+						if (CountInv("Cell",AAPTR_PLAYER1) >= 8) { return state("FireSuccess2"); } else { return state("DeSelect"); }
 						return state("");
 					}
 					else
 					if (CallACS("MiscVarCheckDECORATE",10027) == 1)
 					{
-						if (CountInv("Cell",AAPTR_PLAYER1) >= 6) { return state("FireSuccess1"); } else { return state("DeSelect"); }
+						if (CountInv("Cell",AAPTR_PLAYER1) >= 12) { return state("FireSuccess1"); } else { return state("DeSelect"); }
 						return state("");
 					}
 					else
 					{
-						if (CountInv("Cell",AAPTR_PLAYER1) >= 8) { return state("FireSuccess0"); } else { return state("DeSelect"); }
+						if (CountInv("Cell",AAPTR_PLAYER1) >= 16) { return state("FireSuccess0"); } else { return state("DeSelect"); }
 						return state("");
 					}
 					return state("");
@@ -6995,7 +6899,7 @@ Actor KaraSawa2 : MarineWeapon 27035
 				A_PlayWeaponSound("Weapons/KarasawaFire");
 				A_SpreadAuraFireProjectile("KsawBoltPlayer",0,0,"",0,0,0,0);
 			}
-			KSAW D 1 Bright { if (CountInv("RandomInfiniteAmmo",AAPTR_PLAYER1) > 0) { } else { A_TakeInventory("Cell",8,TIF_NOTAKEINFINITE,AAPTR_PLAYER1); } }
+			KSAW D 1 Bright { if (CountInv("RandomInfiniteAmmo",AAPTR_PLAYER1) > 0) { } else { A_TakeInventory("Cell",16,TIF_NOTAKEINFINITE,AAPTR_PLAYER1); } }
 			KSAW E 1
 			KSAW FGH 2 Bright A_Light2
 			KSAW I 0 A_PlaySound("Weapons/KarasawaCharge",7,1)
@@ -7012,7 +6916,7 @@ Actor KaraSawa2 : MarineWeapon 27035
 				A_PlayWeaponSound("Weapons/KarasawaFire");
 				A_SpreadAuraFireProjectile("KsawBoltPlayer",0,0,"",0,0,0,0);
 			}
-			KSAW D 1 Bright { if (CountInv("RandomInfiniteAmmo",AAPTR_PLAYER1) > 0) { } else { A_TakeInventory("Cell",6,TIF_NOTAKEINFINITE,AAPTR_PLAYER1); } }
+			KSAW D 1 Bright { if (CountInv("RandomInfiniteAmmo",AAPTR_PLAYER1) > 0) { } else { A_TakeInventory("Cell",12,TIF_NOTAKEINFINITE,AAPTR_PLAYER1); } }
 			KSAW E 1
 			KSAW FGH 2 Bright A_Light2
 			KSAW I 0 A_PlaySound("Weapons/KarasawaCharge",7,1)
@@ -7029,7 +6933,7 @@ Actor KaraSawa2 : MarineWeapon 27035
 				A_PlayWeaponSound("Weapons/KarasawaFire");
 				A_SpreadAuraFireProjectile("KsawBoltPlayer",0,0,"",0,0,0,0);
 			}
-			KSAW D 1 Bright { if (CountInv("RandomInfiniteAmmo",AAPTR_PLAYER1) > 0) { } else { A_TakeInventory("Cell",4,TIF_NOTAKEINFINITE,AAPTR_PLAYER1); } }
+			KSAW D 1 Bright { if (CountInv("RandomInfiniteAmmo",AAPTR_PLAYER1) > 0) { } else { A_TakeInventory("Cell",8,TIF_NOTAKEINFINITE,AAPTR_PLAYER1); } }
 			KSAW E 1
 			KSAW FGH 2 Bright A_Light2
 			KSAW I 0 A_PlaySound("Weapons/KarasawaCharge",7,1)
@@ -7127,24 +7031,30 @@ Actor KsawBolt : AetheriusProjectileZSC
 	+CanBounceWater
 	+SkyExplode
 	BounceType "Hexen"
-	BounceCount 32
-	BounceFactor 0.9875
-	WallBounceFactor 0.9875
+	BounceFactor 0.975
+	WallBounceFactor 0.975
 	Radius 6
 	Height 4
-	Speed 40 // 80
-	Damage 12
+	Speed 16 // 80
+	Damage 15
 	Alpha 1.0
 	XScale 1.5
 	YScale 0.4
 	RenderStyle Add
+	Reactiontime 280
+	BounceSound "Weapons/KarasawaHit"
 	SeeSound ""
 	DeathSound "Weapons/KarasawaHit"
 	States
 	{
 		Spawn:
 			KWBB A 0 Bright A_PlaySound("KsawBoltFly")
-			KWBB ABCD 1 Bright A_SpawnItemEx("BoltBlur", 0, 0, 0, 1, 0, 0, 180, 128)
+			KWBB ABCD 1 Bright 
+			{
+				A_SpawnItemEx("BoltBlur", 0, 0, 0, 1, 0, 0, 180, 128);
+				A_CountDown;
+			}
+			KWBB A 0 Bright 
 			goto Spawn+1
 		Death:
 			KWBD ABCDEF 2 Bright
@@ -7154,6 +7064,7 @@ Actor KsawBolt : AetheriusProjectileZSC
 
 Actor KsawBoltPlayer : KsawBolt
 {
+	var float user_seekRate;
 	Damage (finaldamagedealt)
 	States
 	{
@@ -7163,15 +7074,26 @@ Actor KsawBoltPlayer : KsawBolt
 				if (CallACS("MiscVarCheckDECORATE",10027) >= 2)
 				{
 					//A_PrintBold("Sawa Attunement 2");
-					A_ScaleVelocity(0.75);
-					//A_SetSpeed(20);
+					A_ScaleVelocity(0.625);
+					A_SetScale(1.3);
+					reactiontime = 420;
+					user_seekRate = 4;
 				}
 				else
 				if (CallACS("MiscVarCheckDECORATE",10027) == 1)
 				{
 					//A_PrintBold("Sawa Attunement 1");
-					A_ScaleVelocity(0.875);
-					//A_SetSpeed(30);
+					A_ScaleVelocity(0.8125);
+					A_SetScale(1.115);
+					reactiontime = 350;
+					user_seekRate = 2;
+				}
+				else
+				{
+					A_ScaleVelocity(1);
+					A_SetScale(1);
+					reactiontime = 420;
+					user_seekRate = 0.0125;
 				}
 				A_PlaySound("KsawBoltFly");
 			}
@@ -7179,6 +7101,16 @@ Actor KsawBoltPlayer : KsawBolt
 			{
 				A_GetPlayerAttackDamage(16,0);
 				A_SpawnItemEx("BoltBlur", 0, 0, 0, 1, 0, 0, 180, 128);
+				if (user_seekRate > 0.0)
+				{
+					if (random(1, 8) == 1)
+					{
+						// Randomly forget the tracer (the actor being sought) and seek another one, for maximum chaos.
+						A_RearrangePointers(AAPTR_DEFAULT, AAPTR_DEFAULT, AAPTR_NULL);
+					}
+					A_NFSeekerMissile(0, user_seekRate, SMF_LOOK|SMF_PRECISE|SMF_CURSPEED);
+				}
+				A_CountDown;
 			}
 			goto Spawn+1
 		Death:
@@ -7189,13 +7121,17 @@ Actor KsawBoltPlayer : KsawBolt
 
 Actor KsawBoltCrisis : KsawBolt
 {
-	Damage 360
+	Damage (18*random(1,8) * CallACS("CrisisMultiplier"))
 
 	States
 	{
 		Spawn:
 			KWBB A 0 Bright A_PlaySound("KsawBoltFly")
-			KWBB ABCD 1 Bright A_SpawnItemEx("BoltBlurCrisis", 0, 0, 0, 1, 0, 0, 180, 128)
+			KWBB ABCD 1 Bright 
+			{
+				A_SpawnItemEx("BoltBlurCrisis", 0, 0, 0, 1, 0, 0, 180, 128);
+				A_CountDown;
+			}
 			goto Spawn+1
 		Death:
 			KWBD ABCDEF 2 Bright
@@ -7261,7 +7197,7 @@ Actor BFG90002 : MarineWeapon
 	Weapon.AmmoType2 "Cell"
 	Weapon.AmmoUse1 24 // 40
 	Weapon.AmmoUse2 24
-	Inventory.PickupMessage "Picked up a \cvBFG9000\c-!"
+	Inventory.PickupMessage "Picked up a \cvBFG9000\c-! \cx[Slot 7]\c-"
 	States
 	{
 		Spawn:
@@ -8362,7 +8298,7 @@ actor DiarisLongBow : FloraWeapon 27328
 	+NOAUTOAIM
 	Scale 0.30
 	Inventory.ForbiddenTo FighterPlayer, MagePlayer, ClericPlayer, StrifePlayer, HereticPlayer, DeggarisMontegger, IlluciaHenderShot
-	Inventory.PickupMessage "You got the \cjDiaris Longbow\c-!"
+	Inventory.PickupMessage "You got the \cjDiaris Longbow\c-! \cx[Slot 3]\c-"
 	Obituary "%o was purified by %k's \cjDiaris Longbow\c-."
 	Tag "Diaris Longbow"
 	Weapon.AmmoType1 "DiarisArrow"
@@ -8748,7 +8684,7 @@ actor ImpClaw : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Imp's Claw!"
+	Inventory.PickupMessage "You got the Imp's Claw! \cx[Slot 4]\c-"
 	Tag "Imp's Claw"
 	States
 	{
@@ -8815,7 +8751,7 @@ actor ImpClawCI : AetheriusCustomInventory 32222
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Imp's Claw!"
+	Inventory.PickupMessage "You got the Imp's Claw! \cx[Slot 4]\c-"
 	States
 	{
 		Spawn:
@@ -8906,7 +8842,7 @@ actor DarkImpClaw : FloraWeapon
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
 	Tag "Dark Imp's Claw"
-	Inventory.PickupMessage "You got the Dark Imp's Claw!"
+	Inventory.PickupMessage "You got the Dark Imp's Claw! \cx[Slot 4]\c-"
 	States
 	{
 		Spawn:
@@ -8977,7 +8913,7 @@ actor DarkImpClawCI : AetheriusCustomInventory 32223
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Dark Imp's Claw!"
+	Inventory.PickupMessage "You got the Dark Imp's Claw! \cx[Slot 4]\c-"
 	States
 	{
 		Spawn:
@@ -9063,7 +8999,7 @@ actor CacodemonEye : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Cacodemon's Eye!"
+	Inventory.PickupMessage "You got the Cacodemon's Eye! \cx[Slot 4]\c-"
 	Tag "Cacodemon's Eye"
 	States
 	{
@@ -9154,7 +9090,7 @@ actor CacodemonEyeCI : AetheriusCustomInventory 32224
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Cacodemon's Eye!"
+	Inventory.PickupMessage "You got the Cacodemon's Eye! \cx[Slot 4]\c-"
 	States
 	{
 		Spawn:
@@ -9241,7 +9177,7 @@ actor CacolanternEye : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Cacolantern's Eye!"
+	Inventory.PickupMessage "You got the Cacolantern's Eye! \cx[Slot 4]\c-"
 	States
 	{
 		Spawn:
@@ -9331,7 +9267,7 @@ actor CacolanternEyeCI : AetheriusCustomInventory 32225
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Cacolantern's Eye!"
+	Inventory.PickupMessage "You got the Cacolantern's Eye! \cx[Slot 4]\c-"
 	States
 	{
 		Spawn:
@@ -9418,7 +9354,7 @@ actor AbaddonEye : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Abaddon's Eye!"
+	Inventory.PickupMessage "You got the Abaddon's Eye! \cx[Slot 4]\c-"
 	States
 	{
 		Spawn:
@@ -9553,7 +9489,7 @@ actor AbaddonEyeCI : AetheriusCustomInventory 32226
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Abaddon's Eye!"
+	Inventory.PickupMessage "You got the Abaddon's Eye! \cx[Slot 4]\c-"
 	States
 	{
 		Spawn:
@@ -9642,7 +9578,7 @@ actor KnightFist : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Hell Knight's Fist!"
+	Inventory.PickupMessage "You got the Hell Knight's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -9732,7 +9668,7 @@ actor KnightFistCI : AetheriusCustomInventory 32227
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Hell Knight's Fist!"
+	Inventory.PickupMessage "You got the Hell Knight's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -9819,7 +9755,7 @@ actor BaronFist : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Baron of Hell's Fist!"
+	Inventory.PickupMessage "You got the Baron of Hell's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -9909,7 +9845,7 @@ actor BaronFistCI : AetheriusCustomInventory 32228
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Baron of Hell's Fist!"
+	Inventory.PickupMessage "You got the Baron of Hell's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -9996,7 +9932,7 @@ actor BelphegorFist : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Belphegor's Fist!"
+	Inventory.PickupMessage "You got the Belphegor's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -10174,7 +10110,7 @@ actor BelphegorFistCI : AetheriusCustomInventory 32229
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Belphegor's Fist!"
+	Inventory.PickupMessage "You got the Belphegor's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -10383,7 +10319,7 @@ actor BruiserFist : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Bruiser Demon's Fist!"
+	Inventory.PickupMessage "You got the Bruiser Demon's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -10801,7 +10737,7 @@ actor BruiserFistCI : AetheriusCustomInventory 32230
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Bruiser Demon's Fist!"
+	Inventory.PickupMessage "You got the Bruiser Demon's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -10957,7 +10893,7 @@ actor ArchonFist : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Archon of Hell's Fist!"
+	Inventory.PickupMessage "You got the Archon of Hell's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -11107,7 +11043,7 @@ actor ArchonFistCI : AetheriusCustomInventory 32231
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Archon of Hell's Fist!"
+	Inventory.PickupMessage "You got the Archon of Hell's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -11468,7 +11404,7 @@ actor PyroFist : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Pyro Demon's Fist!"
+	Inventory.PickupMessage "You got the Pyro Demon's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -11807,7 +11743,7 @@ actor PyroFistCI : AetheriusCustomInventory 32232
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Pyro Demon's Fist!"
+	Inventory.PickupMessage "You got the Pyro Demon's Fist! \cx[Slot 5]\c-"
 	States
 	{
 		Spawn:
@@ -11837,7 +11773,7 @@ actor IncarnateSkull : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Death Incarnate's Skull!"
+	Inventory.PickupMessage "You got the Death Incarnate's Skull! \cx[Slot 6]\c-"
 	States
 	{
 		Spawn:
@@ -11908,7 +11844,7 @@ actor IncarnateSkullCI : AetheriusCustomInventory 32233
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Death Incarnate's Skull!"
+	Inventory.PickupMessage "You got the Death Incarnate's Skull! \cx[Slot 6]\c-"
 	States
 	{
 		Spawn:
@@ -11968,7 +11904,7 @@ actor ArchvileHand : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Archvile's Hand!"
+	Inventory.PickupMessage "You got the Archvile's Hand! \cx[Slot 6]\c-"
 	States
 	{
 		Spawn:
@@ -12213,7 +12149,7 @@ actor ArchvileHandCI : AetheriusCustomInventory 32234
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Arch Vile's Hand!"
+	Inventory.PickupMessage "You got the Arch Vile's Hand! \cx[Slot 6]\c-"
 	States
 	{
 		Spawn:
@@ -12615,7 +12551,7 @@ actor DiabloistHand : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Diabloist's Hand!"
+	Inventory.PickupMessage "You got the Diabloist's Hand! \cx[Slot 6]\c-"
 	States
 	{
 		Spawn:
@@ -12940,7 +12876,7 @@ actor DiabloistHandCI : AetheriusCustomInventory 32235
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Diabloist's Hand!"
+	Inventory.PickupMessage "You got the Diabloist's Hand! \cx[Slot 6]\c-"
 	States
 	{
 		Spawn:
@@ -13093,7 +13029,7 @@ actor BalrogFist : FloraWeapon
 	+NOAUTOAIM
 	+INVENTORY.ALWAYSPICKUP
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "You got the Flying Balrog's Fist!"
+	Inventory.PickupMessage "You got the Flying Balrog's Fist! \cx[Slot 6]\c-"
 	States
 	{
 		Spawn:
@@ -13213,7 +13149,7 @@ actor BalrogFistCI : AetheriusCustomInventory 32236
 	Scale 0.625
 	+FLOATBOB
 	+INVENTORY.ALWAYSPICKUP
-	Inventory.PickupMessage "You got the Flying Balrog's Fist!"
+	Inventory.PickupMessage "You got the Flying Balrog's Fist! \cx[Slot 6]\c-"
 	States
 	{
 		Spawn:
@@ -13260,8 +13196,8 @@ ACTOR MageWandMissileNew : SingleDamageFastRipper
 {
 	var int user_randompain;
 	Speed 184
-	Radius 3 // 12
-	Height 2 // 8
+	Radius 1 // 12
+	Height 1 // 8
 	Damage ((finaldamagedealt * random(3,4)) / 2) // 5
 	Scale 0.25
 	+RIPPER
@@ -13342,7 +13278,7 @@ ACTOR SapphireWandNew : FloraWeapon 32122
 	+WEAPON.NOAUTOAIM
 	+WEAPON.NOALERT
 	Tag "Sapphire Wand"
-	Inventory.PickupMessage "Picked up a \cvSapphire Wand\c-!"
+	Inventory.PickupMessage "Picked up a \cvSapphire Wand\c-! \cx[Slot 2]\c-"
 	Inventory.PickupSound "pickuphellcore"
 	States
 	{
@@ -13491,7 +13427,7 @@ ACTOR DualSapphireWandsNew : FloraWeapon
 	Tag "Dual Sapphire Wands"
 	+WEAPON.NOAUTOAIM
 	+WEAPON.NOALERT
-	Inventory.PickupMessage "Picked up a \cvSapphire Wand\c-!"
+	Inventory.PickupMessage "Picked up a \cvSapphire Wand\c-! \cx[Slot 2]\c-"
 	Inventory.PickupSound "pickuphellcore"
 	States
 	{
@@ -13649,7 +13585,7 @@ ACTOR EvilWarriorShield : KDIZDWeapon 25221
 	Weapon.BobStyle Alpha
 	Weapon.KickBack 0
 	Tag "Hell Warrior's Shield"
-	Inventory.PickupMessage "You got the Hell Warrior's Shield!"
+	Inventory.PickupMessage "You got the Hell Warrior's Shield! \cx[Slot 9]\c-"
 	Obituary "%o was ripped apart by %k's Shield."
 	BounceType Doom
 	+WEAPON.NOALERT
@@ -13797,7 +13733,7 @@ ACTOR EvilWarriorShield : KDIZDWeapon 25221
 				{
 					A_SpreadAuraFireProjectile("EvilWarriorShieldBall", 0,0,"",0,3,0,0); 
 				}
-				if (random(1,8) == 1) { A_AlertMonsters; }
+				if (random(1,8) <= 1) { A_AlertMonsters; }
 				A_Recoil(0.25);
 			}
 			EWS0 A 6 Bright
@@ -13861,7 +13797,7 @@ ACTOR EvilWarriorShield : KDIZDWeapon 25221
 				{
 					A_SpreadAuraFireProjectile("EvilWarriorShieldBall", 0,0,"",0,3,0,0); 
 				}
-				if (random(1,8) == 1) { A_AlertMonsters; }
+				if (random(1,8) <= 1) { A_AlertMonsters; }
 				A_Recoil(0.375);
 			}
 			EWS1 A 6 Bright
@@ -13926,7 +13862,7 @@ ACTOR EvilWarriorShield : KDIZDWeapon 25221
 				{
 					A_SpreadAuraFireProjectile("EvilWarriorShieldBall", 0,0,"",0,3,0,0); 
 				}
-				if (random(1,8) == 1) { A_AlertMonsters; }
+				if (random(1,8) <= 1) { A_AlertMonsters; }
 				A_Recoil(0.5);
 			}
 			EWS2 A 6 Bright

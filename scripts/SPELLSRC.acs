@@ -174,8 +174,6 @@
 			["CheckModType"]									-	Checks the gametype for spawns to determine various drops/monster spawns.
 			["MagicEffects"]									-	Spell Effects // SCRIPT 8'S POSITION IS BEING ERROR-RIDDEN AT THE MOMENT >_<
 			["CursedShieldPain"]							-	Increases the number of points towards uncursing a Ruinous Shield into a Divine Shield
-			["GrabLifeManaSeed"]							-	Runs the "Grabbed a Seed of Life/Magic" script
-			["GrabSeedOther"]									-	Runs the "Grabbed a Seed of [Bleh]" script
 			["SeedDrop"]											-	Checks Seed amounts and will randomize dropped seeds.
 			["AeonPointKey"]									-	Overall Aeon Point Handling [combines three once seperated scripts]
 			["ShowArmorStats"]								-	Shows Stats for Armor items
@@ -2042,84 +2040,9 @@ script "Initializer" OPEN
 		MiscellaneousVars[7] = 25600; // Set this for the maximum range of the randomizer for Fygg drops.
 		MiscellaneousVars[6] = random(1,MiscellaneousVars[7]);
 		MiscellaneousVars[199] = 1; // Very-First-Run
-
-		BaseEXPRequirement = GetCVar("dvds_baseexprequirement"); // Default for Skill 4
-		if (BaseEXPRequirement < 500) BaseEXPRequirement = 500;
-		if (BaseEXPRequirement > 5600) BaseEXPRequirement = 5600;
-		if (TrueGameSkill <= SKILL_VERY_EASY)
-		{
-			SpecialGameFlags[10002] = 111375; // Sauravatar [DVI-DS]
-			BaseEXPRequirement = BaseEXPRequirement * 7 / 10;
-		}
-		if (TrueGameSkill == SKILL_EASY)
-		{
-			SpecialGameFlags[10002] = 141750; // Sauravatar [DVI-DS]
-			BaseEXPRequirement = BaseEXPRequirement * 4 / 5;
-		}
-		if (TrueGameSkill == SKILL_NORMAL)
-		{
-			SpecialGameFlags[10002] = 162000; // Sauravatar [DVI-DS]
-			BaseEXPRequirement = BaseEXPRequirement * 9 / 10;
-		}
-		if (TrueGameSkill == SKILL_HARD)
-		{
-			SpecialGameFlags[10002] = 182250; // Sauravatar [DVI-DS]
-			BaseEXPRequirement = BaseEXPRequirement;
-		}
-		if (TrueGameSkill == SKILL_VERY_HARD)
-		{
-			SpecialGameFlags[10002] = 212625; // Sauravatar [DVI-DS]
-			BaseEXPRequirement = BaseEXPRequirement * 6 / 5;
-		}
-		if (TrueGameSkill == SKILL_EXTREME)
-		{
-			SpecialGameFlags[10002] = 243000; // Sauravatar [DVI-DS]
-			BaseEXPRequirement = BaseEXPRequirement * 13 / 10;
-		}
-		if (TrueGameSkill == SKILL_HORRIBLE)
-		{
-			SpecialGameFlags[10002] = 263250; // Sauravatar [DVI-DS]
-			BaseEXPRequirement = BaseEXPRequirement * 7 / 5;
-		}
-		if (TrueGameSkill == SKILL_IMPOSSIBLE)
-		{
-			SpecialGameFlags[10002] = 263250; // Sauravatar [DVI-DS]
-			BaseEXPRequirement = BaseEXPRequirement * 3 / 2;
-		}
-		if (TrueGameSkill >= SKILL_OMEGA)
-		{
-			SpecialGameFlags[10002] = 283500; // Sauravatar [DVI-DS]
-			BaseEXPRequirement = BaseEXPRequirement * 8 / 5;
-		}
-		SpecialGameFlags[10001] = SpecialGameFlags[10002];
 	}
-
 	MiscellaneousVars[1] += 1;
-	int BaseExtra = GetCVAR("dvds_baseexpextra");
-	if (BaseExtra < 0) BaseExtra = 0;
-	if (BaseExtra > 25) BaseExtra = 25;
-	int BaseAccel1 = GetCVAR("dvds_baseexpaccel1");
-	if (BaseAccel1 < 0) BaseAccel1 = 0;
-	if (BaseAccel1 > 25) BaseAccel1 = 25;
-	int BaseAccel2 = GetCVAR("dvds_baseexpaccel2");
-	if (BaseAccel2 < 0) BaseAccel2 = 0;
-	if (BaseAccel2 > 500) BaseAccel2 = 500;
-	// Sets up the actual EXP requirement tables based from BaseEXPRequirement above.
-	for (CuLv = 0; CuLv < 201; CuLv++)
-	{
-		if (CuLv == 0) // Level 0 to Level 1 just use the Base Requirement
-		{
-			ExpTable[CuLv] = BaseEXPRequirement;
-		}
-		else // Level 1+ will use the actual formula :P
-		{
-			ExpTable[CuLv] = ((BaseEXPRequirement * ((CuLv * BaseExtra) + 1)) * (((CuLv * BaseAccel1) + 200)) / 200) + (BaseEXPRequirement * (CuLv * BaseAccel2) / 10000);
-		}
-		//PrintBold(d:CuLv,s:" - ",d:ExpTable[CuLv]);
-	}
-	ExpTable[200] = 2147483646;
-	ExpTable[201] = 2147483647;
-  
+	
 	MiscellaneousVars[113] = 0; // Resets Imp Claw Checker to 0
 	MiscellaneousVars[114] = 0; // Resets Dark Imp Claw Checker to 0
 	MiscellaneousVars[115] = 0; // Resets Cacodemon Eye Checker to 0
@@ -2292,6 +2215,8 @@ script "BuffTimer" (int type, int buffid, int time)
 					s:"21 = Silence\n",
 					s:"22 = BioShield\n",
 					s:"23 = Berserk\n",
+					s:"24 = Regen\n",
+					s:"25 = Arcana Force\n",
 					s:"\n",
 					s:"129 = ??????\n");
 	}
@@ -2634,6 +2559,33 @@ script "EXPLevelTable" (int index, int type, int value)
 						);
 
 	// 160 - 199
+	printidx0 += 40; printidx1 += 40; printidx2 += 40; printidx3 += 40; printidx4 += 40; printidx5 += 40; printidx6 += 40; printidx7 += 40; printidx8 += 40; printidx9 += 40;
+	printidx10 += 40; printidx11 += 40; printidx12 += 40; printidx13 += 40; printidx14 += 40; printidx15 += 40; printidx16 += 40; printidx17 += 40; printidx18 += 40; printidx19 += 40;
+	printidx20 += 40; printidx21 += 40; printidx22 += 40; printidx23 += 40; printidx24 += 40; printidx25 += 40; printidx26 += 40; printidx27 += 40; printidx28 += 40; printidx29 += 40;
+	printidx30 += 40; printidx31 += 40; printidx32 += 40; printidx33 += 40; printidx34 += 40; printidx35 += 40; printidx36 += 40; printidx37 += 40; printidx38 += 40; printidx39 += 40;
+	PrintBold	(
+								s:"\cf Level[\cn",d:printidx0,s:"\cf]: \cd",d:ExpTable[printidx0],s:"\cf     Level[\cn",d:printidx20,s:"\cf]: \cd",d:ExpTable[printidx20],
+							s:"\n\cf Level[\cn",d:printidx1,s:"\cf]: \cd",d:ExpTable[printidx1],s:"\cf     Level[\cn",d:printidx21,s:"\cf]: \cd",d:ExpTable[printidx21],
+							s:"\n\cf Level[\cn",d:printidx2,s:"\cf]: \cd",d:ExpTable[printidx2],s:"\cf     Level[\cn",d:printidx22,s:"\cf]: \cd",d:ExpTable[printidx22],
+							s:"\n\cf Level[\cn",d:printidx3,s:"\cf]: \cd",d:ExpTable[printidx3],s:"\cf     Level[\cn",d:printidx23,s:"\cf]: \cd",d:ExpTable[printidx23],
+							s:"\n\cf Level[\cn",d:printidx4,s:"\cf]: \cd",d:ExpTable[printidx4],s:"\cf     Level[\cn",d:printidx24,s:"\cf]: \cd",d:ExpTable[printidx24],
+							s:"\n\cf Level[\cn",d:printidx5,s:"\cf]: \cd",d:ExpTable[printidx5],s:"\cf     Level[\cn",d:printidx25,s:"\cf]: \cd",d:ExpTable[printidx25],
+							s:"\n\cf Level[\cn",d:printidx6,s:"\cf]: \cd",d:ExpTable[printidx6],s:"\cf     Level[\cn",d:printidx26,s:"\cf]: \cd",d:ExpTable[printidx26],
+							s:"\n\cf Level[\cn",d:printidx7,s:"\cf]: \cd",d:ExpTable[printidx7],s:"\cf     Level[\cn",d:printidx27,s:"\cf]: \cd",d:ExpTable[printidx27],
+							s:"\n\cf Level[\cn",d:printidx8,s:"\cf]: \cd",d:ExpTable[printidx8],s:"\cf     Level[\cn",d:printidx28,s:"\cf]: \cd",d:ExpTable[printidx28],
+							s:"\n\cf Level[\cn",d:printidx9,s:"\cf]: \cd",d:ExpTable[printidx9],s:"\cf     Level[\cn",d:printidx29,s:"\cf]: \cd",d:ExpTable[printidx29],
+							s:"\n\cf Level[\cn",d:printidx10,s:"\cf]: \cd",d:ExpTable[printidx10],s:"\cf     Level[\cn",d:printidx30,s:"\cf]: \cd",d:ExpTable[printidx30],
+							s:"\n\cf Level[\cn",d:printidx11,s:"\cf]: \cd",d:ExpTable[printidx11],s:"\cf     Level[\cn",d:printidx31,s:"\cf]: \cd",d:ExpTable[printidx31],
+							s:"\n\cf Level[\cn",d:printidx12,s:"\cf]: \cd",d:ExpTable[printidx12],s:"\cf     Level[\cn",d:printidx32,s:"\cf]: \cd",d:ExpTable[printidx32],
+							s:"\n\cf Level[\cn",d:printidx13,s:"\cf]: \cd",d:ExpTable[printidx13],s:"\cf     Level[\cn",d:printidx33,s:"\cf]: \cd",d:ExpTable[printidx33],
+							s:"\n\cf Level[\cn",d:printidx14,s:"\cf]: \cd",d:ExpTable[printidx14],s:"\cf     Level[\cn",d:printidx34,s:"\cf]: \cd",d:ExpTable[printidx34],
+							s:"\n\cf Level[\cn",d:printidx15,s:"\cf]: \cd",d:ExpTable[printidx15],s:"\cf     Level[\cn",d:printidx35,s:"\cf]: \cd",d:ExpTable[printidx35],
+							s:"\n\cf Level[\cn",d:printidx16,s:"\cf]: \cd",d:ExpTable[printidx16],s:"\cf     Level[\cn",d:printidx36,s:"\cf]: \cd",d:ExpTable[printidx36],
+							s:"\n\cf Level[\cn",d:printidx17,s:"\cf]: \cd",d:ExpTable[printidx17],s:"\cf     Level[\cn",d:printidx37,s:"\cf]: \cd",d:ExpTable[printidx37],
+							s:"\n\cf Level[\cn",d:printidx18,s:"\cf]: \cd",d:ExpTable[printidx18],s:"\cf     Level[\cn",d:printidx38,s:"\cf]: \cd",d:ExpTable[printidx38],
+							s:"\n\cf Level[\cn",d:printidx19,s:"\cf]: \cd",d:ExpTable[printidx19],s:"\cf     Level[\cn",d:printidx39,s:"\cf]: \cd",d:ExpTable[printidx39]
+						);
+	// 200 - 200
 	printidx0 += 40; printidx1 += 40; printidx2 += 40; printidx3 += 40; printidx4 += 40; printidx5 += 40; printidx6 += 40; printidx7 += 40; printidx8 += 40; printidx9 += 40;
 	printidx10 += 40; printidx11 += 40; printidx12 += 40; printidx13 += 40; printidx14 += 40; printidx15 += 40; printidx16 += 40; printidx17 += 40; printidx18 += 40; printidx19 += 40;
 	printidx20 += 40; printidx21 += 40; printidx22 += 40; printidx23 += 40; printidx24 += 40; printidx25 += 40; printidx26 += 40; printidx27 += 40; printidx28 += 40; printidx29 += 40;
@@ -3426,6 +3378,7 @@ script "DMV" (int index, int type, int value)
 //*****************
 script "HUDDisplay" ENTER
 {
+	int debughud = GetCVar("dvdsdebug_huddisplays");
 	int MaxHealthLimit = MaxHealthTrue * 2;
 	int xpos;
 	int ypos = 32.0;
@@ -4104,16 +4057,16 @@ script "HUDDisplay" ENTER
 						xpos = ScreenXOffset + 169.0; // 169.0
 						ypos = ScreenYOffset + 92.0; // 92.0
 
-						MaxNotchAmount = 400 / HudMeterDetail;
+						MaxNotchAmount = 400 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [4061] - ",d:HudMeterDetail);
 						CurrentValue = GetActorProperty(MiscellaneousVars[2027],APROP_Health); // Current Health for Boss
 						MaxValue = GetUserVariable(MiscellaneousVars[2027],"user_MaxHP"); // Max Health for Boss
-						VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
+						VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [4064]- ",d:MaxValue);
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 						if (MaxValue != 0)
 						{
 							// Normal
-							for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+							for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd++)
 							{
 								if (HUDMsgIDAdd <= VisibleNotchAmount)
 								{
@@ -4239,8 +4192,7 @@ script "HUDDisplay" ENTER
 					if (blindnessframe == 4) SetFont("PF1BLND4");
 					if (blindnessframe == 5) SetFont("PF1BLND5");
 				}
-				msgalpha = 1.0;
-				//if (PowerupTimer[1] > 0) msgalpha = FixedMul(msgalpha,MiscFixedVars[101]); // If using Invisiblity Spell, pulsate the alpha of the buff effect
+				// If using Invisiblity Spell, pulsate the alpha of the buff effect
 				msgalpha = FixedMul(msgalpha,overallhudalpha);
 				HudMessage(s:"A";HUDMSG_ALPHA,7797,cr_untranslated,xpos,ypos,HUDMsgDelayFixed,msgalpha);
 			}
@@ -5364,15 +5316,31 @@ script "HUDDisplay" ENTER
 				}
 				if (CharacterClass == 2)
 				{
-					if (PowerupTimer[7] > 0)
+					if (PowerupTimer[129] > 0)
 					{
-						if (PowerupTimer[4] > 0) SetFont("PFLO2TN2");
-						else SetFont("PFLO2TNS");
+						if (PowerupTimer[7] > 0)
+						{
+							if (PowerupTimer[4] > 0) SetFont("PFLO4TN2");
+							else SetFont("PFLO4TNS");
+						}
+						else
+						{
+							if (PowerupTimer[4] > 0) SetFont("PFLO3TN2");
+							else SetFont("PFLO3TNS");
+						}
 					}
 					else
 					{
-						if (PowerupTimer[4] > 0) SetFont("PFLO1TN2");
-						else SetFont("PFLO1TNS");
+						if (PowerupTimer[7] > 0)
+						{
+							if (PowerupTimer[4] > 0) SetFont("PFLO2TN2");
+							else SetFont("PFLO2TNS");
+						}
+						else
+						{
+							if (PowerupTimer[4] > 0) SetFont("PFLO1TN2");
+							else SetFont("PFLO1TNS");
+						}
 					}
 				}
 				if (CharacterClass == 8)
@@ -5446,15 +5414,31 @@ script "HUDDisplay" ENTER
 				}
 				if (CharacterClass == 2)
 				{
-					if (PowerupTimer[7] > 0)
+					if (PowerupTimer[129] > 0)
 					{
-						if (PowerupTimer[4] > 0) SetFont("PFLO2INV");
-						else SetFont("PFLO2NRM");
+						if (PowerupTimer[7] > 0)
+						{
+							if (PowerupTimer[4] > 0) SetFont("PFLO4INV");
+							else SetFont("PFLO4NRM");
+						}
+						else
+						{
+							if (PowerupTimer[4] > 0) SetFont("PFLO3INV");
+							else SetFont("PFLO3NRM");
+						}
 					}
 					else
 					{
-						if (PowerupTimer[4] > 0) SetFont("PFLO1INV");
-						else SetFont("PFLO1NRM");
+						if (PowerupTimer[7] > 0)
+						{
+							if (PowerupTimer[4] > 0) SetFont("PFLO2INV");
+							else SetFont("PFLO2NRM");
+						}
+						else
+						{
+							if (PowerupTimer[4] > 0) SetFont("PFLO1INV");
+							else SetFont("PFLO1NRM");
+						}
 					}
 				}
 				if (CharacterClass == 8)
@@ -5573,7 +5557,8 @@ script "HUDDisplay" ENTER
 			}
 
 			// Red Glow (critical health) [portrait] [7823]
-			int HealthRatio = GetActorProperty(Player1TID,APROP_Health) * 1000 / MaxHealthTrue;
+			int HealthRatio; 
+			if (MaxHealthTrue != 0) HealthRatio = GetActorProperty(Player1TID,APROP_Health) * 1000 / MaxHealthTrue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxHealthTrue [5563] - ",d:MaxHealthTrue);
 			if (HealthRatio <= 100)
 			{
 				msgalpha = 0.75; msgalpha = FixedMul(msgalpha,overallhudalpha);
@@ -6074,11 +6059,11 @@ script "HUDDisplay" ENTER
 					if (PowerupTimer[7] > 0) MaxEXPCombotimer = 7000; else MaxEXPCombotimer = 5600;
 					// Combo Timer Bar
 					
-					MaxNotchAmount = 100 / HudMeterDetail;
-					VisibleNotchAmount = MiscellaneousVars[157] * MaxNotchAmount / MaxEXPCombotimer;
+					MaxNotchAmount = 100 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [6063] - ",d:HudMeterDetail);
+					VisibleNotchAmount = MiscellaneousVars[157] * MaxNotchAmount / MaxEXPCombotimer; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxEXPCombotimer [6064] - ",d:MaxEXPCombotimer);
 					if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 					if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
-					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 					{
 						if (MaxEXPCombotimer != 0)
 						{
@@ -6288,16 +6273,16 @@ script "HUDDisplay" ENTER
 				msgalpha = 0.75; msgalpha = FixedMul(msgalpha,overallhudalpha);
 
 				
-				MaxNotchAmount = 200 / HudMeterDetail;
+				MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [6277] - ",d:HudMeterDetail);
 				CurrentValue = GetActorProperty(Player1TID,APROP_Health);
 				MaxValue = MaxHealthTrue; // Max Health for player
-				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
+				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [6280] - ",d:MaxValue);
 				if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 				if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 				if (MaxValue != 0)
 				{
 					// Normal
-					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 					{
 						if (HUDMsgIDAdd <= VisibleNotchAmount)
 						{
@@ -6314,16 +6299,15 @@ script "HUDDisplay" ENTER
 					if (HudOverlifeNotches == 1)
 					{
 						// Overlife
-						
-						MaxNotchAmount = 200 / HudMeterDetail;
+						MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [6303] - ",d:HudMeterDetail);
 						CurrentValue = GetActorProperty(Player1TID,APROP_Health);
 						MaxValue = MaxHealthTrue; // Max Health for player
-						VisibleNotchAmount = (CurrentValue * MaxNotchAmount / MaxValue) - MaxNotchAmount; 
+						VisibleNotchAmount = (CurrentValue * MaxNotchAmount / MaxValue) - MaxNotchAmount; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [6306] - ",d:MaxValue);
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 						if (MaxValue != 0 && VisibleNotchAmount > 0)
 						{
-							for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+							for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 							{
 								if (HUDMsgIDAdd <= VisibleNotchAmount)
 								{
@@ -6439,16 +6423,16 @@ script "HUDDisplay" ENTER
 				ypos = ScreenYOffset + 897.0; // 870
 				msgalpha = 0.75; msgalpha = FixedMul(msgalpha,overallhudalpha);
 				
-				MaxNotchAmount = 200 / HudMeterDetail;
+				MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [6427] - ",d:HudMeterDetail);
 				CurrentValue = CurrentMana;
 				MaxValue = MaxMana;
-				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
+				if (MaxValue != 0) VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [6430] - ",d:MaxValue);
 				if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 				if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 				if (MaxValue != 0)
 				{
 					// Normal
-					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 					{
 						if (HUDMsgIDAdd <= VisibleNotchAmount)
 						{
@@ -6466,16 +6450,15 @@ script "HUDDisplay" ENTER
 					if (HudOverlifeNotches == 1)
 					{
 						// Overlife
-						
-						MaxNotchAmount = 200 / HudMeterDetail;
+						MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [6454] - ",d:HudMeterDetail);
 						CurrentValue = CurrentMana;
 						MaxValue = MaxMana;
-						VisibleNotchAmount = (CurrentValue * MaxNotchAmount / MaxValue) - MaxNotchAmount; 
+						VisibleNotchAmount = (CurrentValue * MaxNotchAmount / MaxValue) - MaxNotchAmount; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [6457] - ",d:MaxValue);
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = 200;
 						if (MaxValue != 0 && VisibleNotchAmount > 0)
 						{
-							for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+							for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 							{
 								if (HUDMsgIDAdd <= VisibleNotchAmount)
 								{
@@ -6548,7 +6531,7 @@ script "HUDDisplay" ENTER
 				ypos = ScreenYOffset + 924.0; // 870
 				msgalpha = 0.75; msgalpha = FixedMul(msgalpha,overallhudalpha);
 				
-				MaxNotchAmount = 200 / HudMeterDetail;
+				MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [6535] - ",d:HudMeterDetail);
 				CurrentValue = MiscellaneousVars[5001];
 				MaxValue = 900; //To replace in the future with other max. Arcana Gauge options
 				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
@@ -6557,7 +6540,7 @@ script "HUDDisplay" ENTER
 				if (MaxValue != 0)
 				{
 					// Normal
-					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 					{
 						if (HUDMsgIDAdd <= VisibleNotchAmount)
 						{
@@ -6672,15 +6655,15 @@ script "HUDDisplay" ENTER
 					msgalpha = 0.75; msgalpha = FixedMul(msgalpha,overallhudalpha);
 
 					
-					MaxNotchAmount = 200 / HudMeterDetail;
+					MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [6659] - ",d:HudMeterDetail);
 					CurrentValue = HellcoreOverheatLevel; MaxValue = 1000000;
-					VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
+					VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [6661] - ",d:MaxValue);
 					if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 					if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 					if (MaxValue != 0)
 					{
 						// Normal
-						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 						{
 							if (HUDMsgIDAdd <= VisibleNotchAmount)
 							{
@@ -6698,14 +6681,14 @@ script "HUDDisplay" ENTER
 						{
 							// Overheat
 							
-							MaxNotchAmount = 200 / HudMeterDetail;
+							MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [6685] - ",d:HudMeterDetail);
 							CurrentValue = HellcoreOverheatLevel; MaxValue = 1000000;
-							VisibleNotchAmount = ((CurrentValue * MaxNotchAmount / MaxValue) - MaxNotchAmount) / 9;
+							VisibleNotchAmount = ((CurrentValue * MaxNotchAmount / MaxValue) - MaxNotchAmount) / 9; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [6687] - ",d:MaxValue);
 							if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 							if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 							if (VisibleNotchAmount > 0)
 							{
-								for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+								for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 								{
 									if (HUDMsgIDAdd <= VisibleNotchAmount)
 									{
@@ -6796,16 +6779,16 @@ script "HUDDisplay" ENTER
 						ypos = ScreenYOffset + 924.0; // 870
 		
 						
-						MaxNotchAmount = 200 / HudMeterDetail;
+						MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [6783] - ",d:HudMeterDetail);
 						CurrentValue = CheckActorInventory(Player1TID,"Armor");
 						MaxValue = CurrentMaxArmor;
-						VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
+						VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [6786] - ",d:MaxValue);
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 						if (MaxValue != 0)
 						{
 							// Normal
-							for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+							for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 							{
 								if (HUDMsgIDAdd <= VisibleNotchAmount)
 								{
@@ -6844,6 +6827,7 @@ script "HUDDisplay" ENTER
 			// 4301-4500 - Stamina Meter Notches [STAMINA Info]
 			// 4501 - Stamina Meter Glass [STAMINA Info]
 			int StaminaRatio = ((MiscellaneousVars[21] * 100) / MiscellaneousVars[22]); // Current Stamina
+			if (MiscellaneousVars[22] != 0) StaminaRatio = ((MiscellaneousVars[21] * 100) / MiscellaneousVars[22]); // Current Stamina
 			// STAM Label
 			xpos = ScreenXOffset + 220.0;
 			ypos = ScreenYOffset + 949.0;
@@ -6934,16 +6918,16 @@ script "HUDDisplay" ENTER
 				msgalpha = 0.75; msgalpha = FixedMul(msgalpha,overallhudalpha);
 
 				
-				MaxNotchAmount = 200 / HudMeterDetail;
+				MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [6922] - ",d:HudMeterDetail);
 				CurrentValue = MiscellaneousVars[21];
 				MaxValue = MiscellaneousVars[22];
-				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
+				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [6925] - ",d:MaxValue);
 				if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 				if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 				if (MaxValue != 0)
 				{
 					// Normal
-					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 					{
 						if (HUDMsgIDAdd <= VisibleNotchAmount)
 						{
@@ -6962,15 +6946,15 @@ script "HUDDisplay" ENTER
 					{
 						// Overcharge
 						
-						MaxNotchAmount = 200 / HudMeterDetail;
+						MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [6950] - ",d:HudMeterDetail);
 						CurrentValue = MiscellaneousVars[21];
 						MaxValue = MiscellaneousVars[22];
-						VisibleNotchAmount = ((CurrentValue * MaxNotchAmount / MaxValue) - MaxNotchAmount) / 4;
+						VisibleNotchAmount = ((CurrentValue * MaxNotchAmount / MaxValue) - MaxNotchAmount) / 4; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [6953] - ",d:MaxValue);
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 						if (VisibleNotchAmount > 0)
 						{
-							for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+							for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 							{
 								if (HUDMsgIDAdd <= VisibleNotchAmount)
 								{
@@ -7039,10 +7023,10 @@ script "HUDDisplay" ENTER
 					
 					if (HudMeterDetail == 4) HudMeterDetail = 2;
 					if (HudMeterDetail == 10) HudMeterDetail = 5;
-					MaxNotchAmount = 50 / HudMeterDetail;
+					MaxNotchAmount = 50 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [7027] - ",d:HudMeterDetail);
 					CurrentValue = PlayerLevel; // Current Player Level
 					MaxValue = LevelCap; // Max Level for player
-					VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
+					VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [7030] - ",d:MaxValue);
 					if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 					if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 					if (MaxValue != 0)
@@ -7115,10 +7099,10 @@ script "HUDDisplay" ENTER
 				
 				if (HudMeterDetail == 4) HudMeterDetail = 2;
 				if (HudMeterDetail == 10) HudMeterDetail = 5;
-				MaxNotchAmount = 50 / HudMeterDetail;
+				MaxNotchAmount = 50 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [7103] - ",d:HudMeterDetail);
 				CurrentValue = MiscellaneousVars[232] / 10;
 				MaxValue = 100;
-				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
+				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [7106] - ",d:MaxValue);
 				if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 				if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 				if (MaxValue != 0)
@@ -7189,10 +7173,10 @@ script "HUDDisplay" ENTER
 				
 				if (HudMeterDetail == 4) HudMeterDetail = 2;
 				if (HudMeterDetail == 10) HudMeterDetail = 5;
-				MaxNotchAmount = 50 / HudMeterDetail;
+				MaxNotchAmount = 50 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [7177] - ",d:HudMeterDetail);
 				CurrentValue = MiscellaneousVars[233] / 10; // Armor Absorbsion Rate
 				MaxValue = 100;
-				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
+				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [7180] - ",d:MaxValue);
 				if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 				if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 				if (MaxValue != 0)
@@ -7274,10 +7258,10 @@ script "HUDDisplay" ENTER
 				
 				if (HudMeterDetail == 4) HudMeterDetail = 2;
 				if (HudMeterDetail == 10) HudMeterDetail = 5;
-				MaxNotchAmount = 50 / HudMeterDetail;
+				MaxNotchAmount = 50 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [7262] - ",d:HudMeterDetail);
 				CurrentValue = MiscellaneousVars[23] / 100;
 				MaxValue = 100;
-				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
+				VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [7265] - ",d:MaxValue);
 				if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 				if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 				if (MaxValue != 0)
@@ -7345,13 +7329,13 @@ script "HUDDisplay" ENTER
 				
 				int CurrentEXPMeterAmount;
 				int MaxEXPMeterAmount;
-				MaxNotchAmount = 200 / HudMeterDetail;
+				MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [7333] - ",d:HudMeterDetail);
 				CurrentEXPMeterAmount = Experience - ExpTable[PlayerLevel - 1];
 				MaxEXPMeterAmount = ExpTable[PlayerLevel] - ExpTable[PlayerLevel - 1];
-				VisibleNotchAmount = CurrentEXPMeterAmount * MaxNotchAmount / MaxEXPMeterAmount;
+				VisibleNotchAmount = CurrentEXPMeterAmount * MaxNotchAmount / MaxEXPMeterAmount; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxEXPMeterAmount [7336] - ",d:MaxEXPMeterAmount);
 				if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 				if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
-				for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 201; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+				for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 				{
 					if (MaxEXPMeterAmount != 0)
 					{
@@ -7457,11 +7441,11 @@ script "HUDDisplay" ENTER
 					if (MiscellaneousVars[181] < 7 && MiscellaneousVars[185] > 0 && MiscellaneousVars[184] == 0)
 					{
 						
-						MaxNotchAmount = 200 / HudMeterDetail;
-						VisibleNotchAmount = MiscellaneousVars[185] * MaxNotchAmount / MaxTensionChargeTimer;
+						MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [7445] - ",d:HudMeterDetail);
+						VisibleNotchAmount = MiscellaneousVars[185] * MaxNotchAmount / MaxTensionChargeTimer; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxTensionChargeTimer [7446] - ",d:MaxTensionChargeTimer);
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
-						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 201; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 						{
 							if (HUDMsgIDAdd <= VisibleNotchAmount)
 							{
@@ -7485,11 +7469,11 @@ script "HUDDisplay" ENTER
 					if (MiscellaneousVars[181] > 0) //   && MiscellaneousVars[183] < TensionTimerMax
 					{
 						
-						MaxNotchAmount = 200 / HudMeterDetail;
-						VisibleNotchAmount = MiscellaneousVars[183] * MaxNotchAmount / TensionTimerMax;
+						MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [7473] - ",d:HudMeterDetail);
+						VisibleNotchAmount = MiscellaneousVars[183] * MaxNotchAmount / TensionTimerMax; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- TensionTimerMax [7474] - ",d:TensionTimerMax);
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
-						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 201; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 						{
 							if (HUDMsgIDAdd <= VisibleNotchAmount)
 							{
@@ -7573,11 +7557,11 @@ script "HUDDisplay" ENTER
 					if (MiscellaneousVars[250] > 0) //   && MiscellaneousVars[183] < TensionTimerMax
 					{
 						
-						MaxNotchAmount = 100 / HudMeterDetail;
-						VisibleNotchAmount = MiscellaneousVars[250] * MaxNotchAmount / MiscellaneousVars[262];
+						MaxNotchAmount = 100 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [7561] - ",d:HudMeterDetail);
+						VisibleNotchAmount = MiscellaneousVars[250] * MaxNotchAmount / MiscellaneousVars[262];  if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MiscellaneousVars[262] [7562] - ",d:MiscellaneousVars[262]);
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
-						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 201; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 						{
 							if (HUDMsgIDAdd <= VisibleNotchAmount)
 							{
@@ -7668,13 +7652,13 @@ script "HUDDisplay" ENTER
 					if (MaxValue != 0)
 					{
 						
-						MaxNotchAmount = 100 / HudMeterDetail;
+						MaxNotchAmount = 100 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [7656] - ",d:HudMeterDetail);
 						CurrentValue = MiscellaneousVars[186]; // Current Tension Cooldown Timer
 						MaxValue = MiscellaneousVars[188]; // Max Tension Cooldown
-						VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue;
+						VisibleNotchAmount = CurrentValue * MaxNotchAmount / MaxValue; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxValue [7659] - ",d:MaxValue);
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
-						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 201; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 						{
 							if (HUDMsgIDAdd <= VisibleNotchAmount)
 							{
@@ -9565,7 +9549,8 @@ script "HUDDisplay" ENTER
 				if (MiscellaneousVars[2045] == 15) buffmsg1 = "\c[cream]ASLEEP!!";
 				if (MiscellaneousVars[2045] == 16) buffmsg1 = "\c[green]SPELLS SEALED!!";
 				if (MiscellaneousVars[2045] == 17) buffmsg1 = "\c[brick]YOU'RE EXHAUSTED!!";
-				if (MiscellaneousVars[2045] == 18) buffmsg1 = "\c[gold]ARCANA FORCE!";
+				
+				if (MiscellaneousVars[2045] == 25) buffmsg1 = "\c[gold]ARCANA FORCE!";
 				xpos = 540.0; // MiscFixedVars[1]; [1080]
 				ypos = ScreenYOffset + 652.0; // 696 // MiscFixedVars[2]; [810]
 				SetFont("DQHUDFONTSML"); // DQHUDFONTSML // DQHUDFONTSTATUS
@@ -9690,13 +9675,13 @@ script "HUDDisplay" ENTER
 					msgalpha = 0.75;
 	
 					
-					MaxNotchAmount = 200 / HudMeterDetail;
-					VisibleNotchAmount = currentair * MaxNotchAmount / maxair;
+					MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [9679] - ",d:HudMeterDetail);
+					VisibleNotchAmount = currentair * MaxNotchAmount / maxair; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- maxair [9680] - ",d:maxair);
 	
 					if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 					if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 					// Normal
-					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 					{
 						if (HUDMsgIDAdd <= VisibleNotchAmount)
 						{
@@ -9770,13 +9755,13 @@ script "HUDDisplay" ENTER
 						msgalpha = 0.75;
 	
 						
-						MaxNotchAmount = 200 / HudMeterDetail;
-						VisibleNotchAmount = ifound * MaxNotchAmount / itotal;
+						MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [9759] - ",d:HudMeterDetail);
+						VisibleNotchAmount = ifound * MaxNotchAmount / itotal; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- itotal [9760] - ",d:itotal);
 	
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 						// Normal
-						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 						{
 							if (HUDMsgIDAdd <= VisibleNotchAmount)
 							{
@@ -9845,13 +9830,13 @@ script "HUDDisplay" ENTER
 						msgalpha = 0.75;
 
 						
-						MaxNotchAmount = 200 / HudMeterDetail;
-						VisibleNotchAmount = sfound * MaxNotchAmount / stotal;
+						MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [9834] - ",d:HudMeterDetail);
+						VisibleNotchAmount = sfound * MaxNotchAmount / stotal; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- stotal [9835] - ",d:stotal);
 
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 						// Normal
-						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 						{
 							if (HUDMsgIDAdd <= VisibleNotchAmount)
 							{
@@ -9920,13 +9905,13 @@ script "HUDDisplay" ENTER
 						msgalpha = 0.75;
 
 						
-						MaxNotchAmount = 200 / HudMeterDetail;
-						VisibleNotchAmount = mkilled * MaxNotchAmount / mtotal;
+						MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [9909] - ",d:HudMeterDetail);
+						VisibleNotchAmount = mkilled * MaxNotchAmount / mtotal; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- mtotal [9910] - ",d:mtotal);
 
 						if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 						if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 						// Normal
-						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+						for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 						{
 							if (HUDMsgIDAdd <= VisibleNotchAmount)
 							{
@@ -10332,7 +10317,7 @@ script "HUDDisplay" ENTER
 				if (sigil_pieces == 3) SetFont("WISIGIL3");
 				if (sigil_pieces == 4) SetFont("WISIGIL4");
 				if (sigil_pieces == 5) SetFont("WISIGIL5");
-				// PrintBold(s:"Pieces: ",d:sigil_pieces);
+				if (debughud > 0) PrintBold(s:"Pieces: ",d:sigil_pieces);
 			}
 			// KDIZD Weapons
 			If(StrIcmp(weapon, "Rifle") == 0) SetFont("WIKDRIF");
@@ -10608,12 +10593,12 @@ script "HUDDisplay" ENTER
 				if (maxammo != 0)
 				{
 					
-					MaxNotchAmount = 200 / HudMeterDetail;
-					VisibleNotchAmount = ammo * MaxNotchAmount / maxammo;
+					MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [10597] - ",d:HudMeterDetail);
+					VisibleNotchAmount = ammo * MaxNotchAmount / maxammo; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- maxammo [10598] - ",d:maxammo);
 					if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 					if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 					// Normal
-					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 					{
 						if (HUDMsgIDAdd <= VisibleNotchAmount)
 						{
@@ -10675,11 +10660,11 @@ script "HUDDisplay" ENTER
 				
 							if (MaxExpForCurrentLevel > 0)
 							{
-								MaxNotchAmount = 200 / HudMeterDetail;
-								VisibleNotchAmount = CurrentExpForCurrentLevel * MaxNotchAmount / MaxExpForCurrentLevel;
+								MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [10664] - ",d:HudMeterDetail);
+								VisibleNotchAmount = CurrentExpForCurrentLevel * MaxNotchAmount / MaxExpForCurrentLevel; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- MaxExpForCurrentLevel [10665] - ",d:MaxExpForCurrentLevel);
 								if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 								if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
-								for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 201; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+								for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 								{
 									if (HUDMsgIDAdd <= VisibleNotchAmount)
 									{
@@ -10828,14 +10813,20 @@ script "HUDDisplay" ENTER
 					msgalpha = 0.75;
 
 					
-					MaxNotchAmount = 200 / HudMeterDetail;
-								If(StrIcmp(weapon, "Minigun") == 0) { VisibleNotchAmount = minigunheat * MaxNotchAmount / minigunheatmax; xpos+= 5.0; }
-					else If(StrIcmp(weapon, "Railgun2") == 0) { VisibleNotchAmount = minigunheat * MaxNotchAmount / minigunheatmax; xpos+= 5.0; }
-																							else { VisibleNotchAmount = currentmana * MaxNotchAmount / maxmana; }
+					MaxNotchAmount = 200 / HudMeterDetail; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- HudMeterDetail [10817] - ",d:HudMeterDetail);
+					If(StrIcmp(weapon, "Minigun") == 0 || StrIcmp(weapon, "Railgun2") == 0) 
+					{ 
+						VisibleNotchAmount = minigunheat * MaxNotchAmount / minigunheatmax; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- minigunheatmax [10820] - ",d:minigunheatmax);
+						xpos += 5.0; 
+					}
+					else 
+					{ 
+						VisibleNotchAmount = currentmana * MaxNotchAmount / maxmana; if (debughud > 0) PrintBold(s:"\cyDivChecker:\c- maxmana [10825] - ",d:maxmana);
+					}
 					if (VisibleNotchAmount > MaxNotchAmount) VisibleNotchAmount = MaxNotchAmount;
 					if (HudShowEmptyNotches == 0) ForEnd = VisibleNotchAmount; else ForEnd = MaxNotchAmount;
 					// Normal
-					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++) //for (HUDMsgIDAdd = 101; HUDMsgIDAdd > 1; HUDMsgIDAdd --)
+					for (HUDMsgIDAdd = 1; HUDMsgIDAdd <= ForEnd; HUDMsgIDAdd ++)
 					{
 						if (HUDMsgIDAdd <= VisibleNotchAmount)
 						{
@@ -10909,771 +10900,6 @@ script "ManaRegenerationStuff" ENTER
 	}
 	Delay(1);
 	Restart;
-}
-
-// Seperated Levelup Code
-script "LevelUpCode" ENTER // (void)
-{
-	int Exp1, Exp2, ExpMultiFactor, RealExpGain, HPBoost, MPBoost;
-	int RandomizedStatChance, RandomizedStatChance2;
-	int levelmodulo, levelbonustype;
-	int PerkFactor;
-	int leveluptimes = 0;
-	int leveluptimesmax = 200;
-	int tempaeonpointincrease;
-	//*******************
-	//** LEVEL UP CODE **
-	//*******************
-	for (leveluptimes = 0; leveluptimes < leveluptimesmax; leveluptimes++)
-	{
-		MiscellaneousVars[48] = ExpTable[PlayerLevel] - Experience;
-		if (Experience >= ExpTable[PlayerLevel])
-		{
-			tempaeonpointincrease = 0;
-			if (PlayerLevel < LevelCap)
-			{
-				PlayerLevel += 1;
-	
-				MiscellaneousVars[171] = 105; // Turns on the "Level Up!!" and "Stat Up" indicators for 3 seconds on the HUD upon level up.
-				MiscellaneousVars[204] = MiscellaneousVars[25]; // total Aeon Points gained
-				MiscellaneousVars[205] = MiscellaneousVars[31]; // total Agility Points gained
-				MiscellaneousVars[206] = MiscellaneousVars[32]; // total Defense Points gained
-				MiscellaneousVars[207] = MiscellaneousVars[33]; // total Deftness Points gained
-				MiscellaneousVars[208] = MiscellaneousVars[34]; // total Sorcery Points gained
-				MiscellaneousVars[209] = MiscellaneousVars[35]; // total Strength Points gained
-				MiscellaneousVars[210] = MiscellaneousVars[36]; // total Therapeusis Points gained
-	
-				//*********************
-				//*Aeon Point Increase*
-				//*********************
-				// MiscellaneousVars[25] = Aeon Points
-				if (PlayerLevel != 0)
-				{
-					levelmodulo = PlayerLevel % 20;
-					if (levelmodulo == 0) levelbonustype = 0;
-					else if (levelmodulo == 4) levelbonustype = 1;
-					else if (levelmodulo == 8) levelbonustype = 1;
-					else if (levelmodulo == 12) levelbonustype = 1;
-					else if (levelmodulo == 16) levelbonustype = 1;
-					else levelbonustype = 2;
-
-					int baseaeonchance1 = 65;
-					int baseaeonchance2 = 25;
-					int baseaeonchance3 = 20;
-					int baseaeonchance4 = 0;
-					if (levelbonustype == 0) // Levels 20, 40, 60, 80, 100, 120, 140, 160, 180 & 200 [really big Aeon Point gains]
-					{
-						baseaeonchance1 = 65;
-						baseaeonchance2 = 25;
-						baseaeonchance3 = 20;
-						if (PlayerLevel > 100)
-						{
-							if (random(1,100) <= baseaeonchance1) tempaeonpointincrease += 1;
-							if (random(1,100) <= baseaeonchance1) tempaeonpointincrease += 1;
-							if (random(1,100) <= baseaeonchance2) tempaeonpointincrease += 6; else tempaeonpointincrease += 4;
-							if (random(1,100) <= baseaeonchance3) tempaeonpointincrease += random(2,4);
-						}
-						else
-						{
-							if (random(1,100) <= baseaeonchance1) tempaeonpointincrease += 1;
-							if (random(1,100) <= baseaeonchance2) tempaeonpointincrease += 5; else tempaeonpointincrease += 3;
-							if (random(1,100) <= baseaeonchance3) tempaeonpointincrease += random(1,3);
-						}
-					}
-					else
-					if (levelbonustype == 1) // Levels [0/2/4/6/8/10/12/14/16/18]4, [0/2/4/6/8/10/12/14/16/18]8, [1/3/5/7/9/11/13/15/17/19]2, & [1/3/5/7/9/11/13/15/17/19]6
-					{
-						baseaeonchance1 = 65;
-						baseaeonchance2 = 15;
-						baseaeonchance3 = 10;
-						if (PlayerLevel > 100)
-						{
-							if (random(1,100) <= baseaeonchance1) tempaeonpointincrease += 1;
-							if (random(1,100) <= baseaeonchance1) tempaeonpointincrease += 1;
-							if (random(1,100) <= baseaeonchance2) tempaeonpointincrease += 3; else tempaeonpointincrease += 2;
-							if (random(1,100) <= baseaeonchance3) tempaeonpointincrease += random(1,2);
-						}
-						else
-						{
-							if (random(1,100) <= baseaeonchance1) tempaeonpointincrease += 1;
-							if (random(1,100) <= baseaeonchance2) tempaeonpointincrease += 2; else tempaeonpointincrease += 1;
-							if (random(1,100) <= baseaeonchance3) tempaeonpointincrease += random(0,1);
-						}
-					}
-					else
-					if (levelbonustype == 2) // Any other level that's not a multiple of 4 or 20 [minor Aeon Point gains]
-					{
-						baseaeonchance1 = 65;
-						baseaeonchance2 = 60;
-						baseaeonchance3 = 15;
-						if (PlayerLevel > 100)
-						{
-							if (random(1,100) <= baseaeonchance1) tempaeonpointincrease += 1;
-							if (random(1,100) <= baseaeonchance1) tempaeonpointincrease += 1;
-							if (random(1,100) <= baseaeonchance2) // 60% chance of +2/3 Aeon Points per level
-							{
-								if (random(1,100) <= baseaeonchance3) tempaeonpointincrease += 3; else tempaeonpointincrease += 2;
-							}
-						}
-						else
-						{
-							baseaeonchance2 /= 2;
-							if (random(1,100) <= baseaeonchance1) tempaeonpointincrease += 1;
-							if (random(1,100) <= baseaeonchance2) // 30% chance of +1/2 Aeon Points per level
-							{
-								if (random(1,100) <= baseaeonchance3) tempaeonpointincrease += 2; else tempaeonpointincrease += 1;
-							}
-						}
-					}
-				}
-
-				int extrachance = 25;
-				// Extra AeonPts for "Perk Mode"
-				if (MiscellaneousVars[110001] == 1)
-				{
-					if (random(1,100) <= 96) 
-					{
-						tempaeonpointincrease += 1; 
-						extrachance = 25; 
-					}
-					else
-					{
-						tempaeonpointincrease += 2;
-						extrachance = 50; 
-					}
-					if (PlayerLevel >= 25 && random(1,100) <= extrachance) tempaeonpointincrease += 1;
-					if (PlayerLevel >= 50 && random(1,100) <= extrachance) tempaeonpointincrease += 1;
-					if (PlayerLevel >= 75 && random(1,100) <= extrachance) tempaeonpointincrease += 1;
-					if (PlayerLevel >= 100 && random(1,100) <= extrachance) tempaeonpointincrease += 1;
-					if (PlayerLevel >= 125 && random(1,100) <= extrachance) tempaeonpointincrease += 1;
-					if (PlayerLevel >= 150 && random(1,100) <= extrachance) tempaeonpointincrease += 1;
-					if (PlayerLevel >= 175 && random(1,100) <= extrachance) tempaeonpointincrease += 1;
-					if (PlayerLevel >= 200 && random(1,100) <= extrachance) tempaeonpointincrease += 1;
-				}
-				if (MiscellaneousVars[11001] == 1) tempaeonpointincrease = tempaeonpointincrease * 5 / 4;  // "Higher Learning" Grand Mastery Perk
-				if (MiscellaneousVars[11001] == 2) tempaeonpointincrease = tempaeonpointincrease * 3 / 2;  // "Higher Learning" Grand Mastery Perk [Level 2]
-	
-				if (DVDSSpecialArrayValue[3] > 0) tempaeonpointincrease += random(1,2); // If playing "Unloved"
-				if (DVDSSpecialArrayValue[4] > 0) tempaeonpointincrease += random(1,3); // If playing "TCOTD:A"
-				if (DVDSSpecialArrayValue[5] > 0) tempaeonpointincrease += random(2,3); // If playing "Circus2"
-				tempaeonpointincrease *= MiscellaneousVars[86];
-				MiscellaneousVars[25] += tempaeonpointincrease;
-
-				// Increase Stats
-				// 16:25 (1-100) [64] + 20:25 (101-200) [80] = [Max of 144 (or -75%)]
-				levelmodulo = PlayerLevel % 20;
-				if (levelmodulo == 0) levelbonustype = 0;
-				else if (levelmodulo == 4) levelbonustype = 1;
-				else if (levelmodulo == 8) levelbonustype = 1;
-				else if (levelmodulo == 12) levelbonustype = 1;
-				else if (levelmodulo == 16) levelbonustype = 1;
-				else levelbonustype = 2;
-				RandomizedStatChance = 192;
-				if (levelbonustype == 0) // Levels 20, 40, 60, 80, 100, 120, 140, 160, 180 & 200
-				{
-					RandomizedStatChance -= (10 * random(4,8)); // 112 to 152
-					RandomizedStatChance -= (MiscellaneousVars[33] / 5);
-				}
-				else
-				if (levelbonustype == 1) // Levels [0/2/4/6/8/10/12/14/16/18]4, [0/2/4/6/8/10/12/14/16/18]8, [1/3/5/7/9/11/13/15/17/19]2, & [1/3/5/7/9/11/13/15/17/19]6
-				{
-					RandomizedStatChance -= (4 * random(4,8)); // 160 to 176
-					RandomizedStatChance -= (MiscellaneousVars[33] / 7);
-				}
-				else
-				if (levelbonustype == 2) // Any other level that's not a multiple of 4 or 20
-				{
-					RandomizedStatChance -= (MiscellaneousVars[33] / 8);
-				}
-				int RNDSCSubtractor1 = 0;
-				RNDSCSubtractor1 = PlayerLevel * 16 / 25;
-				if (RNDSCSubtractor1 < 0) RNDSCSubtractor1 = 0; if (RNDSCSubtractor1 > 64) RNDSCSubtractor1 = 64;
-				int RNDSCSubtractor2 = 0;
-				if (PlayerLevel > 100)
-				{
-					RNDSCSubtractor2 = (PlayerLevel - 100) * 20 / 25;
-					if (RNDSCSubtractor2 < 0) RNDSCSubtractor2 = 0; if (RNDSCSubtractor2 > 80) RNDSCSubtractor2 = 80;
-				}
-	
-				int RNDSCSubtractor = 0;
-				RNDSCSubtractor += RNDSCSubtractor1; // Adds [level 1-100] range value
-				RNDSCSubtractor += RNDSCSubtractor2; // Adds [level 101-200] range value
-				RandomizedStatChance -= RNDSCSubtractor;
-				if (CheckActorInventory(Player1TID,"TheOneRing") > 0) RandomizedStatChance = RandomizedStatChance * 3 / 4;
-				if (RandomizedStatChance < 1) RandomizedStatChance = 1;
-	
-				RandomizedStatChance2 = 24;
-				if (PlayerLevel >= 25) RandomizedStatChance2 -= 1; // 23
-				if (PlayerLevel >= 50) RandomizedStatChance2 -= 1; // 22
-				if (PlayerLevel >= 75) RandomizedStatChance2 -= 1; // 21
-				if (PlayerLevel >= 100) RandomizedStatChance2 -= 1; // 20
-				if (PlayerLevel >= 125) RandomizedStatChance2 -= 2; // 18
-				if (PlayerLevel >= 150) RandomizedStatChance2 -= 2; // 16
-				if (PlayerLevel >= 175) RandomizedStatChance2 -= 2; // 14
-				//********************************
-				//*Random Levelups to Stat Values*
-				//********************************
-
-				int SeedIncreaseAmt;
-				int LvlSkillMulti;
-				if (CharacterClass == 0) // Deggaris (192pts) (0 left)
-				{
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 24) MiscellaneousVars[31] += LvlSkillMulti; // Agility [12.5%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 5) MiscellaneousVars[31] += LvlSkillMulti; // Extra Agility [2.60%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 42) MiscellaneousVars[32] += LvlSkillMulti; // Defense [21.4%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 8) MiscellaneousVars[32] += LvlSkillMulti; // Extra Defense [4.16%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 30) MiscellaneousVars[33] += LvlSkillMulti; // Deftness [15.625%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 6) MiscellaneousVars[33] += LvlSkillMulti; // Extra Deftness [3.12%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 30) MiscellaneousVars[34] += LvlSkillMulti; // Sorcery [15.625%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 6) MiscellaneousVars[34] += LvlSkillMulti; // Extra Sorcery [3.12%] 
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 36) MiscellaneousVars[35] += LvlSkillMulti; // Strength [18.36%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 7) MiscellaneousVars[35] += LvlSkillMulti; // Extra Strength [3.64%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 30) MiscellaneousVars[36] += LvlSkillMulti; // Therapeusis [15.625%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 6) MiscellaneousVars[36] += LvlSkillMulti; // Extra Therapeusis [3.12%] 
-				}
-				if (CharacterClass == 1) // Illucia (192pts) (0 left)
-				{
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 30) MiscellaneousVars[31] += LvlSkillMulti; // Agility [15.625%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 6) MiscellaneousVars[31] += LvlSkillMulti; // Extra Agility [3.12%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 30) MiscellaneousVars[32] += LvlSkillMulti; // Defense [15.625%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 6) MiscellaneousVars[32] += LvlSkillMulti; // Extra Defense [3.12%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 30) MiscellaneousVars[33] += LvlSkillMulti; // Deftness [15.625%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 6) MiscellaneousVars[33] += LvlSkillMulti; // Extra Deftness [3.12%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 36) MiscellaneousVars[34] += LvlSkillMulti; // Sorcery [18.36%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 7) MiscellaneousVars[34] += LvlSkillMulti; // Extra Sorcery [3.64%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 24) MiscellaneousVars[35] += LvlSkillMulti; // Strength [12.5%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 5) MiscellaneousVars[35] += LvlSkillMulti; // Extra Strength [2.60%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 42) MiscellaneousVars[36] += LvlSkillMulti; // Therapeusis [21.4%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 8) MiscellaneousVars[36] += LvlSkillMulti; // Extra Therapeusis [4.16%]
-				}
-				if (CharacterClass == 2) // Flora (192pts) (0 left)
-				{
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 37) MiscellaneousVars[31] += LvlSkillMulti; // Agility [19.27%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 7) MiscellaneousVars[31] += LvlSkillMulti; // Extra Agility [3.64%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 16) MiscellaneousVars[32] += LvlSkillMulti; // Defense [8.33%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 3) MiscellaneousVars[32] += LvlSkillMulti; // Extra Defense [1.56%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 33) MiscellaneousVars[33] += LvlSkillMulti; // Deftness [17.2%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 7) MiscellaneousVars[33] += LvlSkillMulti; // Extra Deftness [3.64%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 45) MiscellaneousVars[34] += LvlSkillMulti; // Sorcery [23.4%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 9) MiscellaneousVars[34] += LvlSkillMulti; // Extra Sorcery [4.68%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 23) MiscellaneousVars[35] += LvlSkillMulti; // Strength [11.9%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 5) MiscellaneousVars[35] += LvlSkillMulti; // Extra Strength [2.6%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 38) MiscellaneousVars[36] += LvlSkillMulti; // Therapeusis [19.79%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 8) MiscellaneousVars[36] += LvlSkillMulti; // Extra Therapeusis [4.16%]
-				}
-
-				if (CharacterClass == 8) // Ailish (192pts) (0 left)
-				{
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 36) MiscellaneousVars[31] += LvlSkillMulti; // Agility [18.75%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 7) MiscellaneousVars[31] += LvlSkillMulti; // Extra Agility [3.64%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 13) MiscellaneousVars[32] += LvlSkillMulti; // Defense [6.77%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 2) MiscellaneousVars[32] += LvlSkillMulti; // Extra Defense [1.04%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 36) MiscellaneousVars[33] += LvlSkillMulti; // Deftness [18.75%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 8) MiscellaneousVars[33] += LvlSkillMulti; // Extra Deftness [4.16%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 46) MiscellaneousVars[34] += LvlSkillMulti; // Sorcery [23.95%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 9) MiscellaneousVars[34] += LvlSkillMulti; // Extra Sorcery [4.68%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 20) MiscellaneousVars[35] += LvlSkillMulti; // Strength [10.4%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 4) MiscellaneousVars[35] += LvlSkillMulti; // Extra Strength [2.08%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 41) MiscellaneousVars[36] += LvlSkillMulti; // Therapeusis [21.35%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 8) MiscellaneousVars[36] += LvlSkillMulti; // Extra Therapeusis [4.16%]
-				}
-
-				if (CharacterClass == 9) // Petra (192pts) (0 left)
-				{
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 30) MiscellaneousVars[31] += LvlSkillMulti; // Agility [15.625%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 6) MiscellaneousVars[31] += LvlSkillMulti; // Extra Agility [3.12%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 42) MiscellaneousVars[32] += LvlSkillMulti; // Defense [21.4%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 8) MiscellaneousVars[32] += LvlSkillMulti; // Extra Defense [4.16%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 33) MiscellaneousVars[33] += LvlSkillMulti; // Deftness [17.2%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 7) MiscellaneousVars[33] += LvlSkillMulti; // Extra Deftness [3.64%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 34) MiscellaneousVars[34] += LvlSkillMulti; // Sorcery [18.36%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 6) MiscellaneousVars[34] += LvlSkillMulti; // Extra Sorcery [3.64%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 23) MiscellaneousVars[35] += LvlSkillMulti; // Strength [11.9%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 5) MiscellaneousVars[35] += LvlSkillMulti; // Extra Strength [2.6%]
-		
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 38) MiscellaneousVars[36] += LvlSkillMulti; // Therapeusis [21.4%]
-					if (random(1,RandomizedStatChance2) <= 1) { LvlSkillMulti = 2; } else { LvlSkillMulti = 1; } LvlSkillMulti *= MiscellaneousVars[146];
-					if (random(1,RandomizedStatChance) <= 6) MiscellaneousVars[36] += LvlSkillMulti; // Extra Therapeusis [4.16%]
-				}
-			
-				if (MiscellaneousVars[31] > 512) MiscellaneousVars[31] = 512;
-				if (MiscellaneousVars[32] > 512) MiscellaneousVars[32] = 512;
-				if (MiscellaneousVars[33] > 512) MiscellaneousVars[33] = 512;
-				if (MiscellaneousVars[34] > 512) MiscellaneousVars[34] = 512;
-				if (MiscellaneousVars[35] > 512) MiscellaneousVars[35] = 512;
-				if (MiscellaneousVars[36] > 512) MiscellaneousVars[36] = 512;
-	
-				MiscellaneousVars[204] -= MiscellaneousVars[25]; // total Aeon Points gained
-				MiscellaneousVars[205] -= MiscellaneousVars[31]; // total Agility Points gained
-				MiscellaneousVars[206] -= MiscellaneousVars[32]; // total Defense Points gained
-				MiscellaneousVars[207] -= MiscellaneousVars[33]; // total Deftness Points gained
-				MiscellaneousVars[208] -= MiscellaneousVars[34]; // total Sorcery Points gained
-				MiscellaneousVars[209] -= MiscellaneousVars[35]; // total Strength Points gained
-				MiscellaneousVars[210] -= MiscellaneousVars[36]; // total Therapeusis Points gained
-				MiscellaneousVars[204] *= -1; // total Aeon Points gained
-				MiscellaneousVars[205] *= -1;
-				MiscellaneousVars[206] *= -1;
-				MiscellaneousVars[207] *= -1;
-				MiscellaneousVars[208] *= -1;
-				MiscellaneousVars[209] *= -1;
-				MiscellaneousVars[210] *= -1;
-	
-				//***************
-				//*Mana Increase*
-				//***************
-				int LevelAddMaxMana = 0;
-				int MPMaxGain;
-				if (TrueGameSkill <= SKILL_VERY_EASY)
-				{
-					LevelAddMaxMana = Random(5,10);
-					MPMaxGain = MaxMana / 96;
-				}
-				else if (TrueGameSkill == SKILL_EASY)
-				{
-					LevelAddMaxMana = Random(4,8);
-					MPMaxGain = MaxMana / 120;
-				}
-				else if (TrueGameSkill == SKILL_NORMAL)
-				{
-					LevelAddMaxMana = Random(3,6);
-					MPMaxGain = MaxMana / 144;
-				}
-				else if (TrueGameSkill == SKILL_HARD)
-				{
-					LevelAddMaxMana = Random(2,4);
-					MPMaxGain = MaxMana / 168;
-				}
-				else if (TrueGameSkill == SKILL_VERY_HARD)
-				{
-					LevelAddMaxMana = Random(1,2);
-					MPMaxGain = MaxMana / 192;
-				}
-				else if (TrueGameSkill == SKILL_EXTREME)
-				{
-					LevelAddMaxMana = Random(1,2);
-					MPMaxGain = MaxMana / 204;
-				}
-				else if (TrueGameSkill == SKILL_HORRIBLE)
-				{
-					LevelAddMaxMana = Random(1,2);
-					MPMaxGain = MaxMana / 216;
-				}
-				else if (TrueGameSkill == SKILL_IMPOSSIBLE)
-				{
-					LevelAddMaxMana = 1;
-					MPMaxGain = MaxMana / 228;
-				}
-				else if (TrueGameSkill >= SKILL_OMEGA)
-				{
-					LevelAddMaxMana = 1;
-					MPMaxGain = MaxMana / 240;
-				}
-	
-				PerkFactor = ((MiscellaneousVars[10003] * 500) + (MiscellaneousVars[10004] * 1250)) + 10000;
-				MPMaxGain = MPMaxGain * PerkFactor / 10000; // "MagiUp" and "MagiUp EX" perks.
-	
-				PerkFactor = (MiscellaneousVars[317] * 1250) + 10000;
-				MPMaxGain = MPMaxGain * PerkFactor / 10000; // [STRIFE-Compatibility] Times "Stamina Upgraded"
-	
-				PerkFactor = ((MiscellaneousVars[10003] / 2) + (MiscellaneousVars[10004]));
-				PerkFactor += (MiscellaneousVars[317] * 3) / 8;
-				if (MPMaxGain < PerkFactor) MPMaxGain = PerkFactor;
-				LevelAddMaxMana += MPMaxGain;
-	
-				MPMaxGain = random(6,9); // +7-19 + Level base
-				PerkFactor = ((MiscellaneousVars[10003] * 500) + (MiscellaneousVars[10004] * 1250)) + 10000;
-				MPMaxGain = MPMaxGain * PerkFactor / 10000; // "MagiUp" and "MagiUp EX" perks.
-	
-				PerkFactor = (MiscellaneousVars[317] * 1250) + 10000;
-				MPMaxGain = MPMaxGain * PerkFactor / 10000; // [STRIFE-Compatibility] Times "Stamina Upgraded"
-	
-				LevelAddMaxMana += MPMaxGain;
-
-				int DftTheMulti;
-				if (CharacterClass == 0) DftTheMulti = random(36,42); // Deggaris [MP Gain / Level] [75%-87.5%]
-				if (CharacterClass == 1) DftTheMulti = random(54,60); // Illucia [MP Gain / Level] [112.5%-125%]
-				if (CharacterClass == 2) DftTheMulti = random(66,84); // Flora [MP Gain / Level] [137.5%-175%]
-				if (CharacterClass == 8) DftTheMulti = random(60,78); // Ailish [MP Gain / Level]
-				if (CharacterClass == 9) DftTheMulti = random(49,55); // Petra [MP Gain / Level]
-	
-				DftTheMulti += ((MiscellaneousVars[36] + MiscellaneousVars[33]) / 48); // Add [(Therapesius+Deftness / 48)]
-				LevelAddMaxMana = LevelAddMaxMana * DftTheMulti / 48;
-	
-				// Overall Modifier
-				LevelAddMaxMana = LevelAddMaxMana * 75 / 100;
-	
-				if (LevelAddMaxMana < 1) LevelAddMaxMana = 1;
-				if (LevelAddMaxMana == 1)
-				{
-					if (CharacterClass == 0 && random(1,100) <= 10) LevelAddMaxMana += 1;
-					if (CharacterClass == 1 && random(1,100) <= 20) LevelAddMaxMana += 1;
-					if (CharacterClass == 2 && random(1,100) <= 35) LevelAddMaxMana += 1;
-					if (CharacterClass == 8 && random(1,100) <= 35) LevelAddMaxMana += 1;
-					if (CharacterClass == 9 && random(1,100) <= 10) LevelAddMaxMana += 1;
-				}
-
-				LevelAddMaxMana *= MiscellaneousVars[146];
-				MaxMana += LevelAddMaxMana;
-				CurrentMana += LevelAddMaxMana;
-				MiscellaneousVars[243] = CurrentMana;
-				MiscellaneousVars[238] = CurrentMana;
-	
-	
-				//*************
-				//*HP Increase*
-				//*************
-				int LevelAddMaxHP = 0;
-				int HPMaxGain;
-				int HPRandomizer1;
-				if (TrueGameSkill <= SKILL_VERY_EASY)
-				{
-					LevelAddMaxHP = random(2,4);
-					HPMaxGain = MaxHealthTrue / 288;
-				}
-				if (TrueGameSkill == SKILL_EASY)
-				{
-					LevelAddMaxHP = random(1,3);
-					HPMaxGain = MaxHealthTrue / 360;
-				}
-					if (TrueGameSkill == SKILL_NORMAL)
-				{
-					LevelAddMaxHP = random(0,2);
-					HPMaxGain = MaxHealthTrue / 432;
-				}
-				if (TrueGameSkill == SKILL_HARD)
-				{
-					LevelAddMaxHP = random(-1,1);
-					HPMaxGain = MaxHealthTrue / 504;
-				}
-				if (TrueGameSkill == SKILL_VERY_HARD)
-				{
-					LevelAddMaxHP = random(-2,0);
-					HPMaxGain = MaxHealthTrue / 576;
-				}
-				if (TrueGameSkill == SKILL_EXTREME)
-				{
-					LevelAddMaxHP = random(-2,0);
-					HPMaxGain = MaxHealthTrue / 648;
-				}
-				if (TrueGameSkill == SKILL_HORRIBLE)
-				{
-					LevelAddMaxHP = random(-3,-1);
-					HPMaxGain = MaxHealthTrue / 720;
-				}
-				if (TrueGameSkill == SKILL_IMPOSSIBLE)
-				{
-					LevelAddMaxHP = random(-3,-1);
-					HPMaxGain = MaxHealthTrue / 792;
-				}
-				if (TrueGameSkill >= SKILL_OMEGA)
-				{
-					LevelAddMaxHP = random(-4,-2);
-					HPMaxGain = MaxHealthTrue / 864;
-				}
-	
-				HPMaxGain += Random(1,3);
-				if (CharacterClass == 0) HPMaxGain += random(3,5); // + 6-12+ HP
-				if (CharacterClass == 1) HPMaxGain += random(2,3); // + 5-10+ HP
-				if (CharacterClass == 2) HPMaxGain += random(1,2); // + 4-9+ HP
-				if (CharacterClass == 8) HPMaxGain += random(1,2); // + 3-8+ HP
-				if (CharacterClass == 9) HPMaxGain += random(3,5); // + 6-12+ HP
-	
-				PerkFactor = ((MiscellaneousVars[10001] * 500) + (MiscellaneousVars[10002] * 1250)) + 10000;
-				HPMaxGain = HPMaxGain * PerkFactor / 10000; // "LifeUp" and "LifeUp EX" perks.
-	
-				PerkFactor = (MiscellaneousVars[317] * 1250) + 10000;
-				HPMaxGain = HPMaxGain * PerkFactor / 10000; // [STRIFE-Compatibility] Times "Stamina Upgraded
-	
-				PerkFactor = ((MiscellaneousVars[10003] / 2) + (MiscellaneousVars[10004]));
-				PerkFactor += (MiscellaneousVars[317] * 3) / 8;
-				if (HPMaxGain < PerkFactor) HPMaxGain = PerkFactor;
-				LevelAddMaxHP += HPMaxGain;
-
-				if (TrueGameSkill <= SKILL_VERY_EASY)					LvlSkillMulti = PlayerLevel * 35 / 100;	// 35%
-				else if (TrueGameSkill == SKILL_EASY)					LvlSkillMulti = PlayerLevel * 30 / 100;	// 30%
-				else if (TrueGameSkill == SKILL_NORMAL)				LvlSkillMulti = PlayerLevel * 25 / 100;	// 25%
-				else if (TrueGameSkill == SKILL_HARD)					LvlSkillMulti = PlayerLevel * 20 / 100;	// 20%
-				else if (TrueGameSkill == SKILL_VERY_HARD)		LvlSkillMulti = PlayerLevel * 15 / 100;	// 15%
-				else if (TrueGameSkill == SKILL_EXTREME)			LvlSkillMulti = PlayerLevel * 15 / 100;	// 15%
-				else if (TrueGameSkill == SKILL_HORRIBLE)			LvlSkillMulti = PlayerLevel * 10 / 100;	// 10%
-				else if (TrueGameSkill == SKILL_IMPOSSIBLE)		LvlSkillMulti = PlayerLevel * 10 / 100;	// 10%
-				else if (TrueGameSkill >= SKILL_OMEGA)				LvlSkillMulti = PlayerLevel * 5 / 100;	// 5%
-		
-				if (PlayerLevel > 24 && PlayerLevel < 50)			LvlSkillMulti = LvlSkillMulti * 105 / 100; 		// *105%
-				if (PlayerLevel > 49 && PlayerLevel < 75)			LvlSkillMulti = LvlSkillMulti * 110 / 100; 		// *110%
-				if (PlayerLevel > 74 && PlayerLevel < 100)		LvlSkillMulti = LvlSkillMulti * 115 / 100; 		// *115%
-				if (PlayerLevel > 99 && PlayerLevel < 125)		LvlSkillMulti = LvlSkillMulti * 121 / 100; 		// *121%
-				if (PlayerLevel > 124 && PlayerLevel < 150)		LvlSkillMulti = LvlSkillMulti * 127 / 100; 		// *127%
-				if (PlayerLevel > 149 && PlayerLevel < 175)		LvlSkillMulti = LvlSkillMulti * 133 / 100; 		// *133%
-				if (PlayerLevel > 174)												LvlSkillMulti = LvlSkillMulti * 140 / 100; 		// *140%
-	
-				PerkFactor = ((MiscellaneousVars[10001] * 500) + (MiscellaneousVars[10002] * 1250)) + 10000;
-				LvlSkillMulti = LvlSkillMulti * PerkFactor / 10000; // "LifeUp" and "LifeUp EX" perks.
-	
-				PerkFactor = (MiscellaneousVars[317] * 1250) + 10000;
-				LvlSkillMulti = LvlSkillMulti * PerkFactor / 10000; // [STRIFE-Compatibility] Times "Stamina Upgraded
-	
-				LevelAddMaxHP += LvlSkillMulti;
-	
-				int DefTheMulti;
-				if (CharacterClass == 0) DefTheMulti = random(54,60); // Deggaris [HP Gain / Level] [112.5%-125%]
-				if (CharacterClass == 1) DefTheMulti = random(36,42); // Illucia [HP Gain / Level] [75%-87.5%]
-				if (CharacterClass == 2) DefTheMulti = random(27,33); // Flora [HP Gain / Level] [56.25%-68.75%]
-				if (CharacterClass == 8) DefTheMulti = random(24,30); // Ailish [HP Gain / Level] [50.0%-62.5%]
-				if (CharacterClass == 9) DefTheMulti = random(54,60); // Petra [HP Gain / Level] [112.5%-125%]. Same as Deggaris.
-	
-				DefTheMulti += ((MiscellaneousVars[32] + MiscellaneousVars[33]) / 48); // Add [(Defense+Deftness / 48)]
-				LevelAddMaxHP = LevelAddMaxHP * DefTheMulti / 48;
-	
-				// Overall Modifier
-				LevelAddMaxHP = LevelAddMaxHP * 75 / 100; // *75%+
-	
-				// Give The HP to the player
-				if (LevelAddMaxHP < 1) LevelAddMaxHP = 1;
-				if (LevelAddMaxHP == 1)
-				{
-					if (CharacterClass == 0 && random(1,100) <= 35) LevelAddMaxHP += 1;
-					if (CharacterClass == 1 && random(1,100) <= 20) LevelAddMaxHP += 1;
-					if (CharacterClass == 2 && random(1,100) <= 10) LevelAddMaxHP += 1;
-					if (CharacterClass == 8 && random(1,100) <= 10) LevelAddMaxHP += 1;
-					if (CharacterClass == 9 && random(1,100) <= 35) LevelAddMaxHP += 1;
-				}
-
-				LevelAddMaxHP *= MiscellaneousVars[146];
-				int CurrentHP = GetActorProperty(Player1TID,APROP_HEALTH);
-				SetActorProperty(Player1TID,APROP_HEALTH,(CurrentHP+LevelAddMaxHP));
-				MaxHealthTrue += LevelAddMaxHP;
-				SetActorProperty(Player1TID,APROP_SPAWNHEALTH,MaxHealthTrue);
-				MiscellaneousVars[241] = GetActorProperty(Player1TID,APROP_Health);
-				MiscellaneousVars[175] = GetActorProperty(Player1TID,APROP_Health);
-	
-				/*
-				PrintBold(
-									s:"Health: ",d:LevelAddMaxHP,s:"\n",
-									s:"Mana: ",d:LevelAddMaxMana,s:"\n",
-									s:"AeonPts: ",d:MiscellaneousVars[204],s:"\n",
-									s:"Agility: ",d:MiscellaneousVars[205],s:"\n",
-									s:"Defense: ",d:MiscellaneousVars[206],s:"\n",
-									s:"Deftness: ",d:MiscellaneousVars[207],s:"\n",
-									s:"Sorcery: ",d:MiscellaneousVars[208],s:"\n",
-									s:"Strength: ",d:MiscellaneousVars[209],s:"\n",
-									s:"Therapeusis: ",d:MiscellaneousVars[210]
-								);
-				*/
-
-				// Other Stuff
-				if (leveluptimes == 0)
-				{
-					if (CharacterClass == 9) ActivatorSound("PetraLeveledUp",127); //Petra
-					else if (CharacterClass == 8) ActivatorSound("AilishLeveledUp",127); //Ailish
-					else if (CharacterClass == 2) ActivatorSound("FloraLeveledUp",127); // Flora
-					else if (CharacterClass == 1) ActivatorSound("IlluciaLeveledUp",127); // Illucia
-					else if (CharacterClass == 0) ActivatorSound("DeggarisLeveledUp",127); // Deggaris
-					else ActivatorSound("misc/spawn",127); 
-					MiscellaneousVars[247] = 1;
-				}
-	
-				// [222] # of TOTAL Max HP gained during multiple stat ups [for displays]
-				// [223] # of TOTAL Max MP gained during multiple stat ups [for displays]
-				// [224] # of TOTAL Aeon Points gained during multiple stat ups [for displays]
-				// [225] # of TOTAL Agility Points gained during multiple stat ups [for displays]
-				// [226] # of TOTAL Defense Points gained during multiple stat ups [for displays]
-				// [227] # of TOTAL Deftness Points gained during multiple stat ups [for displays]
-				// [228] # of TOTAL Sorcery Points gained during multiple stat ups [for displays]
-				// [229] # of TOTAL Strength Points gained during multiple stat ups [for displays]
-				// [230] # of TOTAL Therapeusis Points gained during multiple stat ups [for displays]
-				MiscellaneousVars[222] += LevelAddMaxHP;
-				MiscellaneousVars[223] += LevelAddMaxMana;
-				MiscellaneousVars[224] += MiscellaneousVars[204];
-				MiscellaneousVars[225] += MiscellaneousVars[205];
-				MiscellaneousVars[226] += MiscellaneousVars[206];
-				MiscellaneousVars[227] += MiscellaneousVars[207];
-				MiscellaneousVars[228] += MiscellaneousVars[208];
-				MiscellaneousVars[229] += MiscellaneousVars[209];
-				MiscellaneousVars[230] += MiscellaneousVars[210];
-				if (MiscellaneousVars[222] > 0) MiscellaneousVars[2031] = 105;
-				if (MiscellaneousVars[223] > 0) MiscellaneousVars[2032] = 105;
-				if (MiscellaneousVars[224] > 0) MiscellaneousVars[2033] = 105;
-				if (MiscellaneousVars[225] > 0) MiscellaneousVars[2034] = 105;
-				if (MiscellaneousVars[226] > 0) MiscellaneousVars[2035] = 105;
-				if (MiscellaneousVars[227] > 0) MiscellaneousVars[2036] = 105;
-				if (MiscellaneousVars[228] > 0) MiscellaneousVars[2037] = 105;
-				if (MiscellaneousVars[229] > 0) MiscellaneousVars[2038] = 105;
-				if (MiscellaneousVars[230] > 0) MiscellaneousVars[2039] = 105;
-	
-				SetHudSize(640,480,0);  
-				// TODO: Redo the display for levelups to be more dynamic looking [and be one HudMessage instead of using 8 different if forks] >.>
-	
-				str LearnedSpells = "";
-				if (PlayerLevel <= 32) LearnedSpells = "\c[Green]New Spells Have Been Learned!\cf\n\n";
-				if (CharacterClass == 2 && PlayerLevel == 56) LearnedSpells = "\c[Green]New Spells Have Been Learned!\cf\n\n";
-	
-				str AeonPtUse = "";
-				if (PlayerLevel >= MiscellaneousVars[197]) AeonPtUse = "\c[White]Remember to allocate any Aeon Points you've attained!\cf\n\n";
-	
-				str SpinAttack = "";
-				if (CharacterClass == 2 && PlayerLevel == 8) SpinAttack = "\caThe Sceptre Will Now Have an Alternate\n\caAttack if Sceptre Level is above 2!\cf";
-				
-				if (GetCVar("dvdsallhuds_showlevelups") == 1)
-				{
-					HudMessage(
-										s:"\cdCongradulations, you've reached Level ",d:PlayerLevel,s:"\n\n",
-										s:"\cf",
-					
-										s:"\caHP \cf+",d:LevelAddMaxHP,s:"\n",
-										s:"\c[Purple]Mana \cf+",d:LevelAddMaxMana,s:"\n",
-										s:"\c[White]AeonPts: \cf+",d:MiscellaneousVars[204],s:"\n",
-										s:"\c[LightBlue]Agility: \cf+",d:MiscellaneousVars[205],s:"\n",
-										s:"\c[Olive]Defense: \cf+",d:MiscellaneousVars[206],s:"\n",
-										s:"\c[Green]Deftness: \cf+",d:MiscellaneousVars[207],s:"\n",
-										s:"\c[Purple]Sorcery: \cf+",d:MiscellaneousVars[208],s:"\n",
-										s:"\c[Red]Strength: \cf+",d:MiscellaneousVars[209],s:"\n",
-										s:"\c[Gray]Therapeusis: \cf+",d:MiscellaneousVars[210],s:"\n\n",
-					
-										s:LearnedSpells,
-										s:AeonPtUse,
-										s:SpinAttack;
-					
-										HUDMSG_LOG,3432,cr_orange,320.4,240.0,2.25);
-				}
-				FadeRange(0,0,255,0.3,0,0,255,0.0,0.036);
-				SetHudSize(0,0,0);  
-			}
-		}
-		else break;
-	}
-
-	Delay(1);
-	Restart;
-}
-
-// Experiessence Pickup
-script "PickupExperiessence" (int percentage)
-{
-	int BaseEXPGain = percentage;
-	int perkfactor;
-	if (random(1,64) == 1) BaseEXPGain *= 2;
-	if (random(1,256) == 1) BaseEXPGain *= 2;
-	if (random(1,1024) == 1) BaseEXPGain *= 2;
-	
-	int EXPGiven;
-	
-	if (PlayerLevel == 0) { EXPGiven = (ExpTable[PlayerLevel] * BaseEXPGain) / 100; }
-	else if (PlayerLevel >= 1) { EXPGiven = ((ExpTable[PlayerLevel] - ExpTable[PlayerLevel - 1]) * BaseEXPGain) / 100; }
-	if (MiscellaneousVars[100008] == 1) PrintBold(s:"Experiessence: ",d:EXPGiven,s:" [Base]");
-	
-	if (MiscellaneousVars[10055] > 0)
-	{
-		perkfactor = 100;
-		if (MiscellaneousVars[10055] >= 1) perkfactor += 4;
-		if (MiscellaneousVars[10055] >= 2) perkfactor += 5;
-		if (MiscellaneousVars[10055] >= 3) perkfactor += 6;
-		if (MiscellaneousVars[10055] >= 4) perkfactor += 7;
-		if (MiscellaneousVars[10055] >= 5) perkfactor += 8;
-		if (MiscellaneousVars[10056] >= 1) perkfactor += 15;
-		if (MiscellaneousVars[10056] >= 2) perkfactor += 15;
-		EXPGiven = (EXPGiven * perkfactor) / 100;
-		if (MiscellaneousVars[100008] == 1) PrintBold(s:"Experiessence: ",d:EXPGiven,s:" [Perks1]");
-	}
-	if (MiscellaneousVars[11001] > 0)
-	{
-		if (MiscellaneousVars[11001] == 1)
-		{
-			if (CharacterClass == 0 | CharacterClass == 1) EXPGiven = EXPGiven * 49 / 40; // EXP Multiplier Option [122.5%]
-			if (CharacterClass == 2) EXPGiven = EXPGiven * 23 / 20; // EXP Multiplier Option [115%]
-		}
-		if (MiscellaneousVars[11001] == 2)
-		{
-			if (CharacterClass == 0 | CharacterClass == 1) EXPGiven = EXPGiven * 29 / 20; // EXP Multiplier Option [145%]
-			if (CharacterClass == 2) EXPGiven = EXPGiven * 13 / 10; // EXP Multiplier Option [115%]
-		}
-		if (MiscellaneousVars[100008] == 1) PrintBold(s:"Experiessence: ",d:EXPGiven,s:" [Perks2]");
-	}
-		
-	Experience += EXPGiven;
 }
 
 // Old DoomSpellV2 Style Completion Bonues [optional, turned OFF by default]
@@ -20168,6 +19394,15 @@ script "SetSauravatarHealth" (void)
 	int MonstKillHealthMulti, MonsterKillHealth;
 	int SkillMulti;
 
+	if (TrueGameSkill <= SKILL_VERY_EASY) SpecialGameFlags[10002] = 111375; // Sauravatar [DVI-DS]
+	if (TrueGameSkill == SKILL_EASY) SpecialGameFlags[10002] = 141750; // Sauravatar [DVI-DS]
+	if (TrueGameSkill == SKILL_NORMAL) SpecialGameFlags[10002] = 162000; // Sauravatar [DVI-DS]
+	if (TrueGameSkill == SKILL_HARD) SpecialGameFlags[10002] = 182250; // Sauravatar [DVI-DS]
+	if (TrueGameSkill == SKILL_VERY_HARD) SpecialGameFlags[10002] = 212625; // Sauravatar [DVI-DS]
+	if (TrueGameSkill == SKILL_EXTREME) SpecialGameFlags[10002] = 243000; // Sauravatar [DVI-DS]
+	if (TrueGameSkill == SKILL_HORRIBLE) SpecialGameFlags[10002] = 263250; // Sauravatar [DVI-DS]
+	if (TrueGameSkill == SKILL_IMPOSSIBLE) SpecialGameFlags[10002] = 263250; // Sauravatar [DVI-DS]
+	if (TrueGameSkill >= SKILL_OMEGA) SpecialGameFlags[10002] = 283500; // Sauravatar [DVI-DS]
 	SpecialGameFlags[10001] = SpecialGameFlags[10002];
 	// PrintBold(s:"Phase1 - First Value: ",d:SpecialGameFlags[10001]);
 
@@ -24874,9 +24109,9 @@ script "INGAMEMENUS_DISPLAYS" ENTER
 						else
 						if (MiscellaneousVars[temp4] == 1)
 						{
-						HudMessage(s:perkname,s:" (\cn",d:MiscellaneousVars[temp4],s:"\c-/\cn",d:temp11,s:"\c-) - KAWASAWA SHOTS BECOMES \cD12.5%\c- SLOWER.",
-											s:"\nKAWASAWA SHOTS WILL DEAL \cd25%\c- MORE DAMAGE.",  
-											s:"\nKAWASAWA SHOTS CONSUME \cd6\c- CELLS INSTEAD OF \cd8\c-.",  
+						HudMessage(s:perkname,s:" (\cn",d:MiscellaneousVars[temp4],s:"\c-/\cn",d:temp11,s:"\c-) - KAWASAWA SHOTS BECOMES \cd18.75%\c- SLOWER.",
+											s:"\nKAWASAWA SHOTS WILL DEAL \cd50%\c- MORE DAMAGE.",  
+											s:"\nKAWASAWA SHOTS CONSUME \cd12\c- CELLS INSTEAD OF \cd16\c-.",  
 											s:"\nKAWASAWA FIRING SPEED \cd+20%\c-.",  
 											s:"\n\cfCOST FOR NEXT LEVEL: ",d:temp3,s:" AEON PTS";  
 											HUDMSG_ALPHA,  hudmsgid, textcolor,  xtemp2, ytemp2, 0.03, 1.0);
@@ -24884,9 +24119,9 @@ script "INGAMEMENUS_DISPLAYS" ENTER
 						else
 						if (MiscellaneousVars[temp4] == 2)
 						{
-							HudMessage(s:perkname,s:" (\cn",d:MiscellaneousVars[temp4],s:"\c-/\cn",d:temp11,s:"\c-) - KAWASAWA SHOTS BECOMES \cD25%\c- SLOWER.",
-											s:"\nKAWASAWA SHOTS WILL DEAL \cd50%\c- MORE DAMAGE.",  
-											s:"\nKAWASAWA SHOTS CONSUME \cd4\c- CELLS INSTEAD OF \cd6\c-.",  
+							HudMessage(s:perkname,s:" (\cn",d:MiscellaneousVars[temp4],s:"\c-/\cn",d:temp11,s:"\c-) - KAWASAWA SHOTS BECOMES \cd37.5%\c- SLOWER.",
+											s:"\nKAWASAWA SHOTS WILL DEAL \cd100%\c- MORE DAMAGE.",  
+											s:"\nKAWASAWA SHOTS CONSUME \cd8\c- CELLS INSTEAD OF \cd12\c-.",  
 											s:"\nKAWASAWA FIRING SPEED \cd+40%\c-.",  
 											s:"\n\cfCOST FOR NEXT LEVEL: ",d:temp3,s:" AEON PTS";  
 											HUDMSG_ALPHA,  hudmsgid, textcolor,  xtemp2, ytemp2, 0.03, 1.0);
@@ -26072,12 +25307,12 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
 			MiscellaneousVars[241] = MiscellaneousVars[175];
 			MiscellaneousVars[175] = GetActorProperty(Player1TID,APROP_Health);
 			MiscellaneousVars[173] = MiscellaneousVars[175] - MiscellaneousVars[241];
-			MiscellaneousVars[174] = MiscellaneousVars[173] * 100 / MaxHealthTrue;
+			if (MaxHealthTrue != 0) MiscellaneousVars[174] = MiscellaneousVars[173] * 100 / MaxHealthTrue;
 			
 			MiscellaneousVars[243] = MiscellaneousVars[238];
 			MiscellaneousVars[238] = CurrentMana;
 			MiscellaneousVars[236] = MiscellaneousVars[238] - MiscellaneousVars[243];
-			MiscellaneousVars[237] = MiscellaneousVars[236] * 100 / MaxMana;
+			if (MaxMana != 0) MiscellaneousVars[237] = MiscellaneousVars[236] * 100 / MaxMana;
 			
 			if (CharacterClass != 2)
 			{
@@ -26276,7 +25511,7 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
 	}
 	
 	//Calculate Stamina for HUDs
-	MiscellaneousVars[41] = MiscellaneousVars[21] * 10000 / MiscellaneousVars[22];
+	if (MiscellaneousVars[22] != 0) MiscellaneousVars[41] = MiscellaneousVars[21] * 10000 / MiscellaneousVars[22];
 	
 	//******************
 	//*Check Dash Timer* // ?
@@ -27319,6 +26554,33 @@ script "CENTRALSCRIPTOFEVERYTHING" ENTER
 	}
 	// PrintBold(d:CurrentArmorClass);
 	
+	//*****************************
+	//**Invisibility Pulse Timers**
+	//*****************************
+	MiscellaneousVars[141]++;
+	if (MiscellaneousVars[141] >= 40) MiscellaneousVars[141] -= 40;
+	if (MiscellaneousVars[141] == 0 || MiscellaneousVars[141] == 20 || MiscellaneousVars[141] == 40) MiscFixedVars[101] = 0.20;
+	if (MiscellaneousVars[141] == 1 || MiscellaneousVars[141] == 19) MiscFixedVars[101] = 0.205;
+	if (MiscellaneousVars[141] == 2 || MiscellaneousVars[141] == 18) MiscFixedVars[101] = 0.21;
+	if (MiscellaneousVars[141] == 3 || MiscellaneousVars[141] == 17) MiscFixedVars[101] = 0.215;
+	if (MiscellaneousVars[141] == 4 || MiscellaneousVars[141] == 16) MiscFixedVars[101] = 0.22;
+	if (MiscellaneousVars[141] == 5 || MiscellaneousVars[141] == 15) MiscFixedVars[101] = 0.225;
+	if (MiscellaneousVars[141] == 6 || MiscellaneousVars[141] == 14) MiscFixedVars[101] = 0.23;
+	if (MiscellaneousVars[141] == 7 || MiscellaneousVars[141] == 13) MiscFixedVars[101] = 0.235;
+	if (MiscellaneousVars[141] == 8 || MiscellaneousVars[141] == 12) MiscFixedVars[101] = 0.24;
+	if (MiscellaneousVars[141] == 9 || MiscellaneousVars[141] == 11) MiscFixedVars[101] = 0.245;
+	if (MiscellaneousVars[141] == 10) MiscFixedVars[101] = 0.25;
+	if (MiscellaneousVars[141] == 21 || MiscellaneousVars[141] == 39) MiscFixedVars[101] = 0.195;
+	if (MiscellaneousVars[141] == 22 || MiscellaneousVars[141] == 38) MiscFixedVars[101] = 0.19;
+	if (MiscellaneousVars[141] == 23 || MiscellaneousVars[141] == 37) MiscFixedVars[101] = 0.185;
+	if (MiscellaneousVars[141] == 24 || MiscellaneousVars[141] == 36) MiscFixedVars[101] = 0.18;
+	if (MiscellaneousVars[141] == 25 || MiscellaneousVars[141] == 35) MiscFixedVars[101] = 0.175;
+	if (MiscellaneousVars[141] == 26 || MiscellaneousVars[141] == 34) MiscFixedVars[101] = 0.17;
+	if (MiscellaneousVars[141] == 27 || MiscellaneousVars[141] == 33) MiscFixedVars[101] = 0.165;
+	if (MiscellaneousVars[141] == 28 || MiscellaneousVars[141] == 32) MiscFixedVars[101] = 0.16;
+	if (MiscellaneousVars[141] == 29 || MiscellaneousVars[141] == 31) MiscFixedVars[101] = 0.155;
+	if (MiscellaneousVars[141] == 30) MiscFixedVars[101] = 0.15;
+	
 	//***************************************
 	//**Scripted Events for Individual Maps**
 	//***************************************
@@ -28224,6 +27486,7 @@ script "GetBuffTimer" (int bufftype, int type, int perkvalue)
 	// [22] - RadSuit (mostly a proper timer for the radsuit)
 	// [23] - Berserk (mostly a proper timer for the berserk powerup)
 	// [24] - Regen (HP/MP/Stamina regeneration rates are 10x)
+	// [25] - Arcana Force
 	
 	// [129] - ??????
 	
@@ -28240,352 +27503,6 @@ script "GetBuffTimer" (int bufftype, int type, int perkvalue)
 	if (type == 10) PowerupTimer[bufftype] <<= perkvalue; // Shift Left
 	if (type == 11) PowerupTimer[bufftype] >>= perkvalue; // Shift Right
 }
-
-// Redone Buff Checker (allows additive buff timers from spells and powerup items) [must use the "DoomSpellACS" actor on a map to make this work!]
-script "CheckBuffTimers" ENTER
-{
-	int BaseTimerIncrement;
-	int DoveRegenTimer;
-	int DivineRegenTimer;
-	int xpos, xposint, ypos, yposint;
-	int MaxHealthLimit = MaxHealthTrue * 2;
-	
-	int overallhudalpha = GetCVar("dvdsoldhud_generaltransperancy");
-	int msgalpha;
-	
-	// Light/Infared
-	if (PowerupTimer[0] > 0)
-	{
-		GiveActorInventory(Player1TID,"NightVisionSpell",1);
-		If (MenuSystemVars[0] == 0) PowerupTimer[0] -= 1;
-	}
-	else
-	{
-		TakeActorInventory(Player1TID,"NightVisionSpell",0x7FFFFFFF);
-	}
-	
-	// Invisibility
-	MiscellaneousVars[141]++;
-	if (MiscellaneousVars[141] >= 40) MiscellaneousVars[141] -= 40;
-	if (MiscellaneousVars[141] == 0 || MiscellaneousVars[141] == 20 || MiscellaneousVars[141] == 40) MiscFixedVars[101] = 0.20;
-	if (MiscellaneousVars[141] == 1 || MiscellaneousVars[141] == 19) MiscFixedVars[101] = 0.205;
-	if (MiscellaneousVars[141] == 2 || MiscellaneousVars[141] == 18) MiscFixedVars[101] = 0.21;
-	if (MiscellaneousVars[141] == 3 || MiscellaneousVars[141] == 17) MiscFixedVars[101] = 0.215;
-	if (MiscellaneousVars[141] == 4 || MiscellaneousVars[141] == 16) MiscFixedVars[101] = 0.22;
-	if (MiscellaneousVars[141] == 5 || MiscellaneousVars[141] == 15) MiscFixedVars[101] = 0.225;
-	if (MiscellaneousVars[141] == 6 || MiscellaneousVars[141] == 14) MiscFixedVars[101] = 0.23;
-	if (MiscellaneousVars[141] == 7 || MiscellaneousVars[141] == 13) MiscFixedVars[101] = 0.235;
-	if (MiscellaneousVars[141] == 8 || MiscellaneousVars[141] == 12) MiscFixedVars[101] = 0.24;
-	if (MiscellaneousVars[141] == 9 || MiscellaneousVars[141] == 11) MiscFixedVars[101] = 0.245;
-	if (MiscellaneousVars[141] == 10) MiscFixedVars[101] = 0.25;
-	if (MiscellaneousVars[141] == 21 || MiscellaneousVars[141] == 39) MiscFixedVars[101] = 0.195;
-	if (MiscellaneousVars[141] == 22 || MiscellaneousVars[141] == 38) MiscFixedVars[101] = 0.19;
-	if (MiscellaneousVars[141] == 23 || MiscellaneousVars[141] == 37) MiscFixedVars[101] = 0.185;
-	if (MiscellaneousVars[141] == 24 || MiscellaneousVars[141] == 36) MiscFixedVars[101] = 0.18;
-	if (MiscellaneousVars[141] == 25 || MiscellaneousVars[141] == 35) MiscFixedVars[101] = 0.175;
-	if (MiscellaneousVars[141] == 26 || MiscellaneousVars[141] == 34) MiscFixedVars[101] = 0.17;
-	if (MiscellaneousVars[141] == 27 || MiscellaneousVars[141] == 33) MiscFixedVars[101] = 0.165;
-	if (MiscellaneousVars[141] == 28 || MiscellaneousVars[141] == 32) MiscFixedVars[101] = 0.16;
-	if (MiscellaneousVars[141] == 29 || MiscellaneousVars[141] == 31) MiscFixedVars[101] = 0.155;
-	if (MiscellaneousVars[141] == 30) MiscFixedVars[101] = 0.15;
-	
-	if (PowerupTimer[1] > 0)
-	{
-		GiveActorInventory(Player1TID,"InvisiblitySpell",1);
-		If (MenuSystemVars[0] == 0) PowerupTimer[1] -= 1;
-	}
-	else
-	{
-		TakeActorInventory(Player1TID,"InvisiblitySpell",0x7FFFFFFF);
-	}
-	
-	// Flight
-	if (PowerupTimer[2] > 0)
-	{
-		GiveActorInventory(Player1TID,"FlightSpell",1);
-		If (MenuSystemVars[0] == 0) PowerupTimer[2] -= 1;
-	}
-	else
-	{
-		TakeActorInventory(Player1TID,"FlightSpell",0x7FFFFFFF);
-	}
-	
-	// Stealth
-	if (PowerupTimer[3] > 0)
-	{
-		SetPlayerProperty(1,1,PROP_NOTARGET);
-		If (MenuSystemVars[0] == 0) PowerupTimer[3] -= 1;
-	}
-	else
-	{
-		SetPlayerProperty(1,0,PROP_NOTARGET);
-	}
-	
-	// Invulnerability
-	if (PowerupTimer[4] > 0)
-	{
-		GiveActorInventory(Player1TID,"InvulnerabilitySpell", 1); // SetPlayerProperty(1,1,PROP_INVULNERABILITY);
-		GiveActorInventory(Player1TID,"IsInvulnerable",1);
-		//if (ThingCountName("InvulnerabilityAura", 1503) < 1) SpawnForced("InvulnerabilityAura",GetActorX(1001),GetActorY(1001),(GetActorZ(1001)+(25*65536)),1503,0);
-	
-		If (MenuSystemVars[0] == 0) PowerupTimer[4] -= 1;
-	}
-	else
-	{
-		//if (ThingCountName("InvulnerabilityAura", 1503) > 0) Thing_Remove(1503);
-		TakeActorInventory(Player1TID,"IsInvulnerable",0x7FFFFFFF);
-		TakeActorInventory(Player1TID,"InvulnerabilitySpell", 9999); // SetPlayerProperty(1,0,PROP_INVULNERABILITY);
-	}
-	
-	// Time Stop
-	if (PowerupTimer[5] > 0)
-	{
-		GiveActorInventory(Player1TID, "AetheriusTimeFreezer", 1);
-		If (MenuSystemVars[0] == 0) PowerupTimer[5] -= 1;
-	}
-	else
-	{
-		if (MenuSystemVars[0] == 0) TakeActorInventory(Player1TID, "AetheriusTimeFreezer", 9999);
-	}
-	
-	// Fear Aura Effects
-	if (PowerupTimer[6] > 0)
-	{
-		GiveActorInventory(Player1TID, "PowerFrightener", 1);
-		If (MenuSystemVars[0] == 0) PowerupTimer[6] -= 1;
-	}
-	else
-	{
-		TakeActorInventory(Player1TID, "PowerFrightener", 9999);
-	}
-	
-	// Divine Avatar Effects
-	if (PowerupTimer[7] > 0)
-	{
-		GiveActorInventory(Player1TID, "PowerDoubleFiringSpeed", 1);
-		GiveActorInventory(Player1TID, "DivineAvatarHighJump", 1);
-
-		If (MenuSystemVars[0] == 0) PowerupTimer[7] -= 1;
-	}
-	else
-	{
-		TakeActorInventory(Player1TID, "PowerDoubleFiringSpeed", 9999);
-		TakeActorInventory(Player1TID, "DivineAvatarHighJump", 9999);
-	}
-	
-	// Speader Aura Lv. 1 Effects
-	if (PowerupTimer[9] > 0)
-	{
-		PowerupTimer[8] = 0;
-		TakeActorInventory(Player1TID, "SpreaderAura1", 9999);
-	}
-	else
-	{
-		if (PowerupTimer[8] > 0)
-		{
-			GiveActorInventory(Player1TID, "SpreaderAura1", 1);
-			If (MenuSystemVars[0] == 0) PowerupTimer[8] -= 1;
-		}
-		else
-		{
-			TakeActorInventory(Player1TID, "SpreaderAura1", 9999);
-		}
-	}
-	
-	// Speader Aura Lv. 2 Effects
-	if (PowerupTimer[9] > 0)
-	{
-		GiveActorInventory(Player1TID, "SpreaderAura2", 1);
-		If (MenuSystemVars[0] == 0) PowerupTimer[9] -= 1;
-	}
-	else
-	{
-		TakeActorInventory(Player1TID, "SpreaderAura2", 9999);
-	}
-	
-	// Oomph Effects
-	if (PowerupTimer[10] > 0)
-	{
-		If (MenuSystemVars[0] == 0) PowerupTimer[10] -= 1;
-	}
-	
-	// Buff Effects
-	if (PowerupTimer[11] > 0)
-	{
-		If (MenuSystemVars[0] == 0) PowerupTimer[11] -= 1;
-	}
-	
-	// Acceleratle Effects
-	if (PowerupTimer[12] > 0)
-	{
-		If (MenuSystemVars[0] == 0) PowerupTimer[12] -= 1;
-	}
-	
-	// Blunt Effects
-	if (PowerupTimer[13] > 0)
-	{
-		BaseTimerIncrement = 1; 
-		if (CheckActorInventory(Player1TID,"EvenstarNecklace") > 0 && random(1,6) == 1) BaseTimerIncrement += 1;
-		if (CheckActorInventory(Player1TID,"BalrogRing") > 0 && random(1,12) == 1) BaseTimerIncrement += 1;
-		if (PowerupTimer[7] > 0) BaseTimerIncrement *= 2;
-		If (MenuSystemVars[0] == 0) PowerupTimer[13] -= BaseTimerIncrement;
-	}
-	
-	// Sap Effects
-	if (PowerupTimer[14] > 0)
-	{
-		BaseTimerIncrement = 1; 
-		if (CheckActorInventory(Player1TID,"EvenstarNecklace") > 0 && random(1,6) == 1) BaseTimerIncrement += 1;
-		if (CheckActorInventory(Player1TID,"BalrogRing") > 0 && random(1,12) == 1) BaseTimerIncrement += 1;
-		if (PowerupTimer[7] > 0) BaseTimerIncrement *= 2;
-		If (MenuSystemVars[0] == 0) PowerupTimer[14] -= BaseTimerIncrement;
-	}
-	
-	// Deceleratle Effects
-	if (PowerupTimer[15] > 0)
-	{
-		BaseTimerIncrement = 1; 
-		if (CheckActorInventory(Player1TID,"EvenstarNecklace") > 0 && random(1,6) == 1) BaseTimerIncrement += 1;
-		if (CheckActorInventory(Player1TID,"BalrogRing") > 0 && random(1,12) == 1) BaseTimerIncrement += 1;
-		if (PowerupTimer[7] > 0) BaseTimerIncrement *= 2;
-		If (MenuSystemVars[0] == 0) PowerupTimer[15] -= BaseTimerIncrement;
-	}
-	
-	// Poison Effects
-	if (PowerupTimer[16] > 0)
-	{
-		BaseTimerIncrement = 1; 
-		if (CheckActorInventory(Player1TID,"EvenstarNecklace") > 0 && random(1,6) == 1) BaseTimerIncrement += 1;
-		if (CheckActorInventory(Player1TID,"BalrogRing") > 0 && random(1,12) == 1) BaseTimerIncrement += 1;
-		if (PowerupTimer[7] > 0) BaseTimerIncrement *= 2;
-		If (MenuSystemVars[0] == 0) PowerupTimer[16] -= BaseTimerIncrement;
-	}
-	
-	// Corrosion Effects
-	if (PowerupTimer[17] > 0)
-	{
-		BaseTimerIncrement = 1; 
-		if (CheckActorInventory(Player1TID,"EvenstarNecklace") > 0 && random(1,6) == 1) BaseTimerIncrement += 1;
-		if (CheckActorInventory(Player1TID,"BalrogRing") > 0 && random(1,12) == 1) BaseTimerIncrement += 1;
-		if (PowerupTimer[7] > 0) BaseTimerIncrement *= 2;
-		If (MenuSystemVars[0] == 0) PowerupTimer[17] -= BaseTimerIncrement;
-	}
-	
-	// Fatigue Effects
-	if (PowerupTimer[18] > 0)
-	{
-		BaseTimerIncrement = 1; 
-		if (CheckActorInventory(Player1TID,"EvenstarNecklace") > 0 && random(1,6) == 1) BaseTimerIncrement += 1;
-		if (CheckActorInventory(Player1TID,"BalrogRing") > 0 && random(1,12) == 1) BaseTimerIncrement += 1;
-		if (PowerupTimer[7] > 0) BaseTimerIncrement *= 2;
-		If (MenuSystemVars[0] == 0) PowerupTimer[18] -= BaseTimerIncrement;
-	}
-	
-	// Blind Effects
-	if (PowerupTimer[19] > 0)
-	{
-		MiscellaneousVars[248] += 1;
-		if (MiscellaneousVars[248] == 1)
-		{
-			PlaySound(Player1TID,"misc/blinded",CHAN_5,1.0,0,ATTN_NORM);
-			if (CharacterClass == 2) { StopSound(Player1TID,CHAN_VOICE); PlaySound(Player1TID,"FloraGotBlinded",CHAN_VOICE,1.0,0,ATTN_NORM); }
-		}
-		BaseTimerIncrement = 1; 
-		if (CheckActorInventory(Player1TID,"EvenstarNecklace") > 0 && random(1,6) == 1) BaseTimerIncrement += 1;
-		if (CheckActorInventory(Player1TID,"BalrogRing") > 0 && random(1,12) == 1) BaseTimerIncrement += 1;
-		if (PowerupTimer[7] > 0) BaseTimerIncrement *= 2;
-		If (MenuSystemVars[0] == 0) PowerupTimer[19] -= BaseTimerIncrement;
-	}
-	else
-	{
-		MiscellaneousVars[248] = 0;
-	}
-	
-	// Sleep Effects
-	if (PowerupTimer[20] > 0)
-	{
-		MiscellaneousVars[249] += 1;
-		if (MiscellaneousVars[249] == 1)
-		{
-			PlaySound(Player1TID,"DraQue/fallasleep",CHAN_5,1.0,0,ATTN_NORM);
-			if (CharacterClass == 2) { StopSound(Player1TID,CHAN_VOICE); PlaySound(Player1TID,"FloraFallAsleep",CHAN_VOICE,1.0,0,ATTN_NORM); }
-		}
-		BaseTimerIncrement = 1; 
-		if (CheckActorInventory(Player1TID,"EvenstarNecklace") > 0 && random(1,6) == 1) BaseTimerIncrement += 1;
-		if (CheckActorInventory(Player1TID,"BalrogRing") > 0 && random(1,12) == 1) BaseTimerIncrement += 1;
-		if (PowerupTimer[7] > 0) BaseTimerIncrement *= 2;
-		If (MenuSystemVars[0] == 0) PowerupTimer[20] -= BaseTimerIncrement;
-	}
-	else
-	{
-		MiscellaneousVars[249] = 0;
-	}
-	
-	// Silence Effects
-	if (PowerupTimer[21] > 0)
-	{
-		MiscellaneousVars[270] += 1;
-		if (MiscellaneousVars[270] == 1)
-		{
-			PlaySound(Player1TID,"DraQue/sealed",CHAN_5,1.0,0,ATTN_NORM);
-			// if (CharacterClass == 2) { StopSound(Player1TID,CHAN_VOICE); PlaySound(Player1TID,"FloraSpSealed",CHAN_VOICE,1.0,0,ATTN_NORM); }
-		}
-		BaseTimerIncrement = 1; 
-		if (CheckActorInventory(Player1TID,"EvenstarNecklace") > 0 && random(1,6) == 1) BaseTimerIncrement += 1;
-		if (CheckActorInventory(Player1TID,"BalrogRing") > 0 && random(1,12) == 1) BaseTimerIncrement += 1;
-		if (PowerupTimer[7] > 0) BaseTimerIncrement *= 2;
-		If (MenuSystemVars[0] == 0) PowerupTimer[21] -= BaseTimerIncrement;
-	}
-	else
-	{
-		MiscellaneousVars[270] = 0;
-	}
-	
-	// RadSphere Effects
-	if (PowerupTimer[22] > 0)
-	{
-		if (ClassicDoomType == 4) GiveActorInventory(Player1TID, "PowerMask", 1); else GiveActorInventory(Player1TID, "PowerIronFeet", 1);
-		If (MenuSystemVars[0] == 0) PowerupTimer[22] -= 1;
-	}
-	else
-	{
-		if (ClassicDoomType == 4) TakeActorInventory(Player1TID, "PowerMask", 9999); else TakeActorInventory(Player1TID, "PowerIronFeet", 9999);
-	}
-	
-	// Berserk Effects
-	if (PowerupTimer[23] > 0)
-	{
-		GiveActorInventory(Player1TID, "PowerStrength", 1);
-		If (MenuSystemVars[0] == 0) PowerupTimer[23] -= 1;
-	}
-	else
-	{
-		TakeActorInventory(Player1TID, "PowerStrength", 9999);
-	}
-	
-	// Regen Effects
-	if (PowerupTimer[24] > 0)
-	{
-		GiveActorInventory(Player1TID, "PowerStrength", 1);
-		If (MenuSystemVars[0] == 0) PowerupTimer[24] -= 1;
-	}
-	else
-	{
-	//
-	}
-	
-	
-	// GoE?? Effects
-	if (PowerupTimer[129] > 0)
-	{
-		// (GoE is intended as a "permenant buff" once activated. To disable this and make it time elasped, uncomment the line below)
-		// PowerupTimer[129] -= 1;
-	}
-	
-	Delay(1);
-	Restart;
-}
-
 
 // Enforces Giving or Removing Buffs when certain powerup timers are on/off
 script "GiveBuffsPowerup" (int powertype, int powertimeadd)
@@ -28725,11 +27642,6 @@ script "GiveBuffsPowerup" (int powertype, int powertimeadd)
 	if (powertype == 129) // GoE??
 	{
 		PowerupTimer[129] += powertimeadd;
-		if (PowerupTimer[129] > 0)
-		{
-			GiveActorInventory(Player1TID, "GoEDamageBonus", 1);
-			GiveActorInventory(Player1TID, "GoEDefenseBonus", 1);
-		}
 	}
 }
 
@@ -31629,401 +30541,7 @@ script "CheckModType" (void)
 {
 	SetResultValue(ModType);
 }
-
-// Runs the "Grabbed a Seed of Life/Magic" script
-script "GrabLifeManaSeed" (int SeedType, int SeedAmount, int SeedLimitTypeIncrease)
-{
-	int SkillSeedRuns, SkillSeedRND, OldHP, NewHP, OldMP, NewMP, StatGain1, StatGain2, ArmorHPBonus, PerkFactor;
-	int debugseedstuff = GetCVar("dvdsdebug_showseedstuff");
 	
-	if (ModType == 0 && MiscellaneousVars[110005] == 0) terminate;
-	
-	if (SeedAmount < 1) SeedAmount = 1;
-	
-	if (SeedType < 1) SeedAmount = 1;
-	if (SeedType > 2) SeedAmount = 2;
-	
-	OldHP = MaxHealthTrue;
-	OldMP = MaxMana;
-	
-	if (SeedType == 1) // Seed of Life
-	{
-		StatGain1 = MaxHealthTrue / 80;
-		if (CharacterClass == 0) StatGain1 += 3;
-		if (CharacterClass == 1) StatGain1 += 2;
-		if (CharacterClass == 2) StatGain1 += 1;
-		if (CharacterClass == 8) StatGain1 += 1;
-		if (CharacterClass == 9) StatGain1 += 3;
-		if (debugseedstuff > 0) PrintBold(s:"StatGain1 [Base]: ",d:StatGain1);
-	
-		SkillSeedRND = random(1,13);
-	
-		if (SkillSeedRND == 1) StatGain1 = StatGain1 * 1;
-		if (SkillSeedRND >= 2 && SkillSeedRND <= 4) StatGain1 = StatGain1 * 3 / 2;
-		if (SkillSeedRND >= 5 && SkillSeedRND <= 9) StatGain1 = StatGain1 * 2;
-		if (SkillSeedRND >= 10 && SkillSeedRND <= 12) StatGain1 = StatGain1 * 5 / 2;
-		if (SkillSeedRND == 13) StatGain1 = StatGain1 * 3;
-		if (debugseedstuff > 0) PrintBold(s:"StatGain1 [Randomizer1]: ",d:StatGain1);
-	
-		StatGain1 = StatGain1 * SeedAmount;
-		StatGain1 = StatGain1 * MiscellaneousVars[87];
-		if (debugseedstuff > 0) PrintBold(s:"StatGain1 [Multipliers]: ",d:StatGain1);
-	
-		// Flora's Armor Items [up to +45% Max HP gained from Max HP Bonuses]
-		if (CharacterClass == 2)
-		{
-			if (CheckActorInventory(Player1TID,"PearlyCorset")) ArmorHPBonus += 20; // +20%
-			if (CheckActorInventory(Player1TID,"KissaBra")) ArmorHPBonus += 10; // +10%
-			if (CheckActorInventory(Player1TID,"BalrogRing")) ArmorHPBonus += 15; // +15%
-			ArmorHPBonus += 100;
-			if (debugseedstuff > 0) PrintBold(s:"ArmorHPBonus: ",d:ArmorHPBonus);
-			StatGain1 = StatGain1 * ArmorHPBonus / 100; // Flora is the only one who can use the Pearly Corset
-			if (debugseedstuff > 0) PrintBold(s:"StatGain1 [ArmorHPBonus]: ",d:StatGain1);
-		}
-	
-		PerkFactor = ((MiscellaneousVars[10001] * 500) + (MiscellaneousVars[10002] * 1250)) + 10000;
-		StatGain1 = StatGain1 * PerkFactor / 10000; // "LifeUp" and "LifeUp EX" perks.
-		if (debugseedstuff > 0) PrintBold(s:"StatGain1 [LifeUp Perks]: ",d:StatGain1);
-	
-		PerkFactor = (MiscellaneousVars[317] * 1250) + 10000;
-		StatGain1 = StatGain1 * PerkFactor / 10000; // [STRIFE-Compatibility] Times "Stamina Upgraded"
-		if (debugseedstuff > 0) PrintBold(s:"StatGain1 [Stamina Upgrade (Strife)]: ",d:StatGain1);
-	
-		if (StatGain1 < 1) StatGain1 = 1;
-		MiscellaneousVars[222] += StatGain1;
-		MiscellaneousVars[2031] = 105; 
-	
-		StatGain2 = GetActorProperty(Player1TID,APROP_HEALTH);
-		//GiveInventory("UpgradeStamina", StatGain1);
-		SetActorProperty(Player1TID,APROP_HEALTH,(StatGain2+StatGain1));
-		MaxHealthTrue += StatGain1;
-		SetActorProperty(Player1TID,APROP_SPAWNHEALTH,MaxHealthTrue);
-	}
-	
-	if (SeedType == 2) // Seed of Magic
-	{
-		StatGain1 = MaxMana / 80;
-		if (CharacterClass == 0) StatGain1 += 1;
-		if (CharacterClass == 1) StatGain1 += 2;
-		if (CharacterClass == 2) StatGain1 += 4;
-		if (CharacterClass == 8) StatGain1 += 4;
-		if (CharacterClass == 9) StatGain1 += 2;
-		if (debugseedstuff > 0) PrintBold(s:"StatGain1 [Base]: ",d:StatGain1);
-	
-		SkillSeedRND = random(1,13);
-	
-		if (SkillSeedRND == 1) StatGain1 = StatGain1 * 1;
-		if (SkillSeedRND >= 2 && SkillSeedRND <= 4) StatGain1 = StatGain1 * 3 / 2;
-		if (SkillSeedRND >= 5 && SkillSeedRND <= 9) StatGain1 = StatGain1 * 2;
-		if (SkillSeedRND >= 10 && SkillSeedRND <= 12) StatGain1 = StatGain1 * 5 / 2;
-		if (SkillSeedRND == 13) StatGain1 = StatGain1 * 3;
-		if (debugseedstuff > 0) PrintBold(s:"StatGain1 [Randomizer1]: ",d:StatGain1);
-	
-		StatGain1 = StatGain1 * SeedAmount;
-		StatGain1 = StatGain1 * MiscellaneousVars[87];
-		if (debugseedstuff > 0) PrintBold(s:"StatGain1 [Multipliers]: ",d:StatGain1);
-	
-		PerkFactor = ((MiscellaneousVars[10003] * 500) + (MiscellaneousVars[10004] * 1250)) + 10000;
-		StatGain1 = StatGain1 * PerkFactor / 10000; // "MagiUp" and "MagiUp EX" perks.
-		if (debugseedstuff > 0) PrintBold(s:"StatGain1 [LifeUp Perks]: ",d:StatGain1);
-	
-		PerkFactor = (MiscellaneousVars[317] * 1250) + 10000;
-		StatGain1 = StatGain1 * PerkFactor / 10000; // [STRIFE-Compatibility] Times "Stamina Upgraded"
-		if (debugseedstuff > 0) PrintBold(s:"StatGain1 [Stamina Upgrade (Strife)]: ",d:StatGain1);
-	
-		if (StatGain1 < 1) StatGain1 = 1;
-		MiscellaneousVars[223] += StatGain1;
-		MiscellaneousVars[2032] = 105; 
-	
-		MaxMana += StatGain1;
-		CurrentMana += StatGain1;
-	}
-	
-	NewHP = MaxHealthTrue;
-	NewMP = MaxMana;
-	
-	if (SeedType == 1) 
-	{
-		PrintBold
-		(
-		s:"You've Found a Seed of Life!\n\n",
-		s:"HP/Health: ",d:OldHP,s:" --> ",d:NewHP
-		);
-	}
-	
-	if (SeedType == 2) 
-	{
-		PrintBold
-		(
-		s:"You've Found a Seed of Magic!\n\n",
-		s:"MP/Mana: ",d:OldMP,s:" --> ",d:NewMP
-		);
-	}
-}
-
-// Runs the "Grabbed a Seed of [Bleh]" script
-script "GrabSeedOther" (int SeedType, int SeedAmount, int SeedLimitTypeIncrease)
-{
-	int SkillSeedRuns, MaxSkillSeedRuns, SkillSeedRND, OldAGL, NewAGL, OldDEF, NewDEF, OldDFT, NewDFT, OldSOR, NewSOR, OldSTR, NewSTR, OldTHE, NewTHE, OldAeonPts, NewAeonPts;
-	int SeedMulti;
-	
-	if (ModType == 0 && MiscellaneousVars[110005] == 0) terminate;
-	
-	if (SeedAmount < 1) SeedAmount = 1;
-	
-	// "0" is for non-dropped or map-placed seeds as to not impose a limit on those
-	if (SeedLimitTypeIncrease == 1) MiscellaneousVars[30] += 1; // "1" is Normal Seeds
-	if (SeedLimitTypeIncrease == 2) MiscellaneousVars[37] += 1; // "2" is Skill Seeds
-	if (SeedLimitTypeIncrease == 3) MiscellaneousVars[27] += 1; // "3" is Fyggs
-	
-	
-	if (SeedType < 0) SeedAmount = 0;
-	if (SeedType > 7) SeedAmount = 0;
-	
-	OldAeonPts = MiscellaneousVars[25];
-	OldAGL = MiscellaneousVars[31];
-	OldDEF = MiscellaneousVars[32];
-	OldDFT = MiscellaneousVars[33];
-	OldSOR = MiscellaneousVars[34];
-	OldSTR = MiscellaneousVars[35];
-	OldTHE = MiscellaneousVars[36];
-	
-	SeedMulti = 1;
-	if (random(1,25) == 25) { if (random(1,625) == 625) SeedMulti = 3; else SeedMulti = 2; }
-	
-	if (SeedType == 0) // Seed of Skill [special seed, 4+ AeonPts ]
-	{
-		SeedAmount = 4;
-		SeedAmount *= MiscellaneousVars[87];
-		SeedAmount *= MiscellaneousVars[86];
-		MiscellaneousVars[25] += SeedAmount;
-	}
-	
-	if (SeedType == 1) // Seed of Agility [Speed/Movement]
-	{
-		SeedAmount = SeedAmount * SeedMulti * MiscellaneousVars[87];
-		if (MiscellaneousVars[31] < 512) MiscellaneousVars[31] += SeedAmount;
-	}
-	
-	if (SeedType == 2) // Seed of Defense [Overall Resistance]
-	{
-		SeedAmount = SeedAmount * SeedMulti * MiscellaneousVars[87];
-		if (MiscellaneousVars[32] < 512) MiscellaneousVars[32] += SeedAmount;
-	}
-	
-	if (SeedType == 3) // Seed of Deftness [EXP Gain %]
-	{
-		SeedAmount = SeedAmount * SeedMulti * MiscellaneousVars[87];
-		if (MiscellaneousVars[33] < 512) MiscellaneousVars[33] += SeedAmount;
-	}
-	
-	if (SeedType == 4) // Seed of Sorcery [Magical Attack]
-	{
-		SeedAmount = SeedAmount * SeedMulti * MiscellaneousVars[87];
-		if (MiscellaneousVars[34] < 512) MiscellaneousVars[34] += SeedAmount;
-	}
-	
-	if (SeedType == 5) // Seed of Strength [Overall Attack]
-	{
-		SeedAmount = SeedAmount * SeedMulti * MiscellaneousVars[87];
-		if (MiscellaneousVars[35] < 512) MiscellaneousVars[35] += SeedAmount;
-	}
-	
-	if (SeedType == 6) // Seed of Therapeusis [Magical Resistance]
-	{
-		SeedAmount = SeedAmount * SeedMulti * MiscellaneousVars[87];
-		if (MiscellaneousVars[36] < 512) MiscellaneousVars[36] += SeedAmount;
-	}
-	
-	if (SeedType == 7) // Fygg (extremely rare) [all stats +16]
-	{
-		SeedAmount = 16;
-		SeedAmount = SeedAmount * MiscellaneousVars[87];
-		if (MiscellaneousVars[31] < 512) MiscellaneousVars[31] += SeedAmount;
-		if (MiscellaneousVars[32] < 512) MiscellaneousVars[32] += SeedAmount;
-		if (MiscellaneousVars[33] < 512) MiscellaneousVars[33] += SeedAmount;
-		if (MiscellaneousVars[34] < 512) MiscellaneousVars[34] += SeedAmount;
-		if (MiscellaneousVars[35] < 512) MiscellaneousVars[35] += SeedAmount;
-		if (MiscellaneousVars[36] < 512) MiscellaneousVars[36] += SeedAmount;
-	}
-	
-	if (SeedType == 8) // Platinum Fygg (extremely rare) [+16 to all stats & +64 Aeon Points]
-	{
-		SeedAmount = 64;
-		SeedAmount *= MiscellaneousVars[87];
-		SeedAmount *= MiscellaneousVars[86];
-		MiscellaneousVars[25] += SeedAmount;
-	
-		SeedAmount = 16;
-		SeedAmount = SeedAmount * MiscellaneousVars[87];
-		if (MiscellaneousVars[31] < 512) MiscellaneousVars[31] += SeedAmount;
-		if (MiscellaneousVars[32] < 512) MiscellaneousVars[32] += SeedAmount;
-		if (MiscellaneousVars[33] < 512) MiscellaneousVars[33] += SeedAmount;
-		if (MiscellaneousVars[34] < 512) MiscellaneousVars[34] += SeedAmount;
-		if (MiscellaneousVars[35] < 512) MiscellaneousVars[35] += SeedAmount;
-		if (MiscellaneousVars[36] < 512) MiscellaneousVars[36] += SeedAmount;
-	}
-	
-	if (SeedType == 9) // Enhanced Seed of Skill [special seed, 16+ AeonPts ]
-	{
-		SeedAmount = 16;
-		SeedAmount *= MiscellaneousVars[87];
-		SeedAmount *= MiscellaneousVars[86];
-		MiscellaneousVars[25] += SeedAmount;
-	}
-	
-	if (MiscellaneousVars[31] > 512) MiscellaneousVars[31] = 512;
-	if (MiscellaneousVars[32] > 512) MiscellaneousVars[32] = 512;
-	if (MiscellaneousVars[33] > 512) MiscellaneousVars[33] = 512;
-	if (MiscellaneousVars[34] > 512) MiscellaneousVars[34] = 512;
-	if (MiscellaneousVars[35] > 512) MiscellaneousVars[35] = 512;
-	if (MiscellaneousVars[36] > 512) MiscellaneousVars[36] = 512;
-	NewAeonPts = MiscellaneousVars[25];
-	NewAGL = MiscellaneousVars[31];
-	NewDEF = MiscellaneousVars[32];
-	NewDFT = MiscellaneousVars[33];
-	NewSOR = MiscellaneousVars[34];
-	NewSTR = MiscellaneousVars[35];
-	NewTHE = MiscellaneousVars[36];
-	
-	if (NewAeonPts-OldAeonPts > 0)
-	{
-		MiscellaneousVars[224] += NewAeonPts - OldAeonPts; 
-		MiscellaneousVars[2033] = 105; 
-	}
-	if (NewAGL-OldAGL > 0)
-	{
-		MiscellaneousVars[225] += NewAGL - OldAGL; 
-		MiscellaneousVars[2034] = 105; 
-	}
-	if (NewDEF-OldDEF > 0)
-	{
-		MiscellaneousVars[226] += NewDEF - OldDEF; 
-		MiscellaneousVars[2035] = 105; 
-	}
-	if (NewDFT-OldDFT > 0)
-	{
-		MiscellaneousVars[227] += NewDFT - OldDFT; 
-		MiscellaneousVars[2036] = 105; 
-	}
-	if (NewSOR-OldSOR > 0)
-	{
-		MiscellaneousVars[228] += NewSOR - OldSOR; 
-		MiscellaneousVars[2037] = 105; 
-	}
-	if (NewSTR-OldSTR > 0)
-	{
-		MiscellaneousVars[229] += NewSTR - OldSTR; 
-		MiscellaneousVars[2038] = 105; 
-	}
-	if (NewTHE-OldTHE > 0)
-	{
-		MiscellaneousVars[230] += NewTHE - OldTHE; 
-		MiscellaneousVars[2039] = 105; 
-	}
-	
-	if (SeedType == 0) 
-	{
-		PrintBold
-		(
-		s:"You've Ate a Seed of Skill!\n\n",
-		s:"AeonPts: ",d:OldAeonPts,s:" --> ",d:NewAeonPts
-		);
-	}
-	
-	if (SeedType == 1) 
-	{
-		PrintBold
-		(
-		s:"You've Ate a Seed of Agility!\n\n",
-		s:"Agility: ",d:OldAGL,s:" --> ",d:NewAGL
-		);
-	}
-	
-	if (SeedType == 2) 
-	{
-		PrintBold
-		(
-		s:"You've Ate a Seed of Defense!\n\n",
-		s:"Defense: ",d:OldDEF,s:" --> ",d:NewDEF
-		);
-	}
-	
-	if (SeedType == 3) 
-	{
-		PrintBold
-		(
-		s:"You've Ate a Seed of Deftness!\n\n",
-		s:"Deftness: ",d:OldDFT,s:" --> ",d:NewDFT
-		);
-	}
-	
-	if (SeedType == 4) 
-	{
-		PrintBold
-		(
-		s:"You've Ate a Seed of Sorcery!\n\n",
-		s:"Sorcery: ",d:OldSOR,s:" --> ",d:NewSOR
-		);
-	}
-	
-	if (SeedType == 5) 
-	{
-		PrintBold
-		(
-		s:"You've Ate a Seed of Strength!\n\n",
-		s:"Strength: ",d:OldSTR,s:" --> ",d:NewSTR
-		);
-	}
-	
-	if (SeedType == 6) 
-	{
-		PrintBold
-		(
-		s:"You've Ate a Seed of Therapeusis!\n\n",
-		s:"Therapeusis: ",d:OldTHE,s:" --> ",d:NewTHE
-		);
-	}
-	
-	if (SeedType == 7) 
-	{
-		PrintBold
-		(
-		s:"ZOMG You've Ate a Fygg!!!!\n\n",
-		s:"Agility: ",d:OldAGL,s:" --> ",d:NewAGL,
-		s:"\nDefense: ",d:OldDEF,s:" --> ",d:NewDEF,
-		s:"\nDeftness: ",d:OldDFT,s:" --> ",d:NewDFT,
-		s:"\nSorcery: ",d:OldSOR,s:" --> ",d:NewSOR,
-		s:"\nStrength: ",d:OldSTR,s:" --> ",d:NewSTR,
-		s:"\nTherapeusis: ",d:OldTHE,s:" --> ",d:NewTHE
-		);
-	}
-	
-	if (SeedType == 8) 
-	{
-		PrintBold
-		(
-		s:"ZOMG You've Ate a PLATNIUM Fygg!!!!\n\n",
-		s:"AeonPts: ",d:OldAeonPts,s:" --> ",d:NewAeonPts,
-		s:"\nAgility: ",d:OldAGL,s:" --> ",d:NewAGL,
-		s:"\nDefense: ",d:OldDEF,s:" --> ",d:NewDEF,
-		s:"\nDeftness: ",d:OldDFT,s:" --> ",d:NewDFT,
-		s:"\nSorcery: ",d:OldSOR,s:" --> ",d:NewSOR,
-		s:"\nStrength: ",d:OldSTR,s:" --> ",d:NewSTR,
-		s:"\nTherapeusis: ",d:OldTHE,s:" --> ",d:NewTHE
-		);
-	}
-	
-	if (SeedType == 9) 
-	{
-		PrintBold
-		(
-		s:"You've Ate an Enhanced Seed of Skill!\n\n",
-		s:"AeonPts: ",d:OldAeonPts,s:" --> ",d:NewAeonPts
-		);
-	}
-}
-
 script "CalculateSpellBaseAngles" (void)
 {
 	int value;
@@ -33662,20 +32180,20 @@ script "GetMeleeRange" (int type)
 	baseresult = result;
 	if (CharacterClass == 2 && MiscellaneousVars[10035] > 0)
 	{
-		if (MiscellaneousVars[10035] == 1) result = result * random(101,102) / 100;
-		if (MiscellaneousVars[10035] == 2) result = result * random(102,104) / 100;
-		if (MiscellaneousVars[10035] == 3) result = result * random(103,106) / 100;
-		if (MiscellaneousVars[10035] == 4) result = result * random(104,108) / 100;
-		if (MiscellaneousVars[10035] == 5) result = result * random(105,110) / 100;
+		if (MiscellaneousVars[10035] == 1) result = result * 1015 / 1000;
+		if (MiscellaneousVars[10035] == 2) result = result * 1030 / 1000;
+		if (MiscellaneousVars[10035] == 3) result = result * 1045 / 1000;
+		if (MiscellaneousVars[10035] == 4) result = result * 1060 / 1000;
+		if (MiscellaneousVars[10035] == 5) result = result * 1075 / 1000;
 	}
 	
 	if (CharacterClass != 2 && MiscellaneousVars[10051] > 0)
 	{
-		if (MiscellaneousVars[10051] == 1) result = result * random(1005,1010) / 1000;
-		if (MiscellaneousVars[10051] == 2) result = result * random(1010,1020) / 1000;
-		if (MiscellaneousVars[10051] == 3) result = result * random(1015,1030) / 1000;
-		if (MiscellaneousVars[10051] == 4) result = result * random(1020,1040) / 1000;
-		if (MiscellaneousVars[10051] == 5) result = result * random(1025,1050) / 1000;
+		if (MiscellaneousVars[10051] == 1) result = result * 1010 / 1000;
+		if (MiscellaneousVars[10051] == 2) result = result * 1020 / 1000;
+		if (MiscellaneousVars[10051] == 3) result = result * 1030 / 1000;
+		if (MiscellaneousVars[10051] == 4) result = result * 1040 / 1000;
+		if (MiscellaneousVars[10051] == 5) result = result * 1050 / 1000;
 	}
 	
 	if (ClassicDoomType == 5) result = result * 6 / 5; // 1.2x in Doom64 due to scaling up of general maps, etc :V
@@ -40246,6 +38764,7 @@ script "OtherVarCheckDECORATE" (int value, int type)
 	if (value == 11) result = SceptreActualLevel;
 	if (value == 12) result = Experience;
 	if (value == 13) result = LevelCap;
+	if (value == 14) result = PlayerLevel;
 	SetResultValue(result);
 }
 
@@ -40462,6 +38981,45 @@ script "OtherVarSetDECORATE" (int value, int perkvalue, int type)
 		if (type == 9) LevelCap <<= perkvalue; // Shift Left
 		if (type == 10) LevelCap >>= perkvalue; // Shift Right
 	}
+	if (value == 14) // PlayerLevel
+	{
+		if (type <= -1) SetResultValue(PlayerLevel);
+		if (type == 0) PlayerLevel = perkvalue; // Set
+		if (type == 1) PlayerLevel += perkvalue; // Add
+		if (type == 2) PlayerLevel -= perkvalue; // Subtract
+		if (type == 3) PlayerLevel *= perkvalue; // Multiply
+		if (type == 4 && perkvalue != 0) PlayerLevel /= perkvalue; // Divide
+		if (type == 5 && perkvalue != 0) PlayerLevel %= perkvalue; // Modulo
+		if (type == 6) PlayerLevel &= perkvalue; // AND
+		if (type == 7) PlayerLevel |= perkvalue; // OR
+		if (type == 8) PlayerLevel ^= perkvalue; // XOR
+		if (type == 9) PlayerLevel <<= perkvalue; // Shift Left
+		if (type == 10) PlayerLevel >>= perkvalue; // Shift Right
+	}
+}
+
+// Allows DECORATE to check the value of a specfic "ExpTable[]" value for checks
+script "ExpTableCheckDECORATE" (int value)
+{
+	int result = ExpTable[value];
+	SetResultValue(result);
+}
+
+// Allows DECORATE to SET the value of a specfic "ExpTable[]" value
+script "ExpTableSetDECORATE" (int value, int perkvalue, int type)
+{
+	if (type <= -1) SetResultValue(ExpTable[value]);
+	if (type == 0) ExpTable[value] = perkvalue; // Set
+	if (type == 1) ExpTable[value] += perkvalue; // Add
+	if (type == 2) ExpTable[value] -= perkvalue; // Subtract
+	if (type == 3) ExpTable[value] *= perkvalue; // Multiply
+	if (type == 4 && perkvalue != 0) ExpTable[value] /= perkvalue; // Divide
+	if (type == 5 && perkvalue != 0) ExpTable[value] %= perkvalue; // Modulo
+	if (type == 6) ExpTable[value] &= perkvalue; // AND
+	if (type == 7) ExpTable[value] |= perkvalue; // OR
+	if (type == 8) ExpTable[value] ^= perkvalue; // XOR
+	if (type == 9) ExpTable[value] <<= perkvalue; // Shift Left
+	if (type == 10) ExpTable[value] >>= perkvalue; // Shift Right
 }
 
 // Allows DECORATE to check the value of a specfic "MiscellaneousVars[]" value for checks
