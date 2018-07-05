@@ -1045,7 +1045,7 @@ int SpellsLearned[101] =
 
 int SpellCastTypes[58] = {
 		0, 1, 2, 0, 3,
-		4,10, 0, 5, 0, 
+		23,10,0, 5, 0, 
 		6, 0, 0, 0, 1,
 		7, 8, 9, 3, 0,
 		0, 2, 4, 0, 6,
@@ -18839,6 +18839,12 @@ script "MagicEffects" (int Type, int Strength)
 			GiveActorInventory(Player1TID, "PowerChristinaBoost", 1);
 			GiveActorInventory(Player1TID, "PowerAccuracyBoost", 1);
 		}
+	}
+	
+	if (Type == 23) // Magnetize
+	{
+		ActivatorSound("CastFlight",127);
+		SpawnSpot("SpellMagnetizePuller",Player1TID);
 	}
 
 }
