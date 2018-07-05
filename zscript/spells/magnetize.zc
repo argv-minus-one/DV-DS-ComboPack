@@ -1,0 +1,71 @@
+class SpellMagnetizePuller : Actor
+{
+	default
+	{
+		Radius 48;
+		MaxTargetRange 512;
+		+NOINTERACTION;
+		+NOCLIP;
+	}
+	
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		
+		// Look for loot items to pull.
+		let lt = new("SpellMagnetizeTracer");
+		
+		for (let i = BlockThingsIterator.Create(self, MaxTargetRange); i.Next();)
+		if (i.thing.bDropped && i.thing is "Inventory")
+		{
+			Vector3 vecTo = Vec3To(i.thing), dirTo = vecTo.Unit(), moveTo;
+			
+			if (lt.Trace(Pos, CurSector, (dirTo.X, dirTo.Y, 0), Radius + i.thing.Radius, 0))
+			{
+				// There's something in the way.
+				continue;
+			}
+			
+			// Try to move it. Warp will check that there's room for the item to appear at the computed position.
+			moveTo = dirTo * (Radius + i.thing.Radius);
+			i.thing.Warp(
+				self,
+				moveTo.X, moveTo.Y, 0,
+				angle: Normalize180(AngleTo(i.thing) + 180),
+				flags: WARPF_ABSOLUTEOFFSET|WARPF_ABSOLUTEANGLE|WARPF_STOP
+			);
+		}
+		
+		// If we don't call Destroy, this actor will remain for the rest of the map/hub!
+		Destroy();
+	}
+}
+
+class SpellMagnetizeTracer : LineTracer
+{
+	override ETraceStatus TraceCallback()
+	{
+		if (
+			(
+				// Ignore non-solid and mobile actors.
+				Results.HitType == TRACE_HitActor && (
+					!Results.HitActor.bSolid ||
+					Results.HitActor.bNoBlockMap ||
+					Results.HitActor.bIsMonster ||
+					Results.HitActor.bNoInteraction ||
+					Results.HitActor.bMissile ||
+					Results.HitActor.Vel != (0,0,0) ||
+					Results.HitActor is "PlayerPawn"
+				)
+			) ||
+			(
+				// Ignore non-blocking lines.
+				Results.HitType == TRACE_HitWall &&
+				!(Results.HitLine.flags & Line.ML_BLOCKING)
+			)
+		)
+			return TRACE_Skip;
+		else
+			return TRACE_Stop;
+	}
+}
