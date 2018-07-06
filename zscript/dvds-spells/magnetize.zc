@@ -14,6 +14,7 @@ class SpellMagnetizePuller : Actor
 		
 		// Look for loot items to pull.
 		let lt = new("SpellMagnetizeTracer");
+		Array<Actor> toBePulled;
 		
 		for (let i = BlockThingsIterator.Create(self, MaxTargetRange); i.Next();)
 		if (i.thing.bDropped && i.thing is "Inventory")
@@ -26,13 +27,20 @@ class SpellMagnetizePuller : Actor
 				continue;
 			}
 			
-			// Try to move it. Warp will check that there's room for the item to appear at the computed position.
-			moveTo = dirTo * (Radius + i.thing.Radius);
-			i.thing.Warp(
+			// This actor is eligible. We'll pull it.
+			toBePulled.Push(i.thing);
+		}
+		
+		let n = toBePulled.Size();
+		let angleAdd = 360. / n;
+		
+		// Arrange the items in a circle around this actor.
+		for (let i = 0; i < n; i++)
+		{
+			toBePulled[i].Warp(
 				self,
-				moveTo.X, moveTo.Y, 0,
-				angle: Normalize180(AngleTo(i.thing) + 180),
-				flags: WARPF_ABSOLUTEOFFSET|WARPF_ABSOLUTEANGLE|WARPF_STOP
+				xofs: Radius,
+				angle: angleAdd * i
 			);
 		}
 		
