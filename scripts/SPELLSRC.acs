@@ -1085,7 +1085,7 @@ str SpellTable[59] =	{																	//[id] (deg?), (ill?), (flo?)
 												"\cfMinor Night-Vision\c-",			//[2] O, O, O  [Status]		[Level 1]
 												"\cdChill Touch\c-",						//[3] O, O, O  [Offense]		
 												"\cfMinor Invisibility\c-",			//[4] O, O, O  [Status]
-												"\cfMinor Flight\c-",						//[5] O, O, O  [Status]
+												"\cfMagnetize\c-",						//[5] O, O, O  [Status]
 												"\cdMinor Poison Cloud\c-",			//[6] O, X, O  [Offense]
 												"\cdMinor Fireball\c-",					//[7] O, O, O  [Offense]
 												"\cfEnhanced Strength\c-",			//[8] O, O, O  [Status]
@@ -1150,7 +1150,7 @@ str SpellDesc[59] =	{
 											"See as if it were daylight for 10 seconds",					// Minor Night Vision
 											"Send a cold chill into whatever you touch",					// Chill Touch
 											"Become harder to see [and +1/3 Evasion] for 10 seconds",					// Minor Invisibility
-											"Leave the forces of gravity behind for 10 seconds",				// Minor Flight
+											"Pull dropped loot to you",				// Magnetize
 											"Creates a stationary cloud of poison",					// Minor Poison Cloud
 											"Shoots a fireball that does low damage",					// Minor Fireball
 											"Multiplies Melee damage by 10x for 15 seconds",				// Enchanced Strength
@@ -1212,7 +1212,7 @@ int SpellCosts[59] =	{
 												5,			// Minor Night Vision
 												5,			// Chill Touch
 												15,			// Minor Invisibility
-												10,			// Minor Flight
+												10,			// Magnetize
 												15,			// Minor Poison Cloud
 												10,			// Minor Fireball
 												50,			// Enhanced Strength
@@ -1280,7 +1280,7 @@ int SpellCosts[59] =	{
 1. Minor Magic Missile (2)
 2. Minor Farsight (4)
 3. Summon Imp (6)
-4. Minor Flight (7)
+4. Magnetize (7)
 5. Minor Polymorphosis (9)
 6. Magic Missile (10)
 7. Summon Pinky (11)
@@ -1790,7 +1790,7 @@ function int SpellCostCheck(int checktype)
 	if (SpellIsSelected == 2) SpellCostDeclineLevelsNeeded = 13; // (Minor Night Vision) Level 1
 	if (SpellIsSelected == 3) SpellCostDeclineLevelsNeeded = 13; // (Chill Touch) Level 1
 	if (SpellIsSelected == 4) SpellCostDeclineLevelsNeeded = 14; // (Minor Invisibility) Level 2
-	if (SpellIsSelected == 5) SpellCostDeclineLevelsNeeded = 14; // (Minor Flight) Level 2
+	if (SpellIsSelected == 5) SpellCostDeclineLevelsNeeded = 14; // (Magnetize) Level 2
 	if (SpellIsSelected == 6) SpellCostDeclineLevelsNeeded = 15; // (Minor Poison Cloud) Level 3
 	if (SpellIsSelected == 7) SpellCostDeclineLevelsNeeded = 16; // (Minor Fireball) Level 4
 	if (SpellIsSelected == 8) SpellCostDeclineLevelsNeeded = 17; // (Enhanced Strength) Level 5
@@ -5706,7 +5706,7 @@ script "HUDDisplay" ENTER
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 2) SetFont("SPLINGV1"); // (Minor Night Vision) Level 1
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 3) SetFont("SPLICHL1"); // (Chill Touch) Level 1
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 4) SetFont("SPLIIVS1"); // (Minor Invisibility) Level 2
-						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 5) SetFont("SPLIFLI1"); // (Minor Flight) Level 2
+						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 5) SetFont("SPLIMAG"); // (Magnetize) Level 2
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 6) SetFont("SPLIPSC1"); // (Minor Poison Cloud) Level 3
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 7) // (Minor Fireball) Level 4
 						{
@@ -5738,7 +5738,7 @@ script "HUDDisplay" ENTER
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 19) SetFont("SPLIACRA"); // (Acid Rain) Level 12
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 20) SetFont("SPLIGLY2"); // (Freezing Glyph) Level 12
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 21) SetFont("SPLINGV2"); // (Night-Vision) Level 13
-						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 22) SetFont("SPLIFLI2"); // (Flight) Level 13
+						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 22) SetFont("SPLIFLI1"); // (Flight) Level 13
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 23) // (Major Magic Missile) Level 14
 						{
 							if (buttons & BT_ZOOM) SetFont("SPLIMAS3"); else SetFont("SPLIMAM3"); 
@@ -5762,7 +5762,7 @@ script "HUDDisplay" ENTER
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 34) SetFont("SPLISTL2"); // (Stealth) Level 21
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 35) SetFont("SPLIIVN2"); // (Invulnerability) Level 21
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 36) SetFont("SPLIIVS3"); // (Major Invisibility) Level 21
-						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 37) SetFont("SPLIFLI3"); // (Major Flight) Level 21
+						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 37) SetFont("SPLIFLI2"); // (Major Flight) Level 21
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 38) SetFont("SPLILGN2"); // (Lightning) Level 22
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 39) SetFont("SPLISUM3"); // (Summon Strong Monster) Level 23
 						if ((ReadiedSpells[HUDMsgIDAdd] - 1) == 40) // (Diamond Skin) [Deggaris/Illucia] or (Spreader Aura Lv. 1) [Flora] Level 24
@@ -5926,7 +5926,7 @@ script "HUDDisplay" ENTER
 			if (SelectedSpell == 2) SetFont("SPLINGV1"); // (Minor Night Vision) Level 1
 			if (SelectedSpell == 3) SetFont("SPLICHL1"); // (Chill Touch) Level 1
 			if (SelectedSpell == 4) SetFont("SPLIIVS1"); // (Minor Invisibility) Level 2
-			if (SelectedSpell == 5) SetFont("SPLIFLI1"); // (Minor Flight) Level 2
+			if (SelectedSpell == 5) SetFont("SPLIMAG"); // (Magnetize) Level 2
 			if (SelectedSpell == 6) SetFont("SPLIPSC1"); // (Minor Poison Cloud) Level 3
 			if (SelectedSpell == 7) // (Minor Fireball) Level 4
 			{
@@ -5958,7 +5958,7 @@ script "HUDDisplay" ENTER
 			if (SelectedSpell == 19) SetFont("SPLIACRA"); // (Acid Rain) Level 12
 			if (SelectedSpell == 20) SetFont("SPLIGLY2"); // (Freezing Glyph) Level 12
 			if (SelectedSpell == 21) SetFont("SPLINGV2"); // (Night-Vision) Level 13
-			if (SelectedSpell == 22) SetFont("SPLIFLI2"); // (Flight) Level 13
+			if (SelectedSpell == 22) SetFont("SPLIFLI1"); // (Flight) Level 13
 			if (SelectedSpell == 23) // (Major Magic Missile) Level 14
 			{
 				if (buttons & BT_ZOOM) SetFont("SPLIMAS3"); else SetFont("SPLIMAM3"); 
@@ -5982,7 +5982,7 @@ script "HUDDisplay" ENTER
 			if (SelectedSpell == 34) SetFont("SPLISTL2"); // (Stealth) Level 21
 			if (SelectedSpell == 35) SetFont("SPLIIVN2"); // (Invulnerability) Level 21
 			if (SelectedSpell == 36) SetFont("SPLIIVS3"); // (Major Invisibility) Level 21
-			if (SelectedSpell == 37) SetFont("SPLIFLI3"); // (Major Flight) Level 21
+			if (SelectedSpell == 37) SetFont("SPLIFLI2"); // (Major Flight) Level 21
 			if (SelectedSpell == 38) SetFont("SPLILGN2"); // (Lightning) Level 22
 			if (SelectedSpell == 39) SetFont("SPLISUM3"); // (Summon Strong Monster) Level 23
 			if (SelectedSpell == 40) // (Diamond Skin) [Deggaris/Illucia] or (Spreader Aura Lv. 1) [Flora] Level 24
@@ -11244,7 +11244,7 @@ script "SpellSelection" (int Dir)
 		// Status
 		if (MiscellaneousVars[9] == 2 && MiscellaneousVars[10] == 0) SelectedSpell = 2; // Minor Night-Vision
 		if (MiscellaneousVars[9] == 2 && MiscellaneousVars[10] == 1) SelectedSpell = 4; // Minor Invisibility
-		if (MiscellaneousVars[9] == 2 && MiscellaneousVars[10] == 2) SelectedSpell = 5; // Minor Flight
+		if (MiscellaneousVars[9] == 2 && MiscellaneousVars[10] == 2) SelectedSpell = 5; // Magnetize
 		if (MiscellaneousVars[9] == 2 && MiscellaneousVars[10] == 3) SelectedSpell = 8; // Enhanced Strength
 		if (MiscellaneousVars[9] == 2 && MiscellaneousVars[10] == 4) SelectedSpell = 16; // Minor Stealth
 		if (MiscellaneousVars[9] == 2 && MiscellaneousVars[10] == 5) SelectedSpell = 17; // Minor Invulnerability
@@ -21787,12 +21787,12 @@ script "INGAMEMENUS_DISPLAYS" ENTER
 											HUDMSG_ALPHA,  1983, CR_WHITE,  xtemp2, ytemp2, 0.03, 1.0);
 				}
 		
-				// Minor Flight [Level 2]
+				// Magnetize [Level 2]
 				xtemp2 = (HudXRange * 0 / 100000) * 1.0; // -0.10;
 				ytemp2 = (HudYRange * 60000 / 100000) * 1.0; // 0.1625;
 				SetFont("SPLIUNKN");
 				LevelRequirement = 2;
-				if (PlayerLevel >= LevelRequirement) SetFont("SPLIFLI1");
+				if (PlayerLevel >= LevelRequirement) SetFont("SPLIMAG");
 				HudMessage(s:"A"; HUDMSG_ALPHA,  1992, CR_UNTRANSLATED,  xtemp2, ytemp2, 0.03, 1.0);
 				SetFont("DVDSSMLFONT"); // DQHUDFONTSTATUS
 				xtemp2 += (HudXRange * 5000 / 100000) * 1.0 + 0.1; // -0.10;
@@ -22284,7 +22284,7 @@ script "INGAMEMENUS_DISPLAYS" ENTER
 				ytemp2 = (HudYRange * 50000 / 100000) * 1.0; // 0.1625;
 				SetFont("SPLIUNKN");
 				LevelRequirement = 13;
-				if (PlayerLevel >= LevelRequirement) SetFont("SPLIFLI2");
+				if (PlayerLevel >= LevelRequirement) SetFont("SPLIFLI1");
 				HudMessage(s:"A"; HUDMSG_ALPHA,  1993, CR_UNTRANSLATED,  xtemp2, ytemp2, 0.03, 1.0);
 				SetFont("DVDSSMLFONT"); // DQHUDFONTSTATUS
 				xtemp2 += (HudXRange * 5000 / 100000) * 1.0 + 0.1; // -0.10;
@@ -22712,7 +22712,7 @@ script "INGAMEMENUS_DISPLAYS" ENTER
 					ytemp2 = (HudYRange * 20000 / 100000) * 1.0; // 0.1625;
 					SetFont("SPLIUNKN");
 					LevelRequirement = 21;
-					if (PlayerLevel >= LevelRequirement) SetFont("SPLIFLI3");
+					if (PlayerLevel >= LevelRequirement) SetFont("SPLIFLI2");
 					HudMessage(s:"A"; HUDMSG_ALPHA,  1996, CR_UNTRANSLATED,  xtemp2, ytemp2, 0.03, 1.0);
 					SetFont("DVDSSMLFONT"); // DQHUDFONTSTATUS
 					xtemp2 += (HudXRange * 5000 / 100000) * 1.0 + 0.1; // -0.10;
