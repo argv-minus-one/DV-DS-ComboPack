@@ -2,7 +2,7 @@ class SpellMagnetizePuller : Actor
 {
 	default
 	{
-		Radius 48;
+		Radius 64;
 		MaxTargetRange 512;
 		+NOINTERACTION;
 		+NOCLIP;
