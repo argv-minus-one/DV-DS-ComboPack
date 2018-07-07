@@ -32,6 +32,9 @@ class SpellMagnetizePuller : Actor
 		}
 		
 		let n = toBePulled.Size();
+		if (n < 1)
+			return;
+		
 		let angleAdd = 360. / n;
 		
 		// Arrange the items in a circle around this actor.
