@@ -17,7 +17,7 @@ class SpellMagnetizePuller : Actor
 		Array<Actor> toBePulled;
 		
 		for (let i = BlockThingsIterator.Create(self, MaxTargetRange); i.Next();)
-		if (i.thing.bDropped && i.thing is "Inventory")
+		if (i.thing is "Inventory" && Inventory(i.thing).bTossed)
 		{
 			Vector3 vecTo = Vec3To(i.thing), dirTo = vecTo.Unit(), moveTo;
 			
