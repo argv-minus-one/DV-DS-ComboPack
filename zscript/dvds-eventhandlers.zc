@@ -46,3 +46,112 @@ class episodic : eventhandler
 	}
 }
 */
+
+/**
+ * Keeps track of which maps have been visited. Can be used for calculating monster stats, etc.
+ *
+ * To set this up, make sure that AetheriusMapNumberListener (which keeps the tracker up to date) is listed in MAPINFO. In the gameinfo section of MAPINFO, you need to add:
+ * 	AddEventHandlers = "AetheriusMapNumberListener"
+ *
+ * To use this, call the Get method, then call CurrentMapNumber (for the current map's number) or MapNumberOf (for some other map's number).
+ *
+ * To get the current map number from ACS, write:
+ * 	ScriptCall("AetheriusMapNumberTracker", "SCurrentMapNumber")
+ */
+class AetheriusMapNumberTracker : Thinker
+{
+	Array<String> VisitedMaps;
+	
+	clearscope static AetheriusMapNumberTracker Get()
+	{
+		let t = AetheriusMapNumberTracker(ThinkerIterator.Create("AetheriusMapNumberTracker", statnum: STAT_STATIC).Next());
+		if (!t)
+			Console.Printf("\cgCouldn't find an AetheriusMapNumberTracker instance! AetheriusMapNumberListener (which keeps the tracker up to date) probably isn't listed in MAPINFO. To fix that, add this to the gameinfo section:\n\cg    AddEventHandlers = \"AetheriusMapNumberListener\"");
+		return t;
+	}
+	
+	static AetheriusMapNumberTracker GetOrNew()
+	{
+		let t = AetheriusMapNumberTracker(ThinkerIterator.Create("AetheriusMapNumberTracker", statnum: STAT_STATIC).Next());
+		
+		if (!t)
+		{
+			t = new("AetheriusMapNumberTracker");
+			t.ChangeStatNum(STAT_STATIC);
+		}
+		
+		return t;
+	}
+	
+	int MapNumberOf(String mapName) const
+	{
+		mapName.ToUpper();
+		let index = VisitedMaps.Find(mapName);
+		if (index == VisitedMaps.Size()) // That map hasn't been visited yet.
+			return -1;
+		else
+			return index;
+	}
+	
+	int CurrentMapNumber() const
+	{
+		let num = MapNumberOf(level.MapName);
+		
+		if (num == -1)
+			Console.Printf("\cgAetheriusMapNumberTracker doesn't know about the current map (%s)! Did you get this instance by some means other than calling its Get method?", level.MapName);
+		
+		return num;
+	}
+	
+	void VisitMap()
+	{
+		// Normalize the map name to all uppercase, since lump names are case-insensitive.
+		let mname = level.MapName;
+		mname.ToUpper();
+		
+		// If this map hasn't already been visited, add it to the array.
+		if (VisitedMaps.Find(mname) == VisitedMaps.Size())
+			VisitedMaps.Push(mname);
+	}
+	
+	/**
+	 * Static version of CurrentMapNumber. This is a convenience in ZScript, and required for calling from ACS. Use this ACS code to get the map number:
+	 *
+	 * 	ScriptCall("AetheriusMapNumberTracker", "SCurrentMapNumber")
+	 */
+	clearscope static int SCurrentMapNumber()
+	{
+		let t = Get();
+		if (t)
+			return t.CurrentMapNumber();
+		else
+			return -1;
+	}
+}
+
+class AetheriusMapNumberListener : StaticEventHandler
+{
+	override void WorldLoaded(WorldEvent evt)
+	{
+		// Only do this when changing maps.
+		if (evt.IsSaveGame)
+			return;
+		
+		AetheriusMapNumberTracker.GetOrNew().VisitMap();
+	}
+	
+	override void ConsoleProcess(ConsoleEvent evt)
+	{
+		if (evt.Name ~== "AetheriusMapNumberDump")
+		{
+			let t = AetheriusMapNumberTracker.Get();
+			if (!t)
+				return;
+			
+			Console.Printf("All maps known to AetheriusMapNumberTracker:");
+			for (let i = 0, size = t.VisitedMaps.Size(); i < size; i++)
+				Console.Printf("    %d: %s", i, t.VisitedMaps[i]);
+			Console.Printf("Total of %d maps tracked. Current map (%s) has number %d.", t.VisitedMaps.Size(), level.MapName, t.CurrentMapNumber());
+		}
+	}
+}
