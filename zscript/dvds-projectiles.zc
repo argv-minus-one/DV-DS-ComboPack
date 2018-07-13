@@ -1,6 +1,7 @@
 // Base Projectile Class
 class AetheriusBaseProjectileZSC : AetheriusBaseZSC
 {
+	int tic;
 	int finaldamagedealt;
 	void A_GetPlayerAttackDamage(int type = 0, int puff = 0)
 	{
@@ -186,7 +187,7 @@ class AetheriusBaseProjectileZSC : AetheriusBaseZSC
 		{
 			damage = 7 + (PlasmaAccuracyPerkLevel * 4) + (PlasmaAccuracyEXPerkLevel * 10); // 7
 			extradmg1 = PlayerAGL * 0.40; // 40% of Agility
-			extradmg2 = PlayerSTR * 14.28282829; // 14.28~% of Strength 
+			extradmg2 = PlayerSTR * 0.1428282829; // 14.28~% of Strength 
 		}
 
 		if (type == 11) // Plasma
@@ -636,8 +637,100 @@ class AetheriusProjectileZSC : AetheriusBaseProjectileZSC
 
 	int user_noseektimer, user_seektimer; // For Magic Missiles
 
+	override void BeginPlay()
+	{
+		if (GetClassName() == "STGrenade" || GetClassName() == "STGrenadeNoAOE" || 
+				GetClassName() == "RocketPlayer" || GetClassName() == "RocketPlayerNoAOE" || 
+				GetClassName() == "RocketPlayerSeeking" || GetClassName() == "RocketPlayerSeekingNoAOE") { A_GetPlayerAttackDamage(8,0); }
+
+		if (GetClassName() == "RepeaterPuffPlayer") { A_GetPlayerAttackDamage(10,0); }
+		if (GetClassName() == "PlasmaBallPlayer") { A_GetPlayerAttackDamage(11,0); }
+		if (GetClassName() == "PlasmaBall1Player") { A_GetPlayerAttackDamage(12,0); }
+		if (GetClassName() == "PlasmaBall2Player") { A_GetPlayerAttackDamage(13,0); }
+		if (GetClassName() == "BFGBallPlayer") { A_GetPlayerAttackDamage(14,0); }
+
+		if (GetClassName() == "KsawBoltPlayer") { A_GetPlayerAttackDamage(16,0); }
+
+		if (GetClassName() == "DiarisHolyArrow") { A_GetPlayerAttackDamage(18,0); }
+		if (GetClassName() == "DiarisHolyArrow2XDmg") { A_GetPlayerAttackDamage(19,0); }
+		if (GetClassName() == "DiarisHolyArrow3XDmg") { A_GetPlayerAttackDamage(20,0); }
+		if (GetClassName() == "CrossbowFX1New") { A_GetPlayerAttackDamage(21,0); }
+		if (GetClassName() == "CrossbowFX2New") { A_GetPlayerAttackDamage(22,0); }
+		if (GetClassName() == "CrossbowFX3New") { A_GetPlayerAttackDamage(23,0); }
+		if (GetClassName() == "RipperNew") { A_GetPlayerAttackDamage(24,0); }
+		if (GetClassName() == "ElectricBoltNew") { A_GetPlayerAttackDamage(25,0); }
+		if (GetClassName() == "PoisonBoltNew") { A_GetPlayerAttackDamage(26,0); }
+
+		if (GetClassName() == "BlasterFX1New") { A_GetPlayerAttackDamage(28,0); }
+
+		if (GetClassName() == "HornRodFX1New") { A_GetPlayerAttackDamage(31,0); }
+		if (GetClassName() == "HornRodFX2New") { A_GetPlayerAttackDamage(32,0); }
+		if (GetClassName() == "PhoenixFX1New" || GetClassName() == "PhoenixFX1NoAOE") { A_GetPlayerAttackDamage(33,0); }
+		if (GetClassName() == "PhoenixFX2New") { A_GetPlayerAttackDamage(34,0); }
+		if (GetClassName() == "MaceFX1New") { A_GetPlayerAttackDamage(35,0); }
+		if (GetClassName() == "MaceFX2New") { A_GetPlayerAttackDamage(36,0); }
+		if (GetClassName() == "MaceFX3New") { A_GetPlayerAttackDamage(37,0); }
+		if (GetClassName() == "MaceFX4New") { A_GetPlayerAttackDamage(38,0); }
+		if (GetClassName() == "Sorcerer2FX1Player") { A_GetPlayerAttackDamage(39,0); }
+		if (GetClassName() == "Sorcerer2FX3") { A_GetPlayerAttackDamage(40,0); }
+		if (GetClassName() == "GoldWandFX1New") { A_GetPlayerAttackDamage(41,0); }
+		if (GetClassName() == "GoldWandFX2New") { A_GetPlayerAttackDamage(42,0); }
+		if (GetClassName() == "RainPillarNew") { A_GetPlayerAttackDamage(43,0); }
+		if (GetClassName() == "MageWandMissileNew") { A_GetPlayerAttackDamage(44,0); }
+		if (GetClassName() == "MageWandMissile2New") { A_GetPlayerAttackDamage(45,0); }
+		if (GetClassName() == "HubbleBubbleSmall") { A_GetPlayerAttackDamage(46,0); }
+		if (GetClassName() == "HubbleBubbleLarge") { A_GetPlayerAttackDamage(47,0); }
+		
+		if (GetClassName() == "EvilWarriorShieldBall" || GetClassName() == "EvilWarriorShieldBallCrisis") { A_GetPlayerAttackDamage(52,0); }
+
+		Super.BeginPlay(); // KEEP THIS HERE ELSE OTHER FUNCTIONS RELATED TO BeginPlay() BREAK :V
+	}
 	override void PostBeginPlay()
 	{
+		if (GetClassName() == "STGrenade" || GetClassName() == "STGrenadeNoAOE" || 
+				GetClassName() == "RocketPlayer" || GetClassName() == "RocketPlayerNoAOE" || 
+				GetClassName() == "RocketPlayerSeeking" || GetClassName() == "RocketPlayerSeekingNoAOE") { A_GetPlayerAttackDamage(8,0); }
+
+		if (GetClassName() == "RepeaterPuffPlayer") { A_GetPlayerAttackDamage(10,0); }
+		if (GetClassName() == "PlasmaBallPlayer") { A_GetPlayerAttackDamage(11,0); }
+		if (GetClassName() == "PlasmaBall1Player") { A_GetPlayerAttackDamage(12,0); }
+		if (GetClassName() == "PlasmaBall2Player") { A_GetPlayerAttackDamage(13,0); }
+		if (GetClassName() == "BFGBallPlayer") { A_GetPlayerAttackDamage(14,0); }
+
+		if (GetClassName() == "KsawBoltPlayer") { A_GetPlayerAttackDamage(16,0); }
+
+		if (GetClassName() == "DiarisHolyArrow") { A_GetPlayerAttackDamage(18,0); }
+		if (GetClassName() == "DiarisHolyArrow2XDmg") { A_GetPlayerAttackDamage(19,0); }
+		if (GetClassName() == "DiarisHolyArrow3XDmg") { A_GetPlayerAttackDamage(20,0); }
+		if (GetClassName() == "CrossbowFX1New") { A_GetPlayerAttackDamage(21,0); }
+		if (GetClassName() == "CrossbowFX2New") { A_GetPlayerAttackDamage(22,0); }
+		if (GetClassName() == "CrossbowFX3New") { A_GetPlayerAttackDamage(23,0); }
+		if (GetClassName() == "RipperNew") { A_GetPlayerAttackDamage(24,0); }
+		if (GetClassName() == "ElectricBoltNew") { A_GetPlayerAttackDamage(25,0); }
+		if (GetClassName() == "PoisonBoltNew") { A_GetPlayerAttackDamage(26,0); }
+
+		if (GetClassName() == "BlasterFX1New") { A_GetPlayerAttackDamage(28,0); }
+
+		if (GetClassName() == "HornRodFX1New") { A_GetPlayerAttackDamage(31,0); }
+		if (GetClassName() == "HornRodFX2New") { A_GetPlayerAttackDamage(32,0); }
+		if (GetClassName() == "PhoenixFX1New" || GetClassName() == "PhoenixFX1NoAOE") { A_GetPlayerAttackDamage(33,0); }
+		if (GetClassName() == "PhoenixFX2New") { A_GetPlayerAttackDamage(34,0); }
+		if (GetClassName() == "MaceFX1New") { A_GetPlayerAttackDamage(35,0); }
+		if (GetClassName() == "MaceFX2New") { A_GetPlayerAttackDamage(36,0); }
+		if (GetClassName() == "MaceFX3New") { A_GetPlayerAttackDamage(37,0); }
+		if (GetClassName() == "MaceFX4New") { A_GetPlayerAttackDamage(38,0); }
+		if (GetClassName() == "Sorcerer2FX1Player") { A_GetPlayerAttackDamage(39,0); }
+		if (GetClassName() == "Sorcerer2FX3") { A_GetPlayerAttackDamage(40,0); }
+		if (GetClassName() == "GoldWandFX1New") { A_GetPlayerAttackDamage(41,0); }
+		if (GetClassName() == "GoldWandFX2New") { A_GetPlayerAttackDamage(42,0); }
+		if (GetClassName() == "RainPillarNew") { A_GetPlayerAttackDamage(43,0); }
+		if (GetClassName() == "MageWandMissileNew") { A_GetPlayerAttackDamage(44,0); }
+		if (GetClassName() == "MageWandMissile2New") { A_GetPlayerAttackDamage(45,0); }
+		if (GetClassName() == "HubbleBubbleSmall") { A_GetPlayerAttackDamage(46,0); }
+		if (GetClassName() == "HubbleBubbleLarge") { A_GetPlayerAttackDamage(47,0); }
+		
+		if (GetClassName() == "EvilWarriorShieldBall" || GetClassName() == "EvilWarriorShieldBallCrisis") { A_GetPlayerAttackDamage(52,0); }
+
 		float basexvel = vel.x;
 		float baseyvel = vel.y;
 		float basezvel = vel.z;
@@ -672,6 +765,7 @@ class AetheriusProjectileZSC : AetheriusBaseProjectileZSC
 		float newzvel = vel.z;
 
 		if (dvdsdebug_showmiscdmginformation && IsMonster) Console.Printf("PROJECTILE SPEED: \czXVelOld\c-: \cz%.4f\c-, \cyXVelNew\c-: \cy%.4f\c-, \czYVelOld\c-: \cz%.4f\c-, \cyYVelNew\c-: \cy%.4f\c-, \czZVelOld\c-: \cz%.4f\c-, \cyZVelNew\c-: \cy%.4f\c-, \cxSpeedMulti\c-: \cx%.4f\c-, \cwSpeedMulti2\c-: \cw%.4f\c-, \cvSpeedMulti3\c-: \cv%.4f\c-", basexvel, newxvel, baseyvel, newyvel, basezvel, newzvel, speedmulti, speedmulti2, speedmulti3);
+
 		Super.PostBeginPlay(); // KEEP THIS HERE ELSE OTHER FUNCTIONS RELATED TO PostBeginPlay() BREAK :V
 	}
 
@@ -728,46 +822,74 @@ class AetheriusProjectileZSC : AetheriusBaseProjectileZSC
 	}
 	
 	/**
-	 * Selects a target for A_SeekerMissile or A_SuperSeekerMissile.
+	 * Selects a target for A_SeekerMissile or A_SuperSeekerMissile, based on where the source of this projectile (that is, the target pointer) is currently aiming.
 	 *
-	 * @param hitScanDistance If ≥ 0, the routine will first check if there is anything directly in front of the calling actor, up to the given distance.
-	 * @param lookDistance How far to look all around for a target.
+	 * This should be called when a projectile is first fired. If this is used, then in subsequent calls to A_SuperSeekerMissile, the “retarget” parameter should be the opposite of the value returned by this method. Example:
+	 *
+	 *	private bool specificTarget;
+	 *	states {
+	 *		Spawn:
+	 *			TNT1 A 0 nodelay { invoker.specificTarget = A_SelectSeekTargetByShooterAim(); }
+	 *			MISL A 1 A_SuperSeekerMissile(1, 1, retarget: !specificTarget);
+	 *			wait;
+	 *	}
+	 *
 	 * @param seekEnemies Whether to seek actors hostile to the source of this projectile. Defaults to true.
 	 * @param seekFriends Whether to seek actors friendly to the source of this projectile. Defaults to false.
+	 * @param range How far out to look. Defaults to PLAYERMISSILERANGE, the maximum range of player hitscans.
+	 * @return true if a valid target was selected; false otherwise.
 	 */
-	action void A_SelectSeekTarget(double hitScanDistance = 0, double lookDistance = 512, bool seekEnemies = true, bool seekFriends = false)
+	action bool A_SelectSeekTargetByShooterAim(bool seekEnemies = true, bool seekFriends = false, double range = PLAYERMISSILERANGE)
 	{
-		A_FaceVel();
-		
-		if (hitScanDistance > 0.)
+		if (!target)
 		{
-			// Try a hitscan first, straight ahead. If there's an eligible actor there, target that.
-			FLineTraceData result;
-			if (LineTrace(Angle, hitScanDistance, Pitch, data: result) && result.HitActor)
-			{
-				let a = result.HitActor;
-				if (
-					a != target &&
-					a.bShootable && !a.bDormant && !a.bNeverTarget &&
-					(
-						(!seekEnemies && !seekFriends) || !target ||
-						(seekEnemies && target.isHostile(a)) ||
-						(seekFriends && target.isFriend(a))
-					)
+			Console.Printf("\cg%s.A_SelectSeekTargetByShooterAim called, but this actor's target field is null!", GetClassName());
+			return false;
+		}
+		
+		FLineTraceData result;
+		if (LineTrace(target.Angle, range, target.Pitch, data: result) && result.HitActor)
+		{
+			let a = result.HitActor;
+			if 
+			(
+				a != target &&
+				a.bShootable && !a.bDormant && !a.bNeverTarget &&
+				(
+					(!seekEnemies && !seekFriends) ||
+					(seekEnemies && target.isHostile(a)) ||
+					(seekFriends && target.isFriend(a))
 				)
-				{
-					tracer = a;
-					return;
-				}
+			)
+			{
+				tracer = a;
+				return true;
 			}
 		}
+		
+		return false;
+	}
+	
+	/**
+	 * Selects a target for A_SeekerMissile or A_SuperSeekerMissile.
+	 *
+	 * @param seekEnemies Whether to seek actors hostile to the source of this projectile. Defaults to true.
+	 * @param seekFriends Whether to seek actors friendly to the source of this projectile. Defaults to false.
+	 * @param lookDistance How far to look all around for a target.
+	 */
+	action void A_SelectSeekTarget(bool seekEnemies = true, bool seekFriends = false, double lookDistance = MISSILERANGE)
+	{
+		invoker.SuperSeekerMissileLastTargetingAttempt = gametic;
+		
+		A_FaceVel();
 		
 		Vector2 bestAimCorrection = (180, 180);
 		Actor bestTarget = null;
 		
 		// Searches for a monster to seek.
 		for (let i = BlockThingsIterator.Create(invoker, lookDistance); i.Next();)
-		if (
+		if 
+		(
 			i.thing != target &&
 			i.thing.bShootable && !i.thing.bDormant && !i.thing.bNeverTarget &&
 			(
@@ -791,31 +913,52 @@ class AetheriusProjectileZSC : AetheriusBaseProjectileZSC
 			}
 		}
 		
-		tracer = bestTarget;
+		if (bestTarget)
+			tracer = bestTarget;
 	}
+	
+	/**
+	 * The most recent tic when A_SelectSeekTarget was executed.
+	 *
+	 * This is used to limit how often A_SuperSeekerMissile searches for a seek target when it doesn't already have one. Searching for a seek target is an expensive operation, so it shouldn't be done on every tic.
+	 *
+	 * The longer ago the last attempt was made, the more probable it is that another attempt will be made on this tic, reaching 100% probability after 32 tics. In other words, seeker missile targeting will happen every 16 tics on average, but it's randomized so that not all seeker missiles in flight will try targeting on the same tic.
+	 */
+	private int SuperSeekerMissileLastTargetingAttempt;
 	
 	/**
 	 * Custom replacement for A_SeekerMissile that actually works correctly, and without the quirks. Always behaves as though SMF_PRECISE and SMF_CURSPEED were given.
 	 *
 	 * @param maxYaw How far the missile is allowed to yaw in one tic.
 	 * @param maxPitch How far the missile is allowed to pitch in one tic.
-	 * @param lookDistance How far the missile will look for targets. If ≤ 0, missile will not look for targets at all, and will simply seek the current tracer (if any).
+	 * @param retarget If true, the missile will occasionally look for new, better targets even if it already has one.
 	 * @param seekEnemies Whether to seek actors hostile to the source of this projectile. Defaults to true.
 	 * @param seekFriends Whether to seek actors friendly to the source of this projectile. Defaults to false.
+	 * @param lookDistance How far the missile will look for targets. If ≤ 0, missile will not look for targets at all, and will simply seek the current tracer (if any).
 	 */
-	action void A_SuperSeekerMissile(double maxYaw, double maxPitch, double lookDistance = 512, bool seekEnemies = true, bool seekFriends = false, int faceFlags = 0)
+	action void A_SuperSeekerMissile(double maxYaw, double maxPitch, bool retarget = true, bool seekEnemies = true, bool seekFriends = false, double lookDistance = MISSILERANGE, int faceFlags = 0)
 	{
-		if (
+		if 
+		(
 			tracer && (
 				!invoker.CanSeek(tracer) ||
 				!tracer.bShootable ||
-				(random(1, 35) == 1 && !IsVisible(tracer, true))
+				(!(random() & 31) && !IsVisible(tracer, true))
 			)
 		)
 			tracer = null; // Forget about targets that are no longer valid.
 		
-		if (!tracer)
-			A_SelectSeekTarget(lookDistance: lookDistance, seekEnemies: seekEnemies, seekFriends: seekFriends);
+		if 
+		(
+			(!tracer && (
+				// If A_SelectSeekTarget has never run before, then definitely run it.
+				(invoker.SuperSeekerMissileLastTargetingAttempt == 0) ||
+				// Otherwise, avoid running it on every tic; it's an expensive operation.
+				(gametic - invoker.SuperSeekerMissileLastTargetingAttempt) > (random() & 31)
+			)) ||
+			(retarget && !(random() & 127))
+		)
+			A_SelectSeekTarget(seekEnemies: seekEnemies, seekFriends: seekFriends, lookDistance: lookDistance);
 		
 		if (tracer)
 		{
@@ -824,6 +967,14 @@ class AetheriusProjectileZSC : AetheriusBaseProjectileZSC
 			A_FaceTracer(maxYaw, maxPitch, flags: faceFlags);
 			Vel3DFromAngle(curSpeed, Angle, Pitch);
 		}
+	}
+	
+	action void A_DrunkMissile(double maxYaw, double maxPitch)
+	{
+		let curSpeed = Vel.Length();
+		Angle = Normalize180(Angle + random(-maxYaw, maxYaw));
+		Pitch = clamp(Pitch + random(-maxPitch, maxPitch), -90., 90.);
+		Vel3DFromAngle(curSpeed, Angle, Pitch);
 	}
 
 	void A_CharmSeek(int maxtime = 2)
@@ -1275,7 +1426,6 @@ class AetheriusFastProjectileZSC : AetheriusBaseProjectileZSC
 		Projectile;
 		MissileHeight 0;
 	}
-	int tic;
 	
 	virtual void Effect()
 	{
@@ -1313,20 +1463,54 @@ class AetheriusFastProjectileZSC : AetheriusBaseProjectileZSC
 	//
 	//----------------------------------------------------------------------------
 
-	override void Tick ()
+	override void Tick()
 	{
+		if (GetClassName() == "STGrenade" || GetClassName() == "STGrenadeNoAOE" || 
+				GetClassName() == "RocketPlayer" || GetClassName() == "RocketPlayerNoAOE" || 
+				GetClassName() == "RocketPlayerSeeking" || GetClassName() == "RocketPlayerSeekingNoAOE") { A_GetPlayerAttackDamage(8,0); }
+
+		if (GetClassName() == "RepeaterPuffPlayer") { A_GetPlayerAttackDamage(10,0); }
+		if (GetClassName() == "PlasmaBallPlayer") { A_GetPlayerAttackDamage(11,0); }
+		if (GetClassName() == "PlasmaBall1Player") { A_GetPlayerAttackDamage(12,0); }
+		if (GetClassName() == "PlasmaBall2Player") { A_GetPlayerAttackDamage(13,0); }
+		if (GetClassName() == "BFGBallPlayer") { A_GetPlayerAttackDamage(14,0); }
+
+		if (GetClassName() == "KsawBoltPlayer") { A_GetPlayerAttackDamage(16,0); }
+
+		if (GetClassName() == "DiarisHolyArrow") { A_GetPlayerAttackDamage(18,0); }
+		if (GetClassName() == "DiarisHolyArrow2XDmg") { A_GetPlayerAttackDamage(19,0); }
+		if (GetClassName() == "DiarisHolyArrow3XDmg") { A_GetPlayerAttackDamage(20,0); }
+		if (GetClassName() == "CrossbowFX1New") { A_GetPlayerAttackDamage(21,0); }
+		if (GetClassName() == "CrossbowFX2New") { A_GetPlayerAttackDamage(22,0); }
+		if (GetClassName() == "CrossbowFX3New") { A_GetPlayerAttackDamage(23,0); }
+		if (GetClassName() == "RipperNew") { A_GetPlayerAttackDamage(24,0); }
+		if (GetClassName() == "ElectricBoltNew") { A_GetPlayerAttackDamage(25,0); }
+		if (GetClassName() == "PoisonBoltNew") { A_GetPlayerAttackDamage(26,0); }
+
+		if (GetClassName() == "BlasterFX1New") { A_GetPlayerAttackDamage(28,0); }
+
+		if (GetClassName() == "HornRodFX1New") { A_GetPlayerAttackDamage(31,0); }
+		if (GetClassName() == "HornRodFX2New") { A_GetPlayerAttackDamage(32,0); }
+		if (GetClassName() == "PhoenixFX1New" || GetClassName() == "PhoenixFX1NoAOE") { A_GetPlayerAttackDamage(33,0); }
+		if (GetClassName() == "PhoenixFX2New") { A_GetPlayerAttackDamage(34,0); }
+		if (GetClassName() == "MaceFX1New") { A_GetPlayerAttackDamage(35,0); }
+		if (GetClassName() == "MaceFX2New") { A_GetPlayerAttackDamage(36,0); }
+		if (GetClassName() == "MaceFX3New") { A_GetPlayerAttackDamage(37,0); }
+		if (GetClassName() == "MaceFX4New") { A_GetPlayerAttackDamage(38,0); }
+		if (GetClassName() == "Sorcerer2FX1Player") { A_GetPlayerAttackDamage(39,0); }
+		if (GetClassName() == "Sorcerer2FX3") { A_GetPlayerAttackDamage(40,0); }
+		if (GetClassName() == "GoldWandFX1New") { A_GetPlayerAttackDamage(41,0); }
+		if (GetClassName() == "GoldWandFX2New") { A_GetPlayerAttackDamage(42,0); }
+		if (GetClassName() == "RainPillarNew") { A_GetPlayerAttackDamage(43,0); }
+		if (GetClassName() == "MageWandMissileNew") { A_GetPlayerAttackDamage(44,0); }
+		if (GetClassName() == "MageWandMissile2New") { A_GetPlayerAttackDamage(45,0); }
+		if (GetClassName() == "HubbleBubbleSmall") { A_GetPlayerAttackDamage(46,0); }
+		if (GetClassName() == "HubbleBubbleLarge") { A_GetPlayerAttackDamage(47,0); }
+		
+		if (GetClassName() == "EvilWarriorShieldBall" || GetClassName() == "EvilWarriorShieldBallCrisis") { A_GetPlayerAttackDamage(52,0); }
+
 		ClearInterpolation();
 		double oldz = pos.Z;
-
-		if (tic <= 1)
-		{
-			if (GetClassName() == "DiarisHolyArrow") { A_GetPlayerAttackDamage(18,0); }
-			if (GetClassName() == "DiarisHolyArrow2XDmg") { A_GetPlayerAttackDamage(19,0); }
-			if (GetClassName() == "DiarisHolyArrow3XDmg") { A_GetPlayerAttackDamage(20,0); }
-			if (GetClassName() == "BlasterFX1New") { A_GetPlayerAttackDamage(28,0); }
-			if (GetClassName() == "MageWandMissileNew") { A_GetPlayerAttackDamage(44,0); }
-			if (GetClassName() == "MageWandMissile2New") { A_GetPlayerAttackDamage(45,0); }
-		}
 
 		if (!bNoTimeFreeze)
 		{
@@ -1469,6 +1653,18 @@ class AetheriusFastProjectileZSC : AetheriusBaseProjectileZSC
 
 		tic++;
 	}
+}
+
+// Base Bullet Tracer Class
+class AetheriusBulletTracerZSC : AetheriusFastProjectileZSC
+{
+	override void PostBeginPlay()
+	{
+		A_ScaleVelocity(GetCVar("dvds_tracervelmulti"));
+		//This space for rent.
+		Super.PostBeginPlay();
+	}
+	
 }
 
 // Base Puff Class

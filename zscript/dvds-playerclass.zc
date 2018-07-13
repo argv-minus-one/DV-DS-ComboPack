@@ -18,6 +18,8 @@ class AetheriusPlayerPawn : PlayerPawn
 	const spread2height1 = 0.0;
 	const spread2height2 = 0.0;
 
+	int user_PlayerDVDSSpecial[256];
+
 	int actortimer;
 	int pbuddha1, pbuddha2, pgod1, pgod2, pnoclip1, pnoclip2;
 	int breathdirection; // 0 = down [size decreases], 1 = up [size increases]
@@ -1474,7 +1476,7 @@ class AetheriusPlayerPawn : PlayerPawn
 				A_PlaySound("monster/criticalhit",CHAN_BODY,1.0,0,ATTN_NORM);
 				Console.Printf("\cxDealt a Desperate Blow!", criticalhit);
 			}
-			int hpratio = ret * 100 / CallACS("StatCheck",1);
+			int hpratio = ret * 100 / max(1, CallACS("StatCheck",1));
 			int cursemulti = 1;
 			int cursedivisor = 1;
 			if (hpratio >= 201)										{ cursemulti = 8; cursedivisor = 2; }
