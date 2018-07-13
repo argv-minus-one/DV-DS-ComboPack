@@ -10,8 +10,7 @@ extend class SceptreOfEmpyreaZSC
 			invoker.Shield = SceptreShieldPower(self.GiveInventoryType("SceptreShieldPower"));
 		
 		A_SceptreAttack(
-			damageMin: 0,
-			damageMax: 0,
+			0, 0,
 			puffType: "SceptreDefenseHit",
 			puffWalls: false,
 			rememberAlreadyHitActors: false,

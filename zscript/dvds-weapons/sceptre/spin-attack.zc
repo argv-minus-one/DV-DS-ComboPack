@@ -49,11 +49,13 @@ extend class SceptreOfEmpyreaZSC
 				
 				invoker.Owner.Angle += turn;
 				invoker.SpinAttackRotation -= turn;
+				
+				int dmg, dev;
+				[dmg, dev] = invoker.ComputeDamage();
+				dmg *= 0.026505306 * invoker.SceptreLevel + 0.5603118;
+				
 				A_SceptreAttack(
-					range: invoker.SceptreRange[invoker.SceptreLevel],
-					damageMin: invoker.SceptreDamageMin[invoker.SceptreLevel],
-					damageMax: invoker.SceptreDamageMax[invoker.SceptreLevel],
-					puffType: "SceptrePuff",
+					dmg, dev,
 					swingAngle: -(turn * .5),
 					swingWidth: turn
 				);

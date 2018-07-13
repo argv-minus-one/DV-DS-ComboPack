@@ -1,19 +1,5 @@
 extend class SceptreOfEmpyreaZSC
 {
-	static const uint16 SceptreDamageMin[] =
-	{
-		275, 280, 290,  320,  340, 365,
-		425, 425, 545,  590,  640, 750,
-		810, 875, 1015, 1015, 1255
-	};
-	
-	static const uint16 SceptreDamageMax[] =
-	{
-		325, 330,  340,  370,  390, 415,
-		475, 475,  595,  640,  690, 800,
-		860, 925, 1065, 1065, 1305
-	};
-	
 	static const uint8 SceptreRange[] =
 	{
 		130, 133, 135, 138, 140, 145,
@@ -26,9 +12,9 @@ extend class SceptreOfEmpyreaZSC
 	protected PuffTracker puffs;
 	
 	action void A_SceptreAttack(
+		int damage,
+		int damageDeviation,
 		int range = -1,
-		int damageMin = -1,
-		int damageMax = -1,
 		Class<Actor> puffType = "SceptrePuff",
 		double swingAngle = 0,
 		double swingWidth = SceptreOfEmpyreaZSC.FullAttackAngle,
@@ -38,10 +24,6 @@ extend class SceptreOfEmpyreaZSC
 	) {
 		if (range == -1)
 			range = invoker.SceptreRange[invoker.SceptreLevel];
-		if (damageMin == -1)
-			damageMin = invoker.SceptreDamageMin[invoker.SceptreLevel];
-		if (damageMax == -1)
-			damageMax = invoker.SceptreDamageMax[invoker.SceptreLevel];
 		
 		class<Actor> replacedPuffType = GetReplacement(puffType);
 		let puffDefaults = GetDefaultByType(replacedPuffType);
@@ -75,21 +57,10 @@ extend class SceptreOfEmpyreaZSC
 					invoker.ActorsHitThisSwing.Push(mo);
 			}
 			
-			int damage;
-			if (damageMin)
-			{
-				if (damageMax)
-					damage = random(damageMin, damageMax);
-				else
-					damage = damageMin;
-			}
-			else if (damageMax)
-				damage = damageMax;
-			else
-				damage = 0;
+			let damageThisHit = damage + random(-damageDeviation, damageDeviation);
 			
 			let shouldBleed =
-				damage > 0 &&
+				damageThisHit > 0 &&
 				!mo.bMissile &&
 				!mo.bNoBlood &&
 				!mo.bInvulnerable &&
@@ -138,7 +109,7 @@ extend class SceptreOfEmpyreaZSC
 				actualDamage = mo.DamageMobj(
 					puff,
 					self,
-					random(damageMin, damageMax),
+					damageThisHit,
 					invoker.DamageType,
 					flags: DMG_INFLICTOR_IS_PUFF | (invoker.bPierceArmor? DMG_NO_ARMOR : 0),
 					angle: puff.Angle
@@ -210,5 +181,76 @@ extend class SceptreOfEmpyreaZSC
 			if (puff is "SceptrePuff")
 				SceptrePuff(puff).SceptreLevel = invoker.SceptreLevel;
 		}
+	}
+	
+	/** Computes damage. This accounts for buffs, debuffs, stats, etc. Used by A_SceptreAttack. */
+	int, int ComputeDamage() const
+	{
+		int dmg, dev;
+		
+		if (dvdsdebug_showmeleeinformation)
+			Console.Printf("Computing damage for Sceptre:");
+		
+		dmg = 300 + 3.8 * SceptreLevel * SceptreLevel;
+		dev = 50;
+		if (dvdsdebug_showmeleeinformation)
+			Console.Printf("    Level %d: %d +- %d", SceptreLevel, dmg, dev);
+		
+		// [STRIFE] Stamina Upgrades
+		{
+			let strifeStamMult = (4. + CallACS("MiscVarCheckDECORATE", 317)) / 4.;
+			dmg *= strifeStamMult;
+			dev *= strifeStamMult;
+			
+			if (dvdsdebug_showmeleeinformation)
+				Console.Printf("    Strife stamina upgrades (%d): %fx", CallACS("MiscVarCheckDECORATE", 317), strifeStamMult);
+		}
+		
+		// Strength Stat Check
+		{
+			let ownerStrength = CallACS("MiscVarCheckDECORATE", 35);
+			
+			let strAdd = (((SceptreLevel * (4 + (ownerStrength / 32))) + (16 + (SceptreLevel * (2 + (ownerStrength / 64))))) * ownerStrength);
+			let strWiden = (16 + SceptreLevel * (2 + ownerStrength / 64));
+			
+			dmg += strAdd;
+			dev += strWiden;
+			
+			if (dvdsdebug_showmeleeinformation)
+				Console.Printf("    Strength (%d): +(%d +- %d)", ownerStrength, strAdd, strWiden);
+		}
+		
+		// Berserk Check
+		if (Owner.CountInv("PowerStrength"))
+		{
+			dmg *= 10;
+			dev *= 10;
+			
+			if (dvdsdebug_showmeleeinformation)
+				Console.Printf("    Berserk: 10x");
+		}
+		else
+		{
+			if (dvdsdebug_showmeleeinformation)
+				Console.Printf("    Not berserk");
+		}
+		
+		// StamUp Check
+		{
+			let stamUpRank = CallACS("MiscVarCheckDECORATE", 10005);
+			let stamUpExRank = CallACS("MiscVarCheckDECORATE", 10006);
+			let perkFactor = 1. + stamUpRank * .075 + stamUpExRank * .1875;
+			
+			dmg *= perkFactor;
+			dev *= perkFactor;
+			
+			if (dvdsdebug_showmeleeinformation)
+				Console.Printf("    Stamina perks (ranks %d, %d): %fx", stamUpRank, stamUpExRank, perkFactor);
+		}
+		
+		if (dvdsdebug_showmeleeinformation)
+			Console.Printf("    Result (Sceptre standard attack damage): %d +- %d", dmg, dev);
+		
+		return dmg, dev;
 	}
 }
