@@ -202,7 +202,7 @@ extend class SceptreOfEmpyreaZSC
 				Normalize180(self.Angle + swingAngle),
 				range,
 				AimLineAttack(swingAngle, range),
-				random(damageMin, damageMax),
+				0,
 				puffDefaults.DamageType,
 				puffType
 			);
