@@ -112,7 +112,7 @@ class SceptreTwirling : Actor
 		Scale .08888888888888889; // (40 / 450) in double precision
 		ActiveSound "SceptreTwirl1";
 		SceptreTwirling.SpinAccelMult (1./35.);
-		SceptreTwirling.SpinRate 3, 25;
+		SceptreTwirling.SpinRate 25;
 		SceptreTwirling.TouchPos 14, -6, 0;
 		SceptreTwirling.TouchAngle 180;
 		SceptreTwirling.TwirlPos 30, 0, 0;
@@ -121,9 +121,9 @@ class SceptreTwirling : Actor
 	float SpinAccelMult;
 	property SpinAccelMult: SpinAccelMult;
 	
-	float MinSpinRate, FullSpinRate;
-	// How fast the Sceptre spins initially and at full speed (in degrees per tic).
-	property SpinRate: MinSpinRate, FullSpinRate;
+	float FullSpinRate;
+	// How fast the Sceptre spins at full speed (in degrees per tic).
+	property SpinRate: FullSpinRate;
 	
 	double TouchPosX, TouchPosY, TouchPosZ;
 	// When the Sceptre is touching Flora's hand, this is the offset from her position relative to her yaw and pitch.
