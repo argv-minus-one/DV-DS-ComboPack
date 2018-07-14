@@ -34,20 +34,16 @@ extend class SceptreOfEmpyreaZSC
 		TwirlStamCostAccum +=    SceptreTwirlStaminaCost[SceptreLevel];
 		Twirling.FullSpinRate =  TwirlSpinRate          [SceptreLevel];
 		Twirling.ActiveSound =   TwirlSound             [SceptreLevel];
-		Twirling.SpinAccelMult = 2. / (35. - min(SceptreLevel, 16));
-		
-		if (ACS_NamedExecuteWithResult("GetBuffTimer", 7) > 0)
-			Twirling.SpinAccelMult *= 2.;
 	}
 	
 	states
 	{
 		AltFire:
-			#### # 1 A_SceptreLower(andThen: 1, speed: 3);
+			#### # 1 A_SceptreLower(andThen: 1, speed: 6);
 			wait;
 			
 			FLHS B 0 A_WeaponOffset(0, WEAPONBOTTOM);
-			#### # 1 A_AnimateOffset(1, (0, WEAPONTOP), speed: 10);
+			#### # 1 A_AnimateOffset(1, (0, WEAPONTOP), speed: 20);
 			wait;
 			
 			#### # 0 {
@@ -111,7 +107,7 @@ class SceptreTwirling : Actor
 		Radius 40;
 		Scale .08888888888888889; // (40 / 450) in double precision
 		ActiveSound "SceptreTwirl1";
-		SceptreTwirling.SpinAccelMult (1./35.);
+		SceptreTwirling.SpinAccelMult (1./8.);
 		SceptreTwirling.SpinRate 25;
 		SceptreTwirling.TouchPos 14, -6, 0;
 		SceptreTwirling.TouchAngle 180;
@@ -283,9 +279,9 @@ class SceptreTwirling : Actor
 			wait;
 		
 		Recall:
-			// Don't start spinning down until reaching at least half of full angular velocity.
+			// Don't start spinning down until reaching full angular velocity.
 			#### # 1 {
-				if (invoker.RotControl.Vel >= invoker.FullSpinRate * .5)
+				if (invoker.RotControl.Vel >= invoker.FullSpinRate)
 					return ResolveState(1);
 				else
 				{
