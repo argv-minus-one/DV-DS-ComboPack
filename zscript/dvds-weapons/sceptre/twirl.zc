@@ -139,7 +139,6 @@ class SceptreTwirling : Actor
 	
 	bool ReadyToCatch;
 	protected ActorSpinner RotControl;
-	protected Vector3 PrevRelPos, CurrentRelPos, TargetRelPos;
 	private int SpawnTic;
 	
 	override void PostBeginPlay()
@@ -152,7 +151,6 @@ class SceptreTwirling : Actor
 		}
 		
 		SpawnTic = gametic;
-		PrevRelPos = CurrentRelPos = TargetRelPos = (TouchPosX, TouchPosY, TouchPosZ);
 		Roll = TouchAngle;
 		RotControl.mo = self;
 	}
@@ -180,62 +178,33 @@ class SceptreTwirling : Actor
 		)
 			A_PlaySound(ActiveSound);
 		
-		if (CurrentRelPos != TargetRelPos)
-		{
-			// Move toward the destination.
-			let delta = TargetRelPos - CurrentRelPos;
-			let deltaLength = delta.Length();
-			
-			if (Speed >= deltaLength)
-			{
-				// Finished moving to the target relpos. Update PrevRelPos as well.
-				PrevRelPos = CurrentRelPos = TargetRelPos;
-			}
-			else
-			{
-				// Not finished moving to the target relpos. Keep going.
-				CurrentRelPos += delta.Unit() * Speed;
-			}
-		}
-		
 		SetSpriteAndFrame();
 		
 		{
-			let realRelPos = CurrentRelPos;
+			// Move the twirling Sceptre toward/away from the wielder, depending on its angular velocity.
+			Vector3 newPos;
 			
+			if (FullSpinRate != 0.) // Avoid dividing by zero.
 			{
-				/*
-				// Correct for the user's pitch.
-				let pitchCorrection = RotateVector((CurrentRelPos.X, CurrentRelPos.Z), -master.Pitch);
-				realRelPos.X = pitchCorrection.X;
-				realRelPos.Z = pitchCorrection.Y;
-				*/
-				// This is disabled because, if twirling the Sceptre while looking straight down, the Sceptre will disappear through the floor. And if it didn't, it'd be twirling through Flora's legs!
+				let twirlPos = (TwirlPosX, TwirlPosY, TwirlPosZ);
+				let touchPos = (TouchPosX, TouchPosY, TouchPosZ);
+				let delta = twirlPos - touchPos;
+				newPos = touchPos + delta.Unit() * delta.Length() * clamp(RotControl.Vel / FullSpinRate, 0., 1.);
 			}
+			else
+				newPos = (TwirlPosX, TwirlPosY, TwirlPosZ);
 			
 			// If the wielder is a player character, align with its eyes. Otherwise, align with its height center.
 			if (master.player)
-				realRelPos.Z += master.player.viewheight;
+				newPos.Z += master.player.viewheight;
 			else
-				realRelPos.Z += master.Height * .5;
+				newPos.Z += master.Height * .5;
 			
 			// Don't interpolate on the tic it was spawned. Doing so may create ugly graphical artifacts for a frame or two, since it's interpolating from an invalid state.
 			let interpolate = gametic != SpawnTic;
 			
-			Warp(master, realRelPos.X, realRelPos.Y, realRelPos.Z, flags: (interpolate? WARPF_INTERPOLATE : 0)|WARPF_COPYPITCH|WARPF_COPYVELOCITY|WARPF_BOB|WARPF_NOCHECKPOSITION, pitch: 90.);
+			Warp(master, newPos.X, newPos.Y, newPos.Z, flags: (interpolate? WARPF_INTERPOLATE : 0)|WARPF_COPYPITCH|WARPF_COPYVELOCITY|WARPF_BOB|WARPF_NOCHECKPOSITION, pitch: 90.);
 		}
-	}
-	
-	protected action void A_MoveToTwirlPos()
-	{
-		invoker.PrevRelPos = invoker.CurrentRelPos;
-		invoker.TargetRelPos = (invoker.TwirlPosX, invoker.TwirlPosY, invoker.TwirlPosZ);
-	}
-	
-	protected action void A_MoveToTouchPos()
-	{
-		invoker.PrevRelPos = invoker.CurrentRelPos;
-		invoker.TargetRelPos = (invoker.TouchPosX, invoker.TouchPosY, invoker.TouchPosZ);
 	}
 	
 	protected action void A_SpinUp()
@@ -248,18 +217,6 @@ class SceptreTwirling : Actor
 	{
 		invoker.RotControl.DesVel = 0;
 		invoker.RotControl.LandAt(invoker.TouchAngle);
-	}
-	
-	protected double ProgressTowardTargetRelPos()
-	{
-		if (TargetRelPos == CurrentRelPos)
-			return 1.;
-		else
-		{
-			let totalLength = abs((TargetRelPos - PrevRelPos).Length());
-			let remainingLength = abs((TargetRelPos - CurrentRelPos).Length());
-			return (totalLength - remainingLength) / totalLength;
-		}
 	}
 	
 	void Recall()
@@ -321,7 +278,6 @@ class SceptreTwirling : Actor
 		Spawn:
 			SCEM Z 1;
 			// Wait for the next tic before beginning to fly away and spin up.
-			#### # 0 A_MoveToTwirlPos;
 			// Keep the TargetSpinRate up-to-date with respect to the FullSpinRate, which can change at any moment (when Flora gains a level in the Sceptre).
 			#### # 1 A_SpinUp;
 			wait;
@@ -341,12 +297,7 @@ class SceptreTwirling : Actor
 			
 			// Start spinning down.
 			#### # 0 A_SpinDown;
-			#### # 1 A_JumpIf(invoker.RotControl.Vel <= invoker.FullSpinRate * .25, 1);
-			wait;
-			
-			// Get into catch distance.
-			#### # 0 A_MoveToTouchPos;
-			#### # 1 A_JumpIf(!invoker.RotControl.IsLandingInProgress() && invoker.ProgressTowardTargetRelPos() > .99, 1);
+			#### # 1 A_JumpIf(!invoker.RotControl.IsLandingInProgress(), 1);
 			wait;
 			
 			// Recall finished.
