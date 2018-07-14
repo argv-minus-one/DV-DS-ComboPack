@@ -1,7 +1,6 @@
 /*
 TODO:
 • Make all moves cost stamina.
-• Apply damage modifiers: berserk, debuffs, strength stat, etc.
 • Port the FloraWeapon class to ZScript, then derive this class from it.
 • Implement Sceptre leveling in ZScript.
 • While twirling the Sceptre, Flora takes damage if one of her own spell projectiles explodes behind her. These normally don't hurt the source, but the shield actor *isn't* the source, so the shield takes the damage, and because the damage came from behind, transfers it to Flora. Fix this, somehow.
