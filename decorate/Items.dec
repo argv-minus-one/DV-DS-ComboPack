@@ -2576,6 +2576,7 @@ Actor ArmorBonusDS2 : AetheriusCustomInventory
 	+DONTGIB
 	+COUNTITEM
 	+INVENTORY.ALWAYSPICKUP
+	Inventory.RestrictedTo "IlluciaHendershot", "DeggarisMontegger"
 	States
 	{
 		Spawn:
@@ -2697,6 +2698,7 @@ actor GreenArmorDS : AetheriusCustomInventory 27031
 	Height 16
 	Inventory.Pickupsound "GetArmorFull"
 	Inventory.Pickupmessage "Picked up the \cdsecurity armor\c-."
+	Inventory.RestrictedTo "IlluciaHendershot", "DeggarisMontegger"
 	States
 	{
 		FloraDetected: // bonus will be turned into something else
@@ -2748,6 +2750,7 @@ Actor BlueArmorDS : AetheriusCustomInventory 27032
 	Height 16
 	Inventory.Pickupsound "GetArmorFull"
 	Inventory.Pickupmessage "Picked up the \chCombat Armor\c-!"
+	Inventory.RestrictedTo "IlluciaHendershot", "DeggarisMontegger"
 	States
 	{
 		FloraDetected: // bonus will be turned into something else
@@ -2795,6 +2798,7 @@ actor StoneSkin : AetheriusCustomInventory 27019
 	Height 16
 	Inventory.Pickupsound "GetArmorFull"
 	Inventory.PickupMessage "You have acquired \ccStone Skin\c-!!"
+	Inventory.RestrictedTo "IlluciaHendershot", "DeggarisMontegger"
 
 	States
 	{
@@ -2830,6 +2834,7 @@ actor StoneSkinGA : AetheriusCustomInventory 27020
 	Height 16
 	Inventory.Pickupsound "GetArmorFull"
 	Inventory.PickupMessage "You have acquired \ccStone Skin\c-!!"
+	Inventory.RestrictedTo "IlluciaHendershot", "DeggarisMontegger"
 
 	States
 	{
@@ -2871,6 +2876,7 @@ actor DiamondSkin : AetheriusCustomInventory 27021
 	Height 16
 	Inventory.Pickupsound "GetArmorFull"
 	Inventory.PickupMessage "You have acquired \cjDiamond Skin\c-!!!"
+	Inventory.RestrictedTo "IlluciaHendershot", "DeggarisMontegger"
 
 	States
 	{
@@ -2908,6 +2914,7 @@ actor DiamondSkinGA : AetheriusCustomInventory 27022
 	Height 16
 	Inventory.Pickupsound "GetArmorFull"
 	Inventory.PickupMessage "You have acquired \cjDiamond Skin\c-!!!"
+	Inventory.RestrictedTo "IlluciaHendershot", "DeggarisMontegger"
 
 	States
 	{

@@ -1614,4 +1614,51 @@ class AetheriusPlayerPawn : PlayerPawn
 		*/
 		A_SetScale(basexscale,baseyscale*scaleymulti);
 	}
+	
+	/** Returns true if “Inventory.RestrictedTo” and/or “Inventory.ForbiddenTo” rules do not allow PlayerPawns of the given class to pick up items of the given class. */
+	static clearscope bool IsItemForbidden(Class<PlayerPawn> pp, Class<Inventory> item)
+	{
+		let d = GetDefaultByType(item);
+		
+		for (let i = 0, s = d.ForbiddenToPlayerClass.Size(); i < s; i++)
+		if (pp is d.ForbiddenToPlayerClass[i])
+			// Item is forbidden to this class.
+			return true;
+		
+		let s = d.RestrictedToPlayerClass.Size();
+		
+		if (!s)
+			// No restrictions.
+			return false;
+		else
+		{
+			for (let i = 0; i < s; i++)
+			if (pp is d.RestrictedToPlayerClass[i])
+				// Item is restricted, but this class is permitted.
+				return false;
+			
+			// Item is restricted, and this class is not on the list.
+			return true;
+		}
+	}
+	
+	/** Returns true if “Inventory.RestrictedTo” and/or “Inventory.ForbiddenTo” rules do not allow any of the currently active players to pick up items of the given class. */
+	static clearscope bool IsItemForbiddenToAll(Class<Inventory> item)
+	{
+		bool anyForbidden = false;
+		
+		for (let i = 0; i < MAXPLAYERS; i++)
+		if (playeringame[i] && players[i].mo)
+		{
+			if (IsItemForbidden(players[i].mo.GetClass(), item))
+				// The item is forbidden to at least one player.
+				anyForbidden = true;
+			else
+				// The item is not forbidden to at least one player.
+				return false;
+		}
+		
+		// In the unlikely event that no players are in-game and have an actor, this will correctly return false. Otherwise, if everyone is forbidden, this will return true.
+		return anyForbidden;
+	}
 }
