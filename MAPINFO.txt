@@ -3,6 +3,7 @@
 DoomEdNums
 {
   21122 = FlyingBalrogSpawner
+  32111 = RandomArmorSpawner
 }
 
 gameinfo
