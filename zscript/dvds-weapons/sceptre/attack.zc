@@ -252,6 +252,7 @@ extend class SceptreOfEmpyreaZSC
 		if (dvdsdebug_showmeleeinformation)
 			Console.Printf("    Result (Sceptre standard attack damage): %d +- %d", dmg, dev);
 		
-		return dmg, dev;
+		// In the earlier Sceptre code, the Sceptre could hit the same monster up to 7 times per swing, and each hit also caused splash damage. This version only hits any monster once per swing, so we compensate by multiplying total damage by 4.
+		return dmg * 4, dev * 4;
 	}
 }
