@@ -59,7 +59,7 @@ extend class SceptreOfEmpyreaZSC
 				if (!CallACS("UseStaminaAttack", invoker.SceptreSwingStaminaCost[invoker.SceptreLevel]))
 					return ResolveState("Select");
 				
-				CallACS("AddSceptreEXP", 0, 1, 1);
+				A_AwardSceptreExperience();
 				A_Kiai(63);
 				A_PlaySound(invoker.SceptreSwingSounds[invoker.SceptreLevel], CHAN_WEAPON);
 				invoker.SwingAngle = SwingAngleStart;

@@ -1,0 +1,318 @@
+class SceptreOfEmpyreaExperience : CharacterAttribute
+{
+	// This array needs to have PlayerStatItem.SKILL_MAX+1 entries.
+	static const uint16 ExpBaseByDifficulty[] = {
+		240, 288, 312, 336, 384, 408, 432, 456, 480
+	};
+	
+	default
+	{
+		Inventory.MaxAmount int.max;
+	}
+	
+	protected void UpdateOwnerSceptreLevel()
+	{
+		if (!Owner)
+			return;
+		
+		let lv = SceptreOfEmpyreaLevel(Owner.FindInventory('SceptreOfEmpyreaLevel'));
+		if (!lv)
+			lv = SceptreOfEmpyreaLevel(Owner.GiveInventoryType('SceptreOfEmpyreaLevel'));
+		
+		int difficulty = clamp(dvds_gendifficultycurve + skill, 0, PlayerStatItem.SKILL_MAX);
+		let expBase = ExpBaseByDifficulty[difficulty];
+		
+		// The formula for experience required per Sceptre level is:
+		// y((x² ÷ 2) + (x ÷ 2))
+		// where y is expBase and x is the Sceptre level.
+		lv.Amount = 0;
+		for (let i = lv.MaxAmount; i > 0; i--)
+		if (expBase * (((i * i) >> 1) + (i >> 1)) <= Amount)
+		{
+			lv.Amount = i;
+			break;
+		}
+	}
+	
+	override bool HandlePickup(Inventory item)
+	{
+		let handled = super.HandlePickup(item);
+		if (handled)
+			UpdateOwnerSceptreLevel();
+		return handled;
+	}
+	
+	override void AttachToOwner(Actor other)
+	{
+		super.AttachToOwner(other);
+		UpdateOwnerSceptreLevel();
+	}
+}
+
+class SceptreOfEmpyreaLevel : CharacterAttribute
+{
+	default
+	{
+		Inventory.MaxAmount 16;
+	}
+}
+
+extend class SceptreOfEmpyreaZSC
+{
+	/** Awards experience for performing a move with the Sceptre. Additional experience may be awarded if it hits anything. */
+	action void A_AwardSceptreExperience(int xp = 1)
+	{
+		let modType = CallACS('CheckModType');
+		if (modType == 0 && dvds_noscexpgains)
+			return; // Sceptre experience is disabled.
+		
+		double fxp = xp * ((16 - CountInv('SceptreOfEmpyreaLevel')) * .0625);
+		
+		if (CountInv('SafeTeaShoes'))
+			fxp *= random(1, 100) <= 5? 1.05 : 1.025;
+		
+		if (CountInv('PearlyCorset'))
+			fxp *= random(1, 100) <= 5? 1.2 : 1.1;
+		
+		if (CountInv('DoveRibbon'))
+			fxp *= random(1, 100) <= 5? 1.05 : 1.025;
+		
+		// Divine Avatar
+		if (CallACS('BuffTimerCheck', 7))
+			fxp *= random(1, 100) <= 20? 1.5 : 1.25;
+		
+		fxp *= (dvds_deftnessexpbase + CallACS('MiscVarCheckDECORATE', 33)) / double(dvds_deftnessexpbase);
+		fxp *= dvds_sceptreexpmultiplier * .01;
+		
+		switch (CallACS('MiscVarCheckDECORATE', 11001))
+		{
+			case 1:
+				fxp *= 1.15;
+				break;
+			
+			case 2:
+				fxp *= 1.3;
+				break;
+		}
+		
+		if (modType == 0)
+			fxp *= 1.3333333333333333;
+		
+		GiveInventory('SceptreOfEmpyreaExperience', int(fxp));
+	}
+	
+	/** Awards experience for hitting something with the Sceptre. */
+	void AwardSceptreHitExperience(Actor hit, bool isKill)
+	{
+		let modType = CallACS("CheckModType");
+		
+		if (
+			!hit.bISMONSTER ||
+			(modType == 0 && dvds_noscexpgains) || // Sceptre experience is disabled.
+			!Owner ||
+			!Owner.isHostile(hit)
+		)
+			return;
+		
+		bool debug = dvdsdebug_showexpdebugstuff;
+		if (debug)
+			Console.Printf("Sceptre owned by %s %s %s...", Owner.GetClassName(), isKill? "killed" : "hit", hit.GetClassName());
+		
+		double fxp, fxp_;
+		if (hit is 'AetheriusBaseZSC')
+			fxp = AetheriusBaseZSC(hit).user_MaxHP;
+		else if (hit is 'PlayerPawn')
+			fxp = PlayerPawn(hit).GetMaxHealth();
+		else
+			fxp = hit.SpawnHealth();
+		
+		if (debug)
+		{
+			Console.Printf("    EXP based on HP: %f", fxp);
+			fxp_ = fxp;
+		}
+		
+		if (modType == 0)
+			fxp *= 1.3333333333333333;
+		if (debug)
+		{
+			Console.Printf("    with DV modifier: %f (%+f)", fxp, fxp - fxp_);
+			fxp_ = fxp;
+		}
+		
+		/* In the earlier Sceptre code, experience was divided by 300. However, that version of the Sceptre could hit the same enemy up to 7 times at once, and each hit inflicted additional splash damage, multiplying the experience gain by 14. In this version, the Sceptre can only hit a single enemy once per swing, so we compensate by multiplying the experience gained from that one hit by 8.
+		 *
+		 * The earlier Sceptre code further reduced experience for hits that don't kill the target by 90%, effectively granting bonus experience for killing blows. However, even though the Sceptre could hit the same enemy up to 7×2 times at once, only one of those hits would receive that bonus. Since we've increased experience gain for a single hit to the equivalent of three hits in the earlier code, we need to compensate by reducing the experience bonus for kills.
+		 *
+		 * Finally, in this version, experience for kills is awarded separately from experience for hits. That is, when a hit kills a monster, the player is awarded experience for the hit, then separately awarded additional experience for the kill. This must be accounted for as well.
+		 *
+		 * So, here's the math:
+		 *
+		 * Original:
+		 * m  = 1 / 300 = 0.0033…  [exp multiplier for killing blow]
+		 * m′ = m / 10 = 0.00033…  [exp multiplier for non-killing blow]
+		 *
+		 * This version:
+		 * m  = 8 / 300
+		 *    = 0.0266…                       [original×8]
+		 * m′ = m / 10
+		 *    = 8 / 3000
+		 *    = 0.00266…                      [base exp multiplier]
+		 * b  = 10 * (9 / 10) * (1 / 2)
+		 *    = 4.5                           [bonus exp factor for kills]
+		 * k  = 0 | 1                         [1 if it's a kill; 0 if not]
+		 * k′ = 1 + ((b - 1) * k)             [b if it's a kill; 1 if not]
+		 * m″ = m′ * k′
+		 *    = m′ * (1 + ((b - 1) * k)
+		 *    = m′ * (1 + (3.5 * k))
+		 *    = (8 / 3000) * (1 + (3.5 * k))  [final exp multiplier]
+		 */
+		fxp *= (8. / 3000.) * (1. + (3.5 * !!isKill));
+		fxp++; // Original: SExPts = SExPts + 16;
+		if (debug)
+		{
+			Console.Printf("    with hit/kill multiplier & +1: %f (%+f)", fxp, fxp - fxp_);
+			fxp_ = fxp;
+		}
+		
+		switch (hit.GetClassName())
+		{
+			// These were originally divisions. I've replaced them with multiplications because those are faster.
+			case 'DSparilMountedNew':
+				fxp *= .08333333333333333; // 1/12
+				break;
+			
+			case 'Benellus1DS':
+			case 'Benellus2DS':
+			case 'Benellus3DS':
+			case 'DragonNew':
+			case 'HeresiarchNew':
+			case 'ClericBossNew':
+			case 'MageBossNew':
+			case 'FighterBossNew':
+			case 'DSparilUnmountedNew':
+			case 'KoraxNew':
+			case 'Zakachi':
+			case 'AvatarNew':
+			case 'ProgrammerNew':
+			case 'StrifeBishopNew':
+			case 'OracleNew':
+			case 'Macil1New':
+			case 'Macil2New':
+			case 'LoremasterNew':
+			case 'SourceGuardian':
+			case 'AlienSpectre1New':
+			case 'AlienSpectre2New':
+			case 'AlienSpectre3New':
+			case 'AlienSpectre4New':
+			case 'AlienSpectre5New':
+			case 'AlienSpectre1Model':
+			case 'AlienSpectre2Model':
+			case 'AlienSpectre3Model':
+			case 'AlienSpectre4Model':
+			case 'AlienSpectre5Model':
+			case 'DSMotherDemon64':
+				fxp *= .0625; // 1/16
+				break;
+			
+			case 'EntityBossNew':
+			case 'EntitySecondNew':
+			case 'EntityAscended':
+			case 'ThamuzNew':
+			case 'TchernobogNew':
+				fxp *= .041666666666666664; // 1/24
+				break;
+			
+			case 'PennywiseBoss':
+			case 'TheSource':
+				fxp *= .03125; // 1/32
+				break;
+			
+			case 'Magmantis':
+			case 'AdolfHitlerDS':
+				fxp *= .015625; // 1/64
+				break;
+			
+			case 'Sauravatar':
+				fxp *= .010416666666666666; // 1/96
+				break;
+		}
+		if (debug)
+		{
+			Console.Printf("    with victim class: %f (%+f)", fxp, fxp - fxp_);
+			fxp_ = fxp;
+		}
+		
+		switch (random() & 255)
+		{
+			case 0:
+				fxp *= 8.;
+				break;
+			
+			case 1:
+			case 2:
+				fxp *= 4.;
+				break;
+			
+			case 3:
+			case 4:
+			case 5:
+			case 6:
+				fxp *= 2.;
+				break;
+		}
+		if (debug)
+		{
+			Console.Printf("    with random multiplier: %f (%+f)", fxp, fxp - fxp_);
+			fxp_ = fxp;
+		}
+		
+		if ((random() & 255) < Owner.CountInv('SceptreOfEmpyreaLevel'))
+			fxp *= .5;
+		if (debug)
+		{
+			Console.Printf("    with high level penalty: %f (%+f)", fxp, fxp - fxp_);
+			fxp_ = fxp;
+		}
+		
+		if (Owner.CountInv('PearlyCorset'))
+		{
+			fxp *= random(1, 100) <= 5? 1.45 : 1.3;
+			if (debug)
+			{
+				Console.Printf("    with Pearly Corset: %f (%+f)", fxp, fxp - fxp_);
+				fxp_ = fxp;
+			}
+		}
+		
+		// Divine Avatar
+		if (CallACS('BuffTimerCheck', 7))
+		{
+			fxp *= random(1, 100) <= 20? 1.5 : 1.25;
+			if (debug)
+			{
+				Console.Printf("    with Divine Avatar: %f (%+f)", fxp, fxp - fxp_);
+				fxp_ = fxp;
+			}
+		}
+		
+		fxp *= (dvds_deftnessexpbase + CallACS('MiscVarCheckDECORATE', 33)) / double(dvds_deftnessexpbase);
+		if (debug)
+		{
+			Console.Printf("    with deftness: %f (%+f)", fxp, fxp - fxp_);
+			fxp_ = fxp;
+		}
+		
+		fxp *= dvds_sceptreexpmultiplier * .01;
+		if (debug)
+		{
+			Console.Printf("    with exp multiplier: %f (%+f)", fxp, fxp - fxp_);
+			fxp_ = fxp;
+		}
+		
+		let prevInv = debug? Owner.CountInv('SceptreOfEmpyreaExperience') : 0;
+		Owner.GiveInventory('SceptreOfEmpyreaExperience', int(fxp));
+		if (debug)
+			Console.Printf("    %d experience awarded.", Owner.CountInv('SceptreOfEmpyreaExperience') - prevInv);
+	}
+}

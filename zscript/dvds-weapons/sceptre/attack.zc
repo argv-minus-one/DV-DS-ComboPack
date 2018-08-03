@@ -256,3 +256,56 @@ extend class SceptreOfEmpyreaZSC
 		return dmg * 4, dev * 4;
 	}
 }
+
+class SceptreOfEmpyreaHitMonitor : StaticEventHandler
+{
+	override void WorldThingDamaged(WorldEvent evt)
+	{
+		if (evt.Damage > 0)
+			GiveExpForHit(evt, evt.DamageSource, false);
+	}
+	
+	override void WorldThingDied(WorldEvent evt)
+	{
+		if (evt.Inflictor)
+			GiveExpForHit(evt, evt.Inflictor.Target, true);
+	}
+	
+	private void GiveExpForHit(WorldEvent evt, Actor damageSource, bool isKill)
+	{
+		if (!(evt.Inflictor is 'SceptrePuff') || damageSource is 'Inventory')
+			return;
+		
+		let sceptre = SceptreOfEmpyreaZSC(damageSource.FindInventory('SceptreOfEmpyreaZSC'));
+		if (!sceptre || sceptre.Amount <= 0)
+			return;
+		
+		sceptre.AwardSceptreHitExperience(evt.Thing, isKill);
+	}
+	
+	override void RenderOverlay(RenderEvent evt)
+	{
+		// TODO: Remove this once the ACS HUD is updated.
+		if (!playeringame[consoleplayer] || !players[consoleplayer].mo || !(players[consoleplayer].ReadyWeapon is 'SceptreOfEmpyreaZSC'))
+			return;
+		
+		let mo = players[consoleplayer].mo;
+		
+		let sceptre = mo.FindInventory('SceptreOfEmpyreaZSC');
+		if (!sceptre || !sceptre.Amount)
+			return;
+		
+		Font f = Font.FindFont('SmallFont');
+		let text = String.Format("Sceptre\nExp: % 7d\nLevel: % 2d", mo.CountInv('SceptreOfEmpyreaExperience'), mo.CountInv('SceptreOfEmpyreaLevel'));
+		
+		Screen.DrawText(
+			f,
+			Font.CR_UNTRANSLATED,
+			Screen.GetWidth() - (4 * CleanXFac) - (f.StringWidth(text) * CleanXFac),
+			4 * CleanYFac,
+			text,
+			DTA_CleanNoMove, true,
+			DTA_Shadow
+		);
+	}
+}
