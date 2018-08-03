@@ -1,0 +1,10 @@
+/** Common superclass for inventory items that represent attributes of the character possessing them, such as experience or strength. These items cannot be dropped or lost, and are kept when changing maps. */
+class CharacterAttribute : Inventory abstract
+{
+	default
+	{
+		+Inventory.UNDROPPABLE;
+		+Inventory.KEEPDEPLETED;
+		Inventory.InterHubAmount int.max;
+	}
+}
