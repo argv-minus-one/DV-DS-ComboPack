@@ -1,14 +1,21 @@
 class PlayerStatItem : Inventory 
 {
-	const SKILL_VERY_EASY = 0;
-	const SKILL_EASY = 1;
-	const SKILL_NORMAL = 2;
-	const SKILL_HARD = 3;
-	const SKILL_VERY_HARD = 4;
-	const SKILL_EXTREME = 5;
-	const SKILL_HORRIBLE = 6;
-	const SKILL_IMPOSSIBLE = 7;
-	const SKILL_OMEGA = 8;
+	enum ETrueGameSkill
+	{
+		SKILL_VERY_EASY,
+		SKILL_EASY,
+		SKILL_NORMAL,
+		SKILL_HARD,
+		SKILL_VERY_HARD,
+		SKILL_EXTREME,
+		SKILL_HORRIBLE,
+		SKILL_IMPOSSIBLE,
+		SKILL_OMEGA,
+		
+		// SKILL_MAX is the highest possible value. If you add something after SKILL_OMEGA, put it *before* SKILL_MAX, and update SKILL_MAX to equal the new highest value.
+		// Also, if SKILL_MAX changes (that is, you add/remove more skill levels), be sure to update ExpBaseByDifficulty in zscript/dvds-weapons/sceptre/leveling.zc.
+		SKILL_MAX = SKILL_OMEGA
+	};
 
 	int ClassCheck;
 	int previoushealth, currenthealth;
