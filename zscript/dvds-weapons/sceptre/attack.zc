@@ -198,7 +198,7 @@ extend class SceptreOfEmpyreaZSC
 		
 		// [STRIFE] Stamina Upgrades
 		{
-			let strifeStamMult = (4. + CallACS("MiscVarCheckDECORATE", 317)) / 4.;
+			let strifeStamMult = (4. + CallACS("MiscVarCheckDECORATE", 317)) * (1. / 4.);
 			dmg *= strifeStamMult;
 			dev *= strifeStamMult;
 			
@@ -210,8 +210,9 @@ extend class SceptreOfEmpyreaZSC
 		{
 			let ownerStrength = CallACS("MiscVarCheckDECORATE", 35);
 			
-			let strAdd = (((SceptreLevel * (4 + (ownerStrength / 32))) + (16 + (SceptreLevel * (2 + (ownerStrength / 64))))) * ownerStrength);
-			let strWiden = (16 + SceptreLevel * (2 + ownerStrength / 64));
+			// Here, we use >> 5 instead of / 32, and >> 6 instead of / 64, because it's equivalent and faster.
+			let strAdd = (((SceptreLevel * (4 + (ownerStrength >> 5))) + (16 + (SceptreLevel * (2 + (ownerStrength >> 6))))) * ownerStrength);
+			let strWiden = (16 + SceptreLevel * (2 + (ownerStrength >> 6)));
 			
 			dmg += strAdd;
 			dev += strWiden;
