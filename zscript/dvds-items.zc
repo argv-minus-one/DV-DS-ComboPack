@@ -464,7 +464,7 @@ class ArmorBonusCluster64 : Actor
 	override void PostBeginPlay()
 	{
 		for (let i = 0; i < 64; i++)
-			A_SpawnItemEx('ArmorBonus',0,0,0,random(-8,8),random(-8,8),random(-8,8),0,0,8);
+			A_SpawnItemEx('ArmorBonus', xvel: frandom(0, 8), angle: frandom(-180, 180));
 		Destroy();
 	}
 }
