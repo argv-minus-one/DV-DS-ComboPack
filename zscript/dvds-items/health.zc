@@ -1,0 +1,81 @@
+class HealthBonus2 : HealthBonus
+{
+	default
+	{
+		+FLOATBOB
+		+DONTGIB
+		+BRIGHT
+		+Inventory.ALWAYSPICKUP
+		Inventory.PickupSound "gethealthbonus";
+		Inventory.PickupMessage "Picked up a \cnhealth bonus\c-.";
+	}
+	
+	override bool TryPickup(in out Actor other)
+	{
+		if (playeringame[0] && players[0].mo == other)
+		{
+			CallACS("EmulateGiveHealthBonus", Amount, 8, 100, 1);
+			GoAwayAndDie();
+			return true;
+		}
+		else
+			return Super.TryPickup(other);
+	}
+}
+
+class HealthBonusBig : HealthBonus2
+{
+	default
+	{
+		Tag "Large health bonus";
+		Scale 1.25;
+		Inventory.Amount 10;
+		Inventory.PickupMessage "Picked up a \cnlarge health bonus\c-.";
+	}
+	
+	states
+	{
+		Spawn:
+			BON3 ABCDCB 6;
+			loop;
+	}
+}
+
+class AetheriusHealthBonusSpawner : RandomSpawner replaces HealthBonus
+{
+	default
+	{
+		// For how the weights were computed, see the spreadsheet “AetheriusHealthBonusSpawner” in: EXTRAS/Item spawn probabilities.ods
+		DropItem 'MedicinalHerb', 255, 477;
+		DropItem 'StrongMedicine', 255, 119;
+		DropItem 'SpecialMedicine', 255, 40;
+		DropItem 'RandomPowerupSpawner', 255, 158;
+		DropItem 'YggdrasilDew', 255, 158;
+		DropItem 'PaxaPunch', 255, 255;
+		DropItem 'MercuryBandana', 255, 255;
+		DropItem 'LesserVimstone', 255, 29;
+		DropItem 'GreaterVimstone', 255, 10;
+		DropItem 'HealthBonusBig', 255, 7609;
+		DropItem 'HealthBonus2', 255, 153977;
+	}
+	
+	override void PostSpawn(Actor spawned)
+	{
+		// Check the Species, rather than the actual class spawned. That way, we have the correct result even if HealthBonusBig is replaced by some other class.
+		if (Species == 'HealthBonusBig')
+		{
+			// If we're spawning a HealthBonusBig, also randomly spawn up to two more.
+			int extra = random() % 7609;
+			
+			if (extra == 0)
+				extra = 2;
+			else if (extra < (2561 + 80 + 1))
+				extra = 1;
+			else
+				extra = 0;
+			
+			for (let i = 0; i < extra; i++)
+				A_SpawnItemEx('HealthBonusBig', xvel: frandom(-3, 3), yvel: frandom(-3, 3));
+		}
+	}
+}

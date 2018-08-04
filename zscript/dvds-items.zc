@@ -1,3 +1,5 @@
+#include "zscript/dvds-items/health.zc"
+
 class BaseExperiessence : AetheriusCustomInventory
 {
 	int user_transpulsetype;
