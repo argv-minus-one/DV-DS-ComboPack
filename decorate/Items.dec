@@ -18,13 +18,6 @@ actor RandomHellcoreWeapon : RandomSpawner 26902
 	DropItem "DiabloistHandCI"
 }
 
-actor BaseItemSpawner
-{
-	+NOTIMEFREEZE
-	const int SpawnerFlags = SXF_TRANSFERPOINTERS | SXF_TRANSFERSPECIAL;
-}
-
-
 actor RandomMagicSpawner : RandomSpawner 32109
 {
 	//$Sprite "RNDMA0"
