@@ -468,3 +468,13 @@ class ArmorBonusCluster64 : Actor
 		Destroy();
 	}
 }
+
+class HealthBonusCluster64 : Actor
+{
+	override void PostBeginPlay()
+	{
+		for (let i = 0; i < 64; i++)
+			A_SpawnItemEx('HealthBonus', xvel: frandom(0, 8), angle: frandom(-180, 180));
+		Destroy();
+	}
+}
