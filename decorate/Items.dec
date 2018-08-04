@@ -25,82 +25,24 @@ actor BaseItemSpawner
 }
 
 
-actor RandomMagicSpawner : BaseItemSpawner 32109
+actor RandomMagicSpawner : RandomSpawner 32109
 {
 	//$Sprite "RNDMA0"
 	//$Category DV-DS Random Spawners
 	Tag "Random Magic Spawn: Spawns a random Magic item type"
-	RenderStyle Add
-	Radius 16
-	Height 16
-	Alpha 0.0
-	Scale 1.25
-	Game Doom
-	+FLOATBOB
-
-	States
-	{
-		Spawn:
-			RNDH A 0
-			RNDH A 0 A_Jump(256,"Herb1","Herb1","Herb1","Herb2","Herb2","Herb3")
-			RNDH A 0 A_FadeOut(1.0)
-			Stop
-
-		Herb1:
-			TNT1 A 0
-			TNT1 A 0 A_SpawnItemEx("MagicWater",0,0,0,0,0,0,0,SpawnerFlags,0,tid)
-			TNT1 A 0 A_FadeOut(1.0)
-			Stop
-		Herb2:
-			TNT1 A 0
-			TNT1 A 0 A_SpawnItemEx("SageElixir",0,0,0,0,0,0,0,SpawnerFlags,0,tid)
-			TNT1 A 0 A_FadeOut(1.0)
-			Stop
-		Herb3:
-			TNT1 A 0
-			TNT1 A 0 A_SpawnItemEx("ElfinElixir",0,0,0,0,0,0,0,SpawnerFlags,0,tid)
-			TNT1 A 0 A_FadeOut(1.0)
-			Stop
-	}
+	DropItem "MagicWater", 255, 3
+	DropItem "SageElixir", 255, 2
+	DropItem "ElfinElixir", 255, 1
 }
 
-actor RandomHerbSpawner : BaseItemSpawner 32110
+actor RandomHerbSpawner : RandomSpawner 32110
 {
 	//$Sprite "RNDHA0"
 	//$Category DV-DS Random Spawners
 	Tag "Random Herb Spawn: Spawns a random Medicinal Herb type"
-	RenderStyle Add
-	Radius 16
-	Height 16
-	Alpha 0.0
-	Scale 1.25
-	Game Doom
-	+FLOATBOB
-
-	States
-	{
-		Spawn:
-			RNDH A 0
-			RNDH A 0 A_Jump(256,"Herb1","Herb1","Herb1","Herb2","Herb2","Herb3")
-			RNDH A 0 A_FadeOut(1.0)
-			Stop
-
-		Herb1:
-			TNT1 A 0
-			TNT1 A 0 A_SpawnItemEx("MedicinalHerb",0,0,0,0,0,0,0,SpawnerFlags,0,tid)
-			TNT1 A 0 A_FadeOut(1.0)
-			Stop
-		Herb2:
-			TNT1 A 0
-			TNT1 A 0 A_SpawnItemEx("StrongMedicine",0,0,0,0,0,0,0,SpawnerFlags,0,tid)
-			TNT1 A 0 A_FadeOut(1.0)
-			Stop
-		Herb3:
-			TNT1 A 0
-			TNT1 A 0 A_SpawnItemEx("SpecialMedicine",0,0,0,0,0,0,0,SpawnerFlags,0,tid)
-			TNT1 A 0 A_FadeOut(1.0)
-			Stop
-	}
+	DropItem "MedicinalHerb", 255, 3
+	DropItem "StrongMedicine", 255, 2
+	DropItem "SpecialMedicine", 255, 1
 }
 
 actor RandomPowerupSpawner : RandomSpawner 32112
