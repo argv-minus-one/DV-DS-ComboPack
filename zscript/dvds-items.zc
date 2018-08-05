@@ -440,6 +440,7 @@ class AetheriusPowerMask : PowerIronFeet
 
 class RandomArmorSpawner : RandomSpawner
 {
+	//$Category DV-DS Random Spawners
 	override Name ChooseSpawn()
 	{
 		if (AetheriusPlayerPawn.IsItemForbiddenToAll('GreenArmorDS'))
