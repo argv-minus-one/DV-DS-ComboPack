@@ -1,0 +1,228 @@
+class ArmorBonusDSNone : BasicArmorBonus
+{
+	default
+	{
+		Armor.Savepercent 0;
+		Armor.Saveamount 0;
+		Armor.Maxsaveamount 0;
+		Inventory.Icon "TNT1A0";
+	}
+}
+
+class ArmorBonusDSGreen : BasicArmorBonus
+{
+	default
+	{
+		Armor.Savepercent 33.333;
+		Armor.Saveamount 1;
+		Armor.Maxsaveamount 5000;
+		DamageFactor "Normal", 0.975; // -2.5% Damage to HP
+		DamageFactor "Bullet", 0.85;	// -15% Bullet Damage
+		DamageFactor "Fire", 0.98;		// -2% Fire Damage
+		DamageFactor "Magma", 0.98;		// -2% Fire Damage
+		DamageFactor "Explosive", 0.99;		// -1% Explosive Damage
+		Inventory.Icon "ARM1A1";
+	}
+}
+
+class ArmorBonusDSBlue : BasicArmorBonus
+{
+	default
+	{
+		Armor.Savepercent 50;
+		Armor.Saveamount 1;
+		Armor.Maxsaveamount 5000;
+		DamageFactor "Normal", 0.95; // -5% Damage to HP
+		DamageFactor "Bullet", 0.75;	// -25% Bullet Damage
+		DamageFactor "Fire", 0.90;		// -10% Fire Damage
+		DamageFactor "Magma", 0.90;		// -10% Fire Damage
+		DamageFactor "Explosive", 0.96;		// -4% Explosive Damage
+		Inventory.Icon "ARM2A1";
+	}
+}
+
+class ArmorBonusDSStone1 : BasicArmorBonus
+{
+	default
+	{
+		Armor.Savepercent 66.6666;
+		Armor.Saveamount 1;
+		Armor.Maxsaveamount 5000;
+		DamageFactor "Normal", 0.875; // -12.5% Damage to HP
+		DamageFactor "Bullet", 0.60;	// -40% Bullet Damage
+		DamageFactor "Fire", 0.725;		// -27.5% Fire Damage
+		DamageFactor "Magma", 0.725;		// -27.5% Fire Damage
+		DamageFactor "Ice", 1.125;		// +12.5% Ice Damage
+		DamageFactor "Explosive", 0.85;		// -15% Explosive Damage
+		Inventory.Icon "STSKA1";
+	}
+}
+
+class ArmorBonusDSStone2 : BasicArmorBonus
+{
+	default
+	{
+		Armor.Savepercent 83.3334;
+		Armor.Saveamount 1;
+		Armor.Maxsaveamount 5000;
+		DamageFactor "Normal", 0.75;	// -25% Overall Damage
+		DamageFactor "Bullet", 0.60;	// -40% Bullet Damage
+		DamageFactor "Fire", 0.725;		// -27.5% Fire Damage
+		DamageFactor "Magma", 0.725;		// -27.5% Fire Damage
+		DamageFactor "Ice", 1.125;		// +12.5% Ice Damage
+		DamageFactor "Explosive", 0.70;		// -30% Explosive Damage
+		Inventory.Icon "STSKB1";
+	}
+}
+
+class ArmorBonusDSDiamond1 : BasicArmorBonus
+{
+	default
+	{
+		Armor.Savepercent 90;
+		Armor.Saveamount 1;
+		Armor.Maxsaveamount 5000;
+		DamageFactor "Normal", 0.625; // -37.5% Damage to HP
+		DamageFactor "Bullet", 0.525;	// -47.5% Bullet Damage
+		DamageFactor "Fire", 0.625;		// -37.5% Fire Damage
+		DamageFactor "Magma", 0.625;		// -37.5% Fire Damage
+		DamageFactor "Ice", 0.925;		// -7.5% Ice Damage
+		DamageFactor "Holy", 0.825;		// -17.5% Holy Damage
+		DamageFactor "Explosive", 0.925;		// -7.5% Explosive Damage
+		Inventory.Icon "DISKA1";
+	}
+}
+
+class ArmorBonusDSDiamond2 : BasicArmorBonus
+{
+	default
+	{
+		Armor.Savepercent 95;
+		Armor.Saveamount 1;
+		Armor.Maxsaveamount 5000;
+		DamageFactor "Normal", 0.25; // -75% Damage to HP
+		DamageFactor "Bullet", 0.525;	// -47.5% Bullet Damage
+		DamageFactor "Fire", 0.625;		// -37.5% Fire Damage
+		DamageFactor "Magma", 0.625;		// -37.5% Fire Damage
+		DamageFactor "Ice", 0.925;		// -7.5% Ice Damage
+		DamageFactor "Holy", 0.825;		// -17.5% Holy Damage
+		DamageFactor "Explosive", 0.65;		// -35% Explosive Damage
+		Inventory.Icon "DISKB1";
+	}
+}
+
+class ArmorBonusDSSpiritualExoskin : BasicArmorBonus
+{
+	default
+	{
+		Armor.Savepercent 50;
+		Armor.Saveamount 1;
+		Armor.Maxsaveamount int.max;
+		DamageFactor "Normal", 0.99; // -1% Damage to HP
+		// Inventory.Icon "DISKB0";
+	}
+}
+
+class ArmorBonusDSSpiritualExoskin2 : BasicArmorBonus
+{
+	default
+	{
+		Armor.Savepercent 75;
+		Armor.Saveamount 1;
+		Armor.Maxsaveamount int.max;
+		DamageFactor "Normal", 0.95; // -5% Damage to HP
+		// Inventory.Icon "DISKB0";
+	}
+}
+
+class ArmorBonusDSSpiritualExoskin3 : BasicArmorBonus
+{
+	default
+	{
+		Armor.Savepercent 100;
+		Armor.Saveamount 1;
+		Armor.Maxsaveamount int.max;
+		DamageFactor "Normal", 0.9; // -10% Damage to HP
+		// Inventory.Icon "DISKB0";
+	}
+}
+
+class ArmorBonusDS2 : ArmorBonus
+{
+	default
+	{
+		+FLOATBOB
+		+DONTGIB
+		Inventory.Pickupsound "getarmorbonus";
+		Inventory.Pickupmessage "Picked up an \cdarmor bonus\c-.";
+		Inventory.Icon "ARM1A1";
+		Inventory.ForbiddenTo "FloraBriscoletti";
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		if (!((gametic + FloatBobPhase) & 3))
+			CallACS("ArmorBonusEyeGlow");
+	}
+	
+	override bool Use(bool pickup)
+	{
+		if (playeringame[0] && players[0].mo == Owner)
+		{
+			CallACS("EmulateGiveArmorBonus");
+			return true;
+		}
+		else
+			return super.Use(pickup);
+	}
+}
+
+class AetheriusArmorBonusSpawner : RandomSpawner replaces ArmorBonus
+{
+	override Name ChooseSpawn()
+	{
+		if (AetheriusPlayerPawn.IsItemForbiddenToAll('ArmorBonusDS2'))
+		{
+			if (CallACS("CheckModType") == 2)
+				// Running DV2 with Flora
+				return 'AetheriusArmorBonusSpawner_FloraDV2';
+			else
+				return 'AetheriusArmorBonusSpawner_FloraClassic';
+		}
+		else
+			return 'AetheriusArmorBonusSpawner_Marine';
+	}
+}
+
+// For how the weights were computed, see the spreadsheet “AetheriusArmorBonusSpawner” in: EXTRAS/Item spawn probabilities.ods
+class AetheriusArmorBonusSpawner_Marine : RandomSpawner
+{
+	default {
+		DropItem 'MonsterMunchies', 255, 33;
+		DropItem 'RandomArmorSpawner', 255, 1;
+		DropItem 'ArmorBonusDS2', 255, 67617;
+	}
+}
+
+class AetheriusArmorBonusSpawner_FloraClassic : RandomSpawner
+{
+	default {
+		DropItem 'DoomSpellMana', 255, 255;
+		DropItem 'DoomSpellMana2', 255, 17;
+		DropItem 'DoomSpellMana3', 255, 1;
+		DropItem 'HealthBonus', 255, 8435;
+		DropItem 'FloraRandomArmorDoom2a', 255, 33;
+	}
+}
+
+class AetheriusArmorBonusSpawner_FloraDV2 : RandomSpawner
+{
+	default {
+		DropItem 'DoomSpellMana', 255, 255;
+		DropItem 'DoomSpellMana2', 255, 17;
+		DropItem 'DoomSpellMana3', 255, 1;
+		DropItem 'HealthBonus', 255, 8435;
+	}
+}
