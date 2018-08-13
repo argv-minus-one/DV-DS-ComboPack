@@ -15,8 +15,8 @@ extend class SceptreOfEmpyreaZSC
 		return
 			Owner && Owner.player &&
 			(Owner.player.cmd.buttons & SpinAttackButtons) == SpinAttackButtons &&
-			CallACS("UseStaminaAttack", SceptreSpinAttackStaminaCost[SceptreLevel] / 3, 1) &&
-			CallACS("GetMiscellaneousVar", 244);
+			CallACS('UseStaminaAttack', SceptreSpinAttackStaminaCost[SceptreLevel] / 3, 1) &&
+			CallACS('GetMiscellaneousVar', 244);
 	}
 	
 	states
@@ -31,20 +31,20 @@ extend class SceptreOfEmpyreaZSC
 				
 				A_Kiai(31);
 				A_PlaySound(SceptreOfEmpyreaZSC.SceptreSpinAttackSounds[invoker.SceptreLevel], CHAN_WEAPON);
-				ACS_NamedExecuteWithResult("StartTensionCountDown");
+				ACS_NamedExecuteWithResult('StartTensionCountDown');
 				invoker.SpinAttackRotation = 360;
 			}
 			SESN A 1
 			{
 				let turn = min(SceptreOfEmpyreaZSC.SceptreSpinAttackSpeeds[invoker.SceptreLevel], invoker.SpinAttackRotation);
 				let stamCost = SceptreOfEmpyreaZSC.SceptreSpinAttackStaminaCost[invoker.SceptreLevel];
-				if (ACS_NamedExecuteWithResult("BuffTimerCheck", 10) > 0) // Oomph
+				if (ACS_NamedExecuteWithResult('BuffTimerCheck', 10) > 0) // Oomph
 					stamCost = stamCost * 19 / 20;
-				if (ACS_NamedExecuteWithResult("BuffTimerCheck", 23) > 0) // Berserk
+				if (ACS_NamedExecuteWithResult('BuffTimerCheck', 23) > 0) // Berserk
 					stamCost = stamCost * 7 / 8;
 				stamCost = stamCost * turn / 360;
 				
-				if (!ACS_NamedExecuteWithResult("UseStaminaAttack", stamCost, 2))
+				if (!ACS_NamedExecuteWithResult('UseStaminaAttack', stamCost, 2))
 					return ResolveState(1);
 				
 				invoker.Owner.Angle += turn;

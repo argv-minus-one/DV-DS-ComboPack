@@ -104,7 +104,7 @@ extend class SceptreOfEmpyreaZSC
 	/** Awards experience for hitting something with the Sceptre. */
 	void AwardSceptreHitExperience(Actor hit, bool isKill)
 	{
-		let modType = CallACS("CheckModType");
+		let modType = CallACS('CheckModType');
 		
 		if (
 			!hit.bISMONSTER ||

@@ -7,11 +7,11 @@ extend class SceptreOfEmpyreaZSC
 		if (invoker.Shield)
 			invoker.Shield.EffectTics = 2;
 		else
-			invoker.Shield = SceptreShieldPower(self.GiveInventoryType("SceptreShieldPower"));
+			invoker.Shield = SceptreShieldPower(self.GiveInventoryType('SceptreShieldPower'));
 		
 		A_SceptreAttack(
 			0, 0,
-			puffType: "SceptreDefenseHit",
+			puffType: 'SceptreDefenseHit',
 			puffWalls: false,
 			rememberAlreadyHitActors: false,
 			enabledEffects: SceptrePuff.SPFX_SOUND_HITPROJECTILE
@@ -24,7 +24,7 @@ class SceptreShieldPower : PowerShielded
 	default
 	{
 		Powerup.Duration 2;
-		PowerShielded.ShieldActorClass "SceptreShield";
+		PowerShielded.ShieldActorClass 'SceptreShield';
 	}
 }
 

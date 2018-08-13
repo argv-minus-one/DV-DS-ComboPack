@@ -61,9 +61,9 @@ extend class SceptreOfEmpyreaZSC
 			}
 			
 		Twirling:
-			FLHS A 0 A_JumpIf(!invoker.TwirlDeductCosts() || !invoker.Twirling, "TwirlStop");
+			FLHS A 0 A_JumpIf(!invoker.TwirlDeductCosts() || !invoker.Twirling, 'TwirlStop');
 			#### # 1 { A_SceptreDefend(); invoker.TwirlUpdate(); }
-			#### # 0 A_ReFire("Twirling");
+			#### # 0 A_ReFire('Twirling');
 		
 		TwirlStop:
 			// Start the recall animation, then wait for it to finish.
@@ -108,7 +108,7 @@ class SceptreTwirling : Actor
 		Height 40;
 		Radius 40;
 		Scale .08888888888888889; // (40 / 450) in double precision
-		ActiveSound "SceptreTwirl1";
+		ActiveSound 'SceptreTwirl1';
 		SceptreTwirling.SpinAccelMult (1./4.);
 		SceptreTwirling.SpinRate 25;
 		SceptreTwirling.TouchPos 14, -6, 0;
@@ -219,7 +219,7 @@ class SceptreTwirling : Actor
 	
 	void Recall()
 	{
-		SetStateLabel("Recall");
+		SetStateLabel('Recall');
 	}
 	
 	protected virtual void SetSpriteAndFrame()
@@ -234,7 +234,7 @@ class SceptreTwirling : Actor
 			// The frames of the animation are under the FancyTwirlFrames label. +0 is with no blur, +1 is with a little blur, and so on.
 			// So, for every degrees/tic of spin rate, increase blur by 1/25 (up to 4).
 			uint f = min(abs(RotControl.Vel) / 25, 3);
-			st = FindState("FancyTwirlFrames") + f;
+			st = FindState('FancyTwirlFrames') + f;
 		}
 		else
 		{
@@ -244,15 +244,15 @@ class SceptreTwirling : Actor
 			if (abs(deltaangle(Roll, TouchAngle)) < 45. && abs(RotControl.Vel) < 10.)
 			{
 				// Use the regular unblurred sprite in this situation.
-				st = FindState("Spawn");
+				st = FindState('Spawn');
 			}
 			else
 			{
 				// First of all, choose the correct sprite set. There are two blur levels in this animation, so we'll go to the blurrier one at ≥50°/tic.
 				if (abs(RotControl.Vel) >= 50.)
-					st = FindState("LegacyTwirlFramesSuper");
+					st = FindState('LegacyTwirlFramesSuper');
 				else
-					st = FindState("LegacyTwirlFrames");
+					st = FindState('LegacyTwirlFrames');
 				
 				// The frames for this animation are determined by the roll angle.
 				// The angles of the sprite frames are:

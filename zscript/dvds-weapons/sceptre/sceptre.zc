@@ -51,8 +51,8 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 	{
 		if (Owner && Owner.player && Owner.player.ReadyWeapon == self)
 		{
-			SceptreLevel = CallACS("GetSceptreLevel");
-			CharLevel = CallACS("GetPlayerLevel");
+			SceptreLevel = CallACS('GetSceptreLevel');
+			CharLevel = CallACS('GetPlayerLevel');
 		}
 		else
 			SceptreLevel = CharLevel = 0;
@@ -60,7 +60,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		Crosshair = dvds_florasceptrecrosshair? 8 : 0;
 		
 		AnimSpeedFactor = SceptreAttackSpeeds[SceptreLevel];
-		if (ACS_NamedExecuteWithResult("GetBuffTimer", 7) > 0)
+		if (ACS_NamedExecuteWithResult('GetBuffTimer', 7) > 0)
 			AnimSpeedFactor -= 1.;
 		
 		Super.Tick();
@@ -78,8 +78,8 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 					!multiplayer &&
 					playeringame[0] &&
 					(
-						!(players[0].mo is "FloraBriscoletti") ||
-						players[0].mo.CountInv("SceptreOfEmpyrea")
+						!(players[0].mo is 'FloraBriscoletti') ||
+						players[0].mo.CountInv('SceptreOfEmpyrea')
 					)
 				)
 					Destroy();

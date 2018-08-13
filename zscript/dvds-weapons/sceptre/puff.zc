@@ -104,7 +104,7 @@ class SceptrePuff : AetheriusMeleePuff
 		
 		if (SPFX_IMPACT & effectFlags & EnabledEffects)
 		{
-			let sw = SceptreShockwave(Spawn("SceptreShockwave", Pos));
+			let sw = SceptreShockwave(Spawn('SceptreShockwave', Pos));
 			sw.EnabledEffects = 0;
 			sw.SceptreLevel = SceptreLevel;
 		}
@@ -118,7 +118,7 @@ class SceptrePuff : AetheriusMeleePuff
 			TNT1 A 0 nodelay
 			{
 				{
-					let secondary = Spawn("SceptreShockwave", Pos, replace: ALLOW_REPLACE);
+					let secondary = Spawn('SceptreShockwave', Pos, replace: ALLOW_REPLACE);
 					let ssp = SceptrePuff(secondary);
 					if (ssp)
 					{
@@ -162,7 +162,7 @@ class SceptreDefenseHit : SceptrePuff
 		Alpha = Opacities[SceptreLevel];
 		
 		// Same as A_HitSparkGetSize2, but without changing the actual scale field.
-		BaseScale = Scales[SceptreLevel] * (1. + (CallACS("MiscVarCheckDECORATE",10005) * .05) + (CallACS("MiscVarCheckDECORATE",10006) * .125));
+		BaseScale = Scales[SceptreLevel] * (1. + (CallACS('MiscVarCheckDECORATE',10005) * .05) + (CallACS('MiscVarCheckDECORATE',10006) * .125));
 	}
 	
 	states

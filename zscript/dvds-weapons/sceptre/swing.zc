@@ -22,11 +22,11 @@ extend class SceptreOfEmpyreaZSC
 				if (!invoker.CanOwnerMove())
 					return state(null);
 				else if (invoker.CheckAerialAttack())
-					return ResolveState("AerialAttack");
+					return ResolveState('AerialAttack');
 				else if (invoker.CheckSpinAttack())
-					return ResolveState("SpinAttack");
+					return ResolveState('SpinAttack');
 				else
-					return A_SceptreLower("Hold", speed: 1.5);
+					return A_SceptreLower('Hold', speed: 1.5);
 			}
 			wait;
 		
@@ -35,29 +35,29 @@ extend class SceptreOfEmpyreaZSC
 			
 			TNT1 A 1
 			{
-				let inMenu = CallACS("GetMiscellaneousVar", 2500);
-				let asleep = CallACS("GetBuffTimer", 20);
+				let inMenu = CallACS('GetMiscellaneousVar', 2500);
+				let asleep = CallACS('GetBuffTimer', 20);
 				
 				if (!invoker.CanOwnerMove())
-					return ResolveState("Hold");
+					return ResolveState('Hold');
 				else if (player.cmd.buttons & BT_USER1)
-					return ResolveState("User1");
+					return ResolveState('User1');
 				else if (invoker.CheckSpinAttack())
-					return ResolveState("SpinAttack");
+					return ResolveState('SpinAttack');
 				else if (player.cmd.buttons & BT_ALTATTACK)
-					return ResolveState("Select");
+					return ResolveState('Select');
 				else if (player.cmd.buttons & BT_ATTACK)
 					return state(null);
 				else
-					return ResolveState("Swing");
+					return ResolveState('Swing');
 			}
 			wait;
 		
 		Swing:
 			TNT1 A 0
 			{
-				if (!CallACS("UseStaminaAttack", invoker.SceptreSwingStaminaCost[invoker.SceptreLevel]))
-					return ResolveState("Select");
+				if (!CallACS('UseStaminaAttack', invoker.SceptreSwingStaminaCost[invoker.SceptreLevel]))
+					return ResolveState('Select');
 				
 				A_AwardSceptreExperience();
 				A_Kiai(63);
@@ -69,7 +69,7 @@ extend class SceptreOfEmpyreaZSC
 					// Sometimes a swing will be enough to wake up all monsters in the area.
 					A_AlertMonsters();
 				
-				CallACS("StartTensionCountDown");
+				CallACS('StartTensionCountDown');
 				
 				A_WeaponOffset(46);
 				

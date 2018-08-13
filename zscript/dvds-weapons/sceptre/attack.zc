@@ -15,7 +15,7 @@ extend class SceptreOfEmpyreaZSC
 		int damage,
 		int damageDeviation,
 		int range = -1,
-		Class<Actor> puffType = "SceptrePuff",
+		Class<Actor> puffType = 'SceptrePuff',
 		double swingAngle = 0,
 		double swingWidth = SceptreOfEmpyreaZSC.FullAttackAngle,
 		bool puffWalls = true,
@@ -178,7 +178,7 @@ extend class SceptreOfEmpyreaZSC
 				puffType
 			);
 			
-			if (puff is "SceptrePuff")
+			if (puff is 'SceptrePuff')
 				SceptrePuff(puff).SceptreLevel = invoker.SceptreLevel;
 		}
 	}
@@ -198,17 +198,17 @@ extend class SceptreOfEmpyreaZSC
 		
 		// [STRIFE] Stamina Upgrades
 		{
-			let strifeStamMult = (4. + CallACS("MiscVarCheckDECORATE", 317)) * (1. / 4.);
+			let strifeStamMult = (4. + CallACS('MiscVarCheckDECORATE', 317)) * (1. / 4.);
 			dmg *= strifeStamMult;
 			dev *= strifeStamMult;
 			
 			if (dvdsdebug_showmeleeinformation)
-				Console.Printf("    Strife stamina upgrades (%d): %fx", CallACS("MiscVarCheckDECORATE", 317), strifeStamMult);
+				Console.Printf("    Strife stamina upgrades (%d): %fx", CallACS('MiscVarCheckDECORATE', 317), strifeStamMult);
 		}
 		
 		// Strength Stat Check
 		{
-			let ownerStrength = CallACS("MiscVarCheckDECORATE", 35);
+			let ownerStrength = CallACS('MiscVarCheckDECORATE', 35);
 			
 			// Here, we use >> 5 instead of / 32, and >> 6 instead of / 64, because it's equivalent and faster.
 			let strAdd = (((SceptreLevel * (4 + (ownerStrength >> 5))) + (16 + (SceptreLevel * (2 + (ownerStrength >> 6))))) * ownerStrength);
@@ -222,7 +222,7 @@ extend class SceptreOfEmpyreaZSC
 		}
 		
 		// Berserk Check
-		if (Owner.CountInv("PowerStrength"))
+		if (Owner.CountInv('PowerStrength'))
 		{
 			dmg *= 10;
 			dev *= 10;
@@ -238,8 +238,8 @@ extend class SceptreOfEmpyreaZSC
 		
 		// StamUp Check
 		{
-			let stamUpRank = CallACS("MiscVarCheckDECORATE", 10005);
-			let stamUpExRank = CallACS("MiscVarCheckDECORATE", 10006);
+			let stamUpRank = CallACS('MiscVarCheckDECORATE', 10005);
+			let stamUpExRank = CallACS('MiscVarCheckDECORATE', 10006);
 			let perkFactor = 1. + stamUpRank * .075 + stamUpExRank * .1875;
 			
 			dmg *= perkFactor;

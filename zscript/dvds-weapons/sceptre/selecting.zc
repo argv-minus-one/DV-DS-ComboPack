@@ -25,7 +25,7 @@ extend class SceptreOfEmpyreaZSC
 		
 		if (andThen && ps.x <= invoker.SceptreRaiseEndOffset[0] && ps.y <= invoker.SceptreRaiseEndOffset[1])
 		{
-			if (andThen == "Ready")
+			if (andThen == 'Ready')
 				A_Raise(0);
 			return ResolveState(andThen);
 		}
@@ -78,20 +78,20 @@ extend class SceptreOfEmpyreaZSC
 			TNT1 A 0
 			{
 				A_SceptreBeginRaise();
-				SetInventory("DrawingDiarisBow", 0);
+				SetInventory('DrawingDiarisBow', 0);
 			}
 			
 			SCEM A 1
 			{
 				A_WeaponReady(WRF_SceptreMidAnim);
-				A_SceptreRaise("Ready");
+				A_SceptreRaise('Ready');
 			}
 			wait;
 		
 		Deselect:
 			TNT1 A 0
 			{
-				CallACS("MiscVarSetDECORATE",397,0);
+				CallACS('MiscVarSetDECORATE',397,0);
 			}
 			
 			SCEM A 1 A_SceptreLower(switchWeaponWhenDone: true);
