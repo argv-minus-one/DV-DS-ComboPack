@@ -112,7 +112,7 @@ actor MarineWeapon : QuickMeleeWeaponZSC //Weapon
 	Weapon.Kickback 100
 	States
 	{
-		User1:
+		//User1:
 			TNT1 A 0
 			{
 				if (CallACS("UseStaminaAttack",CallACS("GetKickStaminaUse",0),2) == 0) { return state("Ready"); }
@@ -242,7 +242,7 @@ actor FloraWeapon : QuickMeleeWeapon
 	States
 	{
 		// Quick Kick
-		User1: // Kick - Most Weapons
+		//User1: // Kick - Most Weapons
 			TNT1 A 0
 			{
 				if (CallACS("UseStaminaAttack",CallACS("GetKickStaminaUse",0),2) == 0) { return state("Ready"); }
