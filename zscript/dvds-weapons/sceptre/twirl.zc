@@ -84,7 +84,7 @@ extend class SceptreOfEmpyreaZSC
 			}
 			
 			// Lower Flora's hand.
-			#### # 1 A_AnimateOffset(1, (0, WEAPONBOTTOM), speed: 10);
+			#### # 1 A_AnimateOffset(1, (0, WEAPONBOTTOM), speed: 20);
 			wait;
 			
 			#### # 0;
@@ -107,7 +107,7 @@ class SceptreTwirling : Actor
 		Radius 40;
 		Scale .08888888888888889; // (40 / 450) in double precision
 		ActiveSound "SceptreTwirl1";
-		SceptreTwirling.SpinAccelMult (1./8.);
+		SceptreTwirling.SpinAccelMult (1./4.);
 		SceptreTwirling.SpinRate 25;
 		SceptreTwirling.TouchPos 14, -6, 0;
 		SceptreTwirling.TouchAngle 180;
