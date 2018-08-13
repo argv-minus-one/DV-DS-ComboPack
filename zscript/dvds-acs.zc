@@ -1,5 +1,5 @@
 /** Some helpers for interacting with Aetherius' ACS code. */
-struct AetheriusACS
+struct AetheriusACS play
 {
 	static bool CheckMP(int amount, bool ignoreInfiniteAmmo = true)
 	{
