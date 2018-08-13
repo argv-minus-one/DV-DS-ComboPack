@@ -47,14 +47,16 @@ extend class SceptreOfEmpyreaZSC
 			wait;
 			
 			#### # 0 {
+				Class<Actor> rc = GetReplacement('SceptreTwirling');
+				
+				if (!(rc is 'SceptreTwirling'))
 				{
-					let rc = GetReplacement("SceptreTwirling");
-					if (!(rc is "SceptreTwirling"))
-						ThrowAbortException("%s, the replacement for SceptreTwirling, is not a subtype of SceptreTwirling!", rc.GetClassName());
+					Console.Printf("\cg%s: Class %s, which replaces SceptreTwirling, is not a subtype of SceptreTwirling! Falling back to using stock SceptreTwirling instead of this replacement.", invoker.GetClassName(), rc.GetClassName());
+					rc = 'SceptreTwirling';
 				}
 				
 				// Spawn the twirling sceptre.
-				invoker.Twirling = SceptreTwirling(Spawn("SceptreTwirling", pos: Pos, replace: ALLOW_REPLACE));
+				invoker.Twirling = SceptreTwirling(Spawn(rc, pos: Pos, replace: NO_REPLACE));
 				invoker.Twirling.master = self;
 			}
 			
