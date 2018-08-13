@@ -1,0 +1,113 @@
+class AetheriusMightyFoot : StateProvider abstract
+{
+	default
+	{
+		DefaultStateUsage SUF_ACTOR|SUF_OVERLAY|SUF_ITEM;
+	}
+	
+	const PSP_MIGHTYFOOT = -439;
+	
+	state KickState;
+	protected PSprite psp;
+	protected AnimSpeedScaler animSpeed;
+	
+	override void BeginPlay()
+	{
+		super.BeginPlay();
+		animSpeed.Target = self;
+		KickState = FindState('Kick');
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		if (
+			!psp // not already kicking
+			&& Owner && Owner.Player // have an owner that's a player
+			&& Owner.Player.playerstate == PST_LIVE // the owner is alive
+			&& Owner.Player.cmd.buttons & BT_USER1 // the player is pushing the +user1 button
+		)
+		{
+			// Begin kicking.
+			psp = Owner.Player.GetPsprite(PSP_MIGHTYFOOT);
+			psp.Caller = self;
+			psp.SetState(KickState);
+		}
+	}
+	
+	action state A_ReKick()
+	{
+		return
+			Player // still owned by a player
+			&& Player.playerstate == PST_LIVE // owner is still alive
+			&& Player.cmd.buttons & BT_USER1 // player is still holding the +user1 button
+			? invoker.KickState
+			: null;
+	}
+}
+
+class AetheriusMarineMightyFoot : AetheriusMightyFoot abstract
+{
+	override void Tick()
+	{
+		super.Tick();
+		
+		if (psp)
+		{
+			// While kicking, keep animation speeds up-to-date.
+			//animSpeed.Scale = TODO;
+		}
+	}
+	
+	states
+	{
+		Kick:
+			LEG2 ABCDEFEDCB 2;
+			#### A 2 A_ReKick;
+			stop;
+	}
+}
+
+class AetheriusDeggarisMightyFoot : AetheriusMarineMightyFoot
+{
+	default
+	{
+		Inventory.RestrictedTo 'DeggarisMontegger';
+	}
+}
+
+class AetheriusIlluciaMightyFoot : AetheriusMarineMightyFoot
+{
+	default
+	{
+		Inventory.RestrictedTo 'IlluciaHendershot';
+	}
+}
+
+class AetheriusFloraMightyFoot : AetheriusMightyFoot
+{
+	default
+	{
+		Inventory.RestrictedTo 'FloraBriscoletti';
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		if (psp)
+		{
+			// While kicking, keep animation speeds up-to-date.
+			//animSpeed.Scale = TODO;
+		}
+	}
+	
+	states
+	{
+		Kick:
+			FKIC ABCDEFEDCB 2;
+			#### A 2 A_ReKick;
+			stop;
+	}
+}
