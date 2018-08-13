@@ -81,7 +81,11 @@ extend class SceptreOfEmpyreaZSC
 				SetInventory("DrawingDiarisBow", 0);
 			}
 			
-			SCEM A 1 A_SceptreRaise("Ready");
+			SCEM A 1
+			{
+				A_WeaponReady(WRF_SceptreMidAnim);
+				A_SceptreRaise("Ready");
+			}
 			wait;
 		
 		Deselect:

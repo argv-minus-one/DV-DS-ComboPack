@@ -66,6 +66,9 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 		Super.Tick();
 	}
 	
+	const WRF_SceptreDefault = WRF_ALLOWUSER1;
+	const WRF_SceptreMidAnim = WRF_SceptreDefault | WRF_NOBOB;
+	
 	states
 	{
 		Spawn:
@@ -100,7 +103,7 @@ class SceptreOfEmpyreaZSC : AetheriusBaseWeaponZSC //FloraWeapon //32221
 			SCEM A 1
 			{
 				invoker.bMeleeWeapon = random(1,100) <= 95;
-				A_WeaponReady(WRF_ALLOWUSER1);
+				A_WeaponReady(WRF_SceptreDefault);
 			}
 			wait;
 	}

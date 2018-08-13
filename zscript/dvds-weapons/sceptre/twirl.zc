@@ -87,10 +87,7 @@ extend class SceptreOfEmpyreaZSC
 			#### # 1 A_AnimateOffset(1, (0, WEAPONBOTTOM), speed: 10);
 			wait;
 			
-			// If the player wants to perform some other attack or switch weapons, now's the time.
-			SCEM A 0 A_WeaponReady(WRF_ALLOWUSER1);
-			
-			// Otherwise, do the usual raise animation.
+			#### # 0;
 			goto Select;
 	}
 }
